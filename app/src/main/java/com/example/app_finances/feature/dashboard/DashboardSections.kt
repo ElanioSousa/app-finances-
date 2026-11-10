@@ -18,12 +18,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.app_finances.R
-import com.example.app_finances.core.designsystem.categoryIcon
 import com.example.app_finances.core.designsystem.chart.ChartLegend
 import com.example.app_finances.core.designsystem.chart.MonthBarGroup
 import com.example.app_finances.core.designsystem.chart.MonthBars
 import com.example.app_finances.core.designsystem.chart.MonthBarsState
-import com.example.app_finances.core.designsystem.chart.RankedBar
 import com.example.app_finances.core.designsystem.chart.RankedBars
 import com.example.app_finances.core.designsystem.component.AmountTone
 import com.example.app_finances.core.designsystem.component.CategoryIcon
@@ -38,8 +36,13 @@ import com.example.app_finances.core.format.Dates
 import com.example.app_finances.core.format.Money
 import com.example.app_finances.data.local.entity.TransactionEntity
 import com.example.app_finances.core.model.TransactionItem
+import com.example.app_finances.core.ui.BudgetRow
+import com.example.app_finances.core.ui.rememberCategoryBars
+import com.example.app_finances.data.local.entity.CategoryEntity
+import com.example.app_finances.domain.CategorySpend
 import com.example.app_finances.core.ui.TransactionAmount
 import com.example.app_finances.core.ui.TransactionIcon
+import com.example.app_finances.domain.BudgetStatus
 import com.example.app_finances.domain.CardSummary
 import com.example.app_finances.domain.Insights
 import com.example.app_finances.domain.MonthBar
@@ -126,30 +129,25 @@ fun CardsCard(cards: List<CardSummary>, today: LocalDate, onOpenCard: (Long) -> 
     }
 }
 
+/** Orçamentos do mês, os mais apertados primeiro. */
+@Composable
+fun BudgetsCard(budgets: List<BudgetStatus>) {
+    SectionCard(title = stringResource(R.string.home_budgets)) {
+        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            budgets.forEach { BudgetRow(it) }
+        }
+    }
+}
+
 /** Ranking das categorias com mais gasto no mês. */
 @Composable
-fun SpendingCard(spending: List<SpendingEntry>) {
+fun SpendingCard(spending: List<CategorySpend>, categoryById: Map<Long, CategoryEntity>) {
     SectionCard(title = stringResource(R.string.home_spending)) {
         if (spending.isEmpty()) {
             Text(stringResource(R.string.home_spending_empty), color = MaterialTheme.colorScheme.onSurfaceVariant)
             return@SectionCard
         }
-        val other = stringResource(R.string.home_other_categories)
-        val none = stringResource(R.string.category_none)
-        val muted = MaterialTheme.colorScheme.onSurfaceVariant
-        val rows = remember(spending, other, none, muted) {
-            spending.map { entry ->
-                val category = entry.category
-                RankedBar(
-                    label = category?.name ?: if (entry.spend.isOther) other else none,
-                    value = Money.format(entry.spend.cents),
-                    share = entry.spend.share,
-                    icon = categoryIcon(category?.iconKey),
-                    iconColor = category?.let { Color(it.colorArgb) } ?: muted,
-                )
-            }
-        }
-        RankedBars(rows)
+        RankedBars(rememberCategoryBars(spending, categoryById))
     }
 }
 

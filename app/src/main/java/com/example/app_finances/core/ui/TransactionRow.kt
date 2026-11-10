@@ -8,10 +8,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import com.example.app_finances.R
-import com.example.app_finances.core.designsystem.categoryIcon
 import com.example.app_finances.core.designsystem.component.CategoryIcon
 import com.example.app_finances.core.designsystem.component.ListRow
 import com.example.app_finances.core.designsystem.component.RowText
@@ -38,8 +36,7 @@ fun TransactionIcon(item: TransactionItem) {
     if (item.transaction.type == TransactionType.TRANSFER) {
         CategoryIcon(Icons.AutoMirrored.Outlined.CompareArrows, FinanceTheme.colors.transfer)
     } else {
-        val color = item.category?.let { Color(it.colorArgb) } ?: MaterialTheme.colorScheme.onSurfaceVariant
-        CategoryIcon(categoryIcon(item.category?.iconKey), color)
+        CategoryBadge(item.category)
     }
 }
 

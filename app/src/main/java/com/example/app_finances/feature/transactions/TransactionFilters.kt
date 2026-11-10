@@ -67,7 +67,7 @@ fun FilterRow(filter: TransactionFilter, catalog: Catalog, onFilterChange: (Tran
                 label = { Text(option.label) },
             )
         }
-        val categoryOptions = remember(catalog.categories) { catalog.categories.map { Option(it.id, it.name) } }
+        val categoryOptions = remember(catalog) { catalog.activeCategories.map { Option(it.id, it.name) } }
         val accountOptions = remember(catalog.accounts) { catalog.accounts.map { Option(it.id, it.name) } }
         DropdownChip(stringResource(R.string.filter_category), categoryOptions, filter.categoryId) {
             onFilterChange(filter.copy(categoryId = it))

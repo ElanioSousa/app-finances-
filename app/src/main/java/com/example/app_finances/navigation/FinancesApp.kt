@@ -43,7 +43,9 @@ import com.example.app_finances.feature.cards.detail.CardDetailActions
 import com.example.app_finances.feature.cards.detail.CardDetailScreen
 import com.example.app_finances.feature.dashboard.DashboardActions
 import com.example.app_finances.feature.dashboard.DashboardScreen
+import com.example.app_finances.feature.categories.CategoriesScreen
 import com.example.app_finances.feature.more.MoreScreen
+import com.example.app_finances.feature.reports.ReportsScreen
 import com.example.app_finances.feature.recurring.RecurringScreen
 import com.example.app_finances.feature.transactions.TransactionsScreen
 import com.example.app_finances.feature.transactions.form.TransactionFormSheet
@@ -64,7 +66,7 @@ fun FinancesApp() {
 
     CompositionLocalProvider(LocalSnackbarHostState provides snackbarHostState) {
         Scaffold(
-            bottomBar = { BottomBar(current) { navController.navigateToTab(it) } },
+            bottomBar = { BottomBar(current) { navController.selectTab(it, current) } },
             floatingActionButton = { if (showFab) AddButton { editorTarget = NEW_TRANSACTION } },
             snackbarHost = { SnackbarHost(snackbarHostState) },
         ) { padding ->
@@ -138,6 +140,8 @@ private fun NavGraphBuilder.moreGraph(nav: AppNavContext) = tabGraph(TopLevelDes
     composable(route) { MoreScreen(nav.padding, onOpen = nav.navController::navigate) }
     composable(Routes.ACCOUNTS) { AccountsScreen(nav.padding, onBack = nav.navController::popBackStack) }
     composable(Routes.RECURRING) { RecurringScreen(nav.padding, onBack = nav.navController::popBackStack) }
+    composable(Routes.CATEGORIES) { CategoriesScreen(nav.padding, onBack = nav.navController::popBackStack) }
+    composable(Routes.REPORTS) { ReportsScreen(nav.padding, onBack = nav.navController::popBackStack) }
 }
 
 @Composable
@@ -181,6 +185,11 @@ private fun AddButton(onClick: () -> Unit) {
 private fun NavHostController.navigateToCard(cardId: Long) {
     navigateToTab(TopLevelDestination.Cards)
     navigate(Routes.cardDetail(cardId))
+}
+
+/** Tocar na aba atual volta ao início dela; tocar em outra troca de aba. */
+private fun NavHostController.selectTab(destination: TopLevelDestination, current: TopLevelDestination) {
+    if (destination == current) popBackStack(destination.route, inclusive = false) else navigateToTab(destination)
 }
 
 /** Troca de aba sem empilhar telas e preservando a pilha de cada aba. */

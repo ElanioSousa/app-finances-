@@ -35,6 +35,20 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun v2ParaV3MantemCategoriasSemOrcamento() {
+        helper.createDatabase(DB, 2).use { db ->
+            db.execSQL("INSERT INTO categories (id, name, kind, iconKey, colorArgb, archived) VALUES (1, 'Mercado', 'EXPENSE', 'food', 0, 0)")
+        }
+        helper.runMigrationsAndValidate(DB, 3, true).use { db ->
+            db.query("SELECT name, monthlyBudgetCents FROM categories").use { cursor ->
+                assertTrue(cursor.moveToFirst())
+                assertEquals("Mercado", cursor.getString(0))
+                assertTrue(cursor.isNull(1))
+            }
+        }
+    }
+
     private companion object {
         const val DB = "migracao-teste.db"
     }

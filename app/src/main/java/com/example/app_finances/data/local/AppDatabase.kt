@@ -32,11 +32,13 @@ import com.example.app_finances.data.local.entity.TransactionEntity
         TransactionEntity::class,
         InvoicePaymentEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = true,
     autoMigrations = [
         // v2: recorrências guardam até onde já geraram lançamentos.
         AutoMigration(from = 1, to = 2),
+        // v3: categorias de despesa podem ter orçamento mensal.
+        AutoMigration(from = 2, to = 3),
     ],
 )
 @TypeConverters(Converters::class)

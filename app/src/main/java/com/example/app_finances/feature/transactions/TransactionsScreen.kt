@@ -1,13 +1,9 @@
 package com.example.app_finances.feature.transactions
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
@@ -34,18 +30,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.app_finances.R
-import com.example.app_finances.core.designsystem.component.AmountTone
 import com.example.app_finances.core.designsystem.component.EmptyState
-import com.example.app_finances.core.designsystem.component.MoneyText
 import com.example.app_finances.core.designsystem.component.MonthSelector
 import com.example.app_finances.core.designsystem.component.ScreenColumn
 import com.example.app_finances.core.designsystem.theme.FinanceTheme
 import com.example.app_finances.core.format.Dates
 import com.example.app_finances.core.model.TransactionItem
 import com.example.app_finances.core.ui.LocalSnackbarHostState
+import com.example.app_finances.core.ui.MonthTotalsRow
 import com.example.app_finances.core.ui.TransactionRow
 import com.example.app_finances.core.ui.containerViewModel
-import com.example.app_finances.domain.MonthTotals
 import java.time.YearMonth
 
 /** Ações da tela agrupadas, para não espalhar callbacks por todos os componentes. */
@@ -95,23 +89,6 @@ private fun TransactionEvents(viewModel: TransactionsViewModel) {
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun MonthTotalsRow(totals: MonthTotals) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        LabeledAmount(stringResource(R.string.home_income), totals.incomeCents, AmountTone.Income)
-        LabeledAmount(stringResource(R.string.home_expenses), totals.expenseCents, AmountTone.Expense)
-        LabeledAmount(stringResource(R.string.month_result), totals.resultCents, AmountTone.BySign)
-    }
-}
-
-@Composable
-private fun LabeledAmount(label: String, cents: Long, tone: AmountTone) {
-    Column {
-        Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        MoneyText(cents = cents, tone = tone)
     }
 }
 

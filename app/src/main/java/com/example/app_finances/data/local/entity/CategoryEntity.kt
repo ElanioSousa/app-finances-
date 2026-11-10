@@ -13,4 +13,6 @@ data class CategoryEntity(
     val iconKey: String,
     val colorArgb: Int,
     val archived: Boolean = false,
+    /** Teto de gasto por mês (só despesas); nulo = sem orçamento. */
+    val monthlyBudgetCents: Long? = null,
 )

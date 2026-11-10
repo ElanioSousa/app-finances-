@@ -18,24 +18,25 @@ import com.example.app_finances.R
 import com.example.app_finances.core.format.Dates
 import java.time.YearMonth
 
-/** "‹ Novembro de 2026 ›" para navegar entre meses. */
+/** "‹ rótulo ›": navega para o período anterior/seguinte (mês, ano…). */
 @Composable
-fun MonthSelector(
-    month: YearMonth,
-    onMonthChange: (YearMonth) -> Unit,
-    modifier: Modifier = Modifier,
-) {
+fun PeriodSelector(label: String, onPrevious: () -> Unit, onNext: () -> Unit, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        IconButton(onClick = { onMonthChange(month.minusMonths(1)) }) {
+        IconButton(onClick = onPrevious) {
             Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, stringResource(R.string.month_previous))
         }
-        Text(Dates.month(month), style = MaterialTheme.typography.titleMedium)
-        IconButton(onClick = { onMonthChange(month.plusMonths(1)) }) {
+        Text(label, style = MaterialTheme.typography.titleMedium)
+        IconButton(onClick = onNext) {
             Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, stringResource(R.string.month_next))
         }
     }
 }
+
+/** "‹ Novembro de 2026 ›" para navegar entre meses. */
+@Composable
+fun MonthSelector(month: YearMonth, onMonthChange: (YearMonth) -> Unit, modifier: Modifier = Modifier) =
+    PeriodSelector(Dates.month(month), { onMonthChange(month.minusMonths(1)) }, { onMonthChange(month.plusMonths(1)) }, modifier)

@@ -35,7 +35,10 @@ data class TransactionItem(
         }
 }
 
-/** Categorias, contas e cartões ativos, usados para descrever, filtrar e preencher formulários. */
+/**
+ * Categorias (inclusive arquivadas, para dar nome a lançamentos antigos), contas e cartões
+ * ativos. Listas de escolha usam só as categorias ativas.
+ */
 data class Catalog(
     val categories: List<CategoryEntity> = emptyList(),
     val accounts: List<AccountEntity> = emptyList(),
@@ -44,9 +47,13 @@ data class Catalog(
     val categoryById: Map<Long, CategoryEntity> by lazy { categories.associateBy { it.id } }
     val accountNames: Map<Long, String> by lazy { accounts.associate { it.id to it.name } }
     val cardNames: Map<Long, String> by lazy { cards.associate { it.id to it.name } }
+    val cardById: Map<Long, CreditCardEntity> by lazy { cards.associateBy { it.id } }
 
-    /** Só as categorias que o tipo de lançamento aceita (regra do domínio). */
-    fun categoriesFor(type: TransactionType): List<CategoryEntity> = categories.filter { it.kind == type.categoryKind }
+    /** Categorias que podem ser escolhidas hoje (não arquivadas). */
+    val activeCategories: List<CategoryEntity> by lazy { categories.filterNot { it.archived } }
+
+    /** Categorias ativas que o tipo de lançamento aceita (regra do domínio). */
+    fun categoriesFor(type: TransactionType): List<CategoryEntity> = activeCategories.filter { it.kind == type.categoryKind }
 }
 
 /** Repositórios de onde vem o [Catalog]. */
@@ -58,7 +65,7 @@ data class CatalogSources(
 
 /** Só cadastros (sem saldos): não refaz o cálculo de saldo a cada lançamento gravado. */
 fun observeCatalog(sources: CatalogSources): Flow<Catalog> =
-    combine(sources.categories.observeActive(), sources.accounts.observeAccounts(), sources.cards.observeCards(), ::Catalog)
+    combine(sources.categories.observeAll(), sources.accounts.observeAccounts(), sources.cards.observeCards(), ::Catalog)
 
 /** Junta cada lançamento à sua categoria e às contas envolvidas. */
 fun List<TransactionEntity>.toItems(catalog: Catalog): List<TransactionItem> = map { t ->

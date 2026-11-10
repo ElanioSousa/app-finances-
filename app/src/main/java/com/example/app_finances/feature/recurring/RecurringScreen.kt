@@ -8,12 +8,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.EventRepeat
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
@@ -23,6 +21,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.app_finances.R
 import com.example.app_finances.core.designsystem.component.AmountTone
+import com.example.app_finances.core.designsystem.component.ConfirmDialog
+import com.example.app_finances.core.designsystem.component.ConfirmTexts
 import com.example.app_finances.core.designsystem.component.DialogActions
 import com.example.app_finances.core.designsystem.component.EmptyState
 import com.example.app_finances.core.designsystem.component.MoneyText
@@ -68,13 +68,12 @@ private fun RecurringDialogs(state: RecurringUiState, viewModel: RecurringViewMo
         RecurringFormDialog(editing, state.lists.catalog, RecurringFormActions(viewModel::edit, DialogActions(viewModel::save, viewModel::close)))
     }
     if (state.confirmDelete != null) {
-        AlertDialog(
-            onDismissRequest = viewModel::cancelDelete,
-            title = { Text(stringResource(R.string.recurring_delete_title)) },
-            text = { Text(stringResource(R.string.recurring_delete_body)) },
-            confirmButton = { TextButton(onClick = viewModel::confirmDelete) { Text(stringResource(R.string.action_delete)) } },
-            dismissButton = { TextButton(onClick = viewModel::cancelDelete) { Text(stringResource(R.string.action_cancel)) } },
+        val texts = ConfirmTexts(
+            title = stringResource(R.string.recurring_delete_title),
+            body = stringResource(R.string.recurring_delete_body),
+            confirmLabel = stringResource(R.string.action_delete),
         )
+        ConfirmDialog(texts, DialogActions(viewModel::confirmDelete, viewModel::cancelDelete))
     }
 }
 

@@ -19,11 +19,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import com.example.app_finances.R
-import com.example.app_finances.core.designsystem.categoryIcon
-import com.example.app_finances.core.designsystem.component.CategoryIcon
+import com.example.app_finances.core.ui.CategoryBadge
 import com.example.app_finances.core.designsystem.component.ListRow
 import com.example.app_finances.core.designsystem.component.MoneyText
 import com.example.app_finances.core.designsystem.component.RowText
@@ -49,10 +47,7 @@ fun RecurringRowItem(row: RecurringRow, actions: RecurringRowActions) {
         modifier = Modifier
             .clip(MaterialTheme.shapes.large)
             .alpha(if (recurring.active) 1f else 0.55f),
-        leading = {
-            val color = row.category?.let { Color(it.colorArgb) } ?: MaterialTheme.colorScheme.onSurfaceVariant
-            CategoryIcon(categoryIcon(row.category?.iconKey), color)
-        },
+        leading = { CategoryBadge(row.category) },
         trailing = {
             Column(horizontalAlignment = Alignment.End) {
                 MoneyText(recurring.amountCents, tone = recurring.type.tone)

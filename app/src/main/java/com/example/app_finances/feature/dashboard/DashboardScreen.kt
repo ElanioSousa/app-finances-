@@ -63,8 +63,9 @@ fun DashboardScreen(scaffoldPadding: PaddingValues, actions: DashboardActions) {
         if (data == null) return@ScreenColumn
         item { BalanceCard(data.balanceCents, data.monthTotals) }
         item { UpcomingCard(data.upcoming, data.today, UpcomingActions(actions.onOpenTransaction, actions.onOpenCard, viewModel::markPaid)) }
+        if (data.budgets.isNotEmpty()) item { BudgetsCard(data.budgets) }
         if (data.cards.isNotEmpty()) item { CardsCard(data.cards, data.today, actions.onOpenCard) }
-        item { SpendingCard(data.spending) }
+        item { SpendingCard(data.spending, data.categoryById) }
         item { HistoryCard(data.history, state.selectedMonth, viewModel::selectMonth) }
         item { RecentCard(data.recent, actions.onOpenTransaction, actions.onSeeAll) }
     }

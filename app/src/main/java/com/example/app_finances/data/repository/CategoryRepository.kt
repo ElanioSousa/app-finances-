@@ -2,24 +2,25 @@ package com.example.app_finances.data.repository
 
 import com.example.app_finances.data.local.dao.CategoryDao
 import com.example.app_finances.data.local.entity.CategoryEntity
-import com.example.app_finances.data.local.entity.CategoryKind
-import com.example.app_finances.domain.requireName
+import com.example.app_finances.domain.CategoryRules
 import kotlinx.coroutines.flow.Flow
 
 class CategoryRepository(private val categoryDao: CategoryDao) {
 
     fun observeActive(): Flow<List<CategoryEntity>> = categoryDao.observeActive()
 
-    fun observeActiveByKind(kind: CategoryKind): Flow<List<CategoryEntity>> =
-        categoryDao.observeActiveByKind(kind)
+    fun observeAll(): Flow<List<CategoryEntity>> = categoryDao.observeAll()
 
     suspend fun add(category: CategoryEntity): Long {
-        requireName(category.name, "Informe o nome da categoria.")
+        CategoryRules.requireValid(category)
         return categoryDao.insert(category)
     }
 
     suspend fun update(category: CategoryEntity) {
-        requireName(category.name, "Informe o nome da categoria.")
+        CategoryRules.requireValid(category)
         categoryDao.update(category)
     }
+
+    /** Arquivar some com a categoria das listas; os lançamentos antigos continuam com ela. */
+    suspend fun archive(category: CategoryEntity) = categoryDao.update(category.copy(archived = true))
 }

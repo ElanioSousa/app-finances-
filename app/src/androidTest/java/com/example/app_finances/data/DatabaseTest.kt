@@ -64,8 +64,8 @@ class DatabaseTest {
     fun bancoNasceComCarteiraECategorias() = runTest {
         val balances = accounts.observeBalances().first()
         assertEquals(listOf("Carteira"), balances.map { it.account.name })
-        assertEquals(10, db.categoryDao().observeActiveByKind(CategoryKind.EXPENSE).first().size)
-        assertEquals(5, db.categoryDao().observeActiveByKind(CategoryKind.INCOME).first().size)
+        assertEquals(10, db.categoryDao().observeActive().first().filter { it.kind == CategoryKind.EXPENSE }.size)
+        assertEquals(5, db.categoryDao().observeActive().first().filter { it.kind == CategoryKind.INCOME }.size)
     }
 
     @Test
@@ -104,7 +104,7 @@ class DatabaseTest {
 
     @Test
     fun repositorioRecusaCategoriaDeDespesaEmReceita() = runTest {
-        val expenseCategory = db.categoryDao().observeActiveByKind(CategoryKind.EXPENSE).first().first().id
+        val expenseCategory = db.categoryDao().observeActive().first().filter { it.kind == CategoryKind.EXPENSE }.first().id
         val income = expense(1_000).copy(type = TransactionType.INCOME, categoryId = expenseCategory)
         assertTrue(failureOf { transactions.add(income) } is IllegalArgumentException)
         transactions.add(expense(1_000).copy(categoryId = expenseCategory))

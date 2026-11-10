@@ -28,15 +28,16 @@ data class RowText(val title: String, val subtitle: String)
 @Composable
 fun ListRow(
     text: RowText,
-    onClick: () -> Unit,
+    /** Nulo = linha só informativa (sem toque nem efeito de clique). */
+    onClick: (() -> Unit)?,
     modifier: Modifier = Modifier,
     leading: @Composable () -> Unit,
-    trailing: @Composable RowScope.() -> Unit,
+    trailing: @Composable RowScope.() -> Unit = {},
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),

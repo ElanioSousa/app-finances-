@@ -40,8 +40,8 @@ private data class MoreEntry(
 private val entries = listOf(
     MoreEntry(R.string.more_recurring, Icons.Outlined.EventRepeat, Amber, Routes.RECURRING),
     MoreEntry(R.string.more_accounts, Icons.Outlined.AccountBalanceWallet, Emerald, Routes.ACCOUNTS),
-    MoreEntry(R.string.more_categories, Icons.Outlined.Category, Violet),
-    MoreEntry(R.string.more_reports, Icons.AutoMirrored.Outlined.ShowChart, Sky),
+    MoreEntry(R.string.more_categories, Icons.Outlined.Category, Violet, Routes.CATEGORIES),
+    MoreEntry(R.string.more_reports, Icons.AutoMirrored.Outlined.ShowChart, Sky, Routes.REPORTS),
     MoreEntry(R.string.more_settings, Icons.Outlined.Settings, TextSecondary),
 )
 

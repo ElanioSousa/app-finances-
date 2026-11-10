@@ -160,4 +160,30 @@
     <string name="home_history_selected">%1$s · receitas %2$s · despesas %3$s</string>
     <string name="home_history_description">Gráfico de receitas e despesas dos últimos meses. Selecionado: %1$s.</string>
     <string name="home_cards">Cartões</string>
+
+    <string name="categories_title">Categorias</string>
+    <string name="categories_new">Nova categoria</string>
+    <string name="categories_edit">Editar categoria</string>
+    <string name="category_name">Nome</string>
+    <string name="category_icon">Ícone</string>
+    <string name="category_budget">Orçamento mensal (opcional)</string>
+    <string name="category_budget_hint">Deixe R$ 0,00 para não ter orçamento.</string>
+    <string name="category_no_budget">Sem orçamento</string>
+    <string name="category_archive">Arquivar</string>
+    <string name="category_archive_title">Arquivar categoria?</string>
+    <string name="category_archive_body">Ela some das listas de escolha. Os lançamentos antigos continuam com essa categoria.</string>
+    <string name="budget_progress">%1$s de %2$s</string>
+    <string name="budget_ok">%1$d%% usado</string>
+    <string name="budget_warning">Atenção: %1$d%% usado</string>
+    <string name="budget_over">Estourou em %1$s</string>
+    <string name="home_budgets">Orçamentos do mês</string>
+
+    <string name="reports_title">Relatórios</string>
+    <string name="reports_month">Mês</string>
+    <string name="reports_year">Ano</string>
+    <string name="reports_expenses_by_category">Despesas por categoria</string>
+    <string name="reports_incomes_by_category">Receitas por categoria</string>
+    <string name="reports_by_origin">Por conta e cartão</string>
+    <string name="reports_empty">Nada lançado neste período.</string>
+    <string name="reports_origin_line">Entrou %1$s · saiu %2$s</string>
 </resources>

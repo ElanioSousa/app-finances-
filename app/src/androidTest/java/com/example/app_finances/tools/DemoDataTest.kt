@@ -68,6 +68,9 @@ class DemoDataTest {
             RecurringEntity(description = "Internet", amountCents = 11_990, type = TransactionType.EXPENSE, categoryId = cat("Contas e serviços"), accountId = wallet, frequency = Frequency.MONTHLY, startDate = today.plusDays(5)),
             RecurringEntity(description = "Streaming", amountCents = 3_990, type = TransactionType.EXPENSE, categoryId = cat("Assinaturas"), cardId = card, frequency = Frequency.MONTHLY, startDate = today.minusDays(1), isSubscription = true),
         ).forEach { c.recurringRepository.add(it) }
+        mapOf("Alimentação" to 90_000L, "Lazer" to 30_000L, "Transporte" to 25_000L).forEach { (name, budget) ->
+            c.categoryRepository.update(categories.getValue(name).copy(monthlyBudgetCents = budget))
+        }
         check(categories.values.any { it.kind == CategoryKind.EXPENSE })
     }
 }

@@ -44,11 +44,15 @@ object Insights {
     const val HISTORY_MONTHS = 6
 
     /** Despesas por categoria, maiores primeiro; além de [maxRows], o resto vira "Outras". */
-    fun spendingByCategory(transactions: List<TransactionEntity>, maxRows: Int = 5): List<CategorySpend> {
-        val expenses = transactions.filter { it.type == TransactionType.EXPENSE }
-        val total = expenses.sumOf { it.amountCents }
+    fun spendingByCategory(transactions: List<TransactionEntity>, maxRows: Int = 5): List<CategorySpend> =
+        totalsByCategory(transactions, TransactionType.EXPENSE, maxRows)
+
+    /** Totais de [type] por categoria, maiores primeiro; além de [maxRows], o resto vira "Outras". */
+    fun totalsByCategory(transactions: List<TransactionEntity>, type: TransactionType, maxRows: Int = Int.MAX_VALUE): List<CategorySpend> {
+        val ofType = transactions.filter { it.type == type }
+        val total = ofType.sumOf { it.amountCents }
         if (total == 0L) return emptyList()
-        val ranked = expenses.groupBy { it.categoryId }
+        val ranked = ofType.groupBy { it.categoryId }
             .map { (id, list) -> id to list.sumOf { it.amountCents } }
             .sortedByDescending { it.second }
         val shown = if (ranked.size > maxRows) ranked.take(maxRows - 1) else ranked

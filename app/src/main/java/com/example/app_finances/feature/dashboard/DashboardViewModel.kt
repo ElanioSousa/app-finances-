@@ -17,6 +17,8 @@ import com.example.app_finances.data.repository.CategoryRepository
 import com.example.app_finances.data.repository.TransactionRepository
 import com.example.app_finances.domain.AccountBalance
 import com.example.app_finances.domain.BalanceCalculator
+import com.example.app_finances.domain.BudgetStatus
+import com.example.app_finances.domain.Budgets
 import com.example.app_finances.domain.CardSummary
 import com.example.app_finances.domain.CategorySpend
 import com.example.app_finances.domain.Insights
@@ -40,16 +42,16 @@ import java.time.YearMonth
 /** Conta a vencer, com o lançamento já descrito (nulo para fatura de cartão). */
 data class UpcomingEntry(val bill: UpcomingBill, val item: TransactionItem?)
 
-/** Fatia do gasto do mês com a categoria (nula = sem categoria ou "Outras"). */
-data class SpendingEntry(val spend: CategorySpend, val category: CategoryEntity?)
-
 /** Tudo o que o Início mostra (exceto a seleção do gráfico). */
 data class DashboardData(
     val today: LocalDate,
     val balanceCents: Long = 0,
     val monthTotals: MonthTotals = MonthTotals(),
     val upcoming: List<UpcomingEntry> = emptyList(),
-    val spending: List<SpendingEntry> = emptyList(),
+    val spending: List<CategorySpend> = emptyList(),
+    /** Para dar nome e cor às categorias (inclusive arquivadas). */
+    val categoryById: Map<Long, CategoryEntity> = emptyMap(),
+    val budgets: List<BudgetStatus> = emptyList(),
     val history: List<MonthBar> = emptyList(),
     val cards: List<CardSummary> = emptyList(),
     val recent: List<TransactionItem> = emptyList(),
@@ -118,7 +120,7 @@ class DashboardViewModel(
             sources.transactions.observeMonths(month.minusMonths(Insights.HISTORY_MONTHS - 1L), month),
             sources.transactions.observePendingUntil(Insights.upcomingLimit(now)),
             sources.cards.observeCardData(),
-            sources.categories.observeActive(),
+            sources.categories.observeAll(),
             ::Snapshot,
         )
     }
@@ -136,9 +138,9 @@ class DashboardViewModel(
             upcoming = Insights.upcomingBills(snapshot.pending, cards, now).map { bill ->
                 UpcomingEntry(bill, (bill as? UpcomingBill.Pending)?.let { pendingItems[it.transaction.id] })
             },
-            spending = Insights.spendingByCategory(thisMonth).map { spend ->
-                SpendingEntry(spend, spend.categoryId?.takeUnless { spend.isOther }?.let(catalog.categoryById::get))
-            },
+            spending = Insights.spendingByCategory(thisMonth),
+            categoryById = catalog.categoryById,
+            budgets = Budgets.statuses(snapshot.categories, thisMonth),
             history = Insights.monthlyHistory(snapshot.history, YearMonth.from(now)),
             cards = cards,
             recent = thisMonth.take(RECENT_COUNT).toItems(catalog),
