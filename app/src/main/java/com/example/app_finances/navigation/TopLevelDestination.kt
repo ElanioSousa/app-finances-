@@ -51,6 +51,7 @@ object Routes {
     const val RECURRING = "recurring"
     const val CATEGORIES = "categories"
     const val REPORTS = "reports"
+    const val SETTINGS = "settings"
     const val CARD_ID = "cardId"
     const val CARD_DETAIL = "cards/{$CARD_ID}"
 

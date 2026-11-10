@@ -204,6 +204,21 @@ class DatabaseTest {
         assertEquals(emptyList<LocalDate>(), occurrencesOf(recurring.id))
     }
 
+    @Test
+    fun backupRestauraTudoIgualEArquivoQuebradoNaoMudaNada() = runTest {
+        transactions.add(expense(12_345))
+        val backup = db.backupDao().snapshot()
+
+        transactions.add(expense(99_999))
+        db.backupDao().replaceAll(backup)
+        assertEquals(backup, db.backupDao().snapshot())
+
+        // Lançamento apontando para conta que não existe: a restauração inteira é desfeita.
+        val broken = backup.copy(transactions = backup.transactions + expense(1, accountId = 999).copy(id = 500))
+        assertTrue(runCatching { db.backupDao().replaceAll(broken) }.isFailure)
+        assertEquals(backup, db.backupDao().snapshot())
+    }
+
     private companion object {
         const val WALLET = 1L
     }

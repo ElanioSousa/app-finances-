@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.app_finances.R
+import com.example.app_finances.core.designsystem.component.formatMoney
 import com.example.app_finances.core.designsystem.chart.ChartLegend
 import com.example.app_finances.core.designsystem.chart.MonthBarGroup
 import com.example.app_finances.core.designsystem.chart.MonthBars
@@ -33,7 +34,6 @@ import com.example.app_finances.core.designsystem.theme.ChartExpense
 import com.example.app_finances.core.designsystem.theme.ChartIncome
 import com.example.app_finances.core.designsystem.theme.FinanceTheme
 import com.example.app_finances.core.format.Dates
-import com.example.app_finances.core.format.Money
 import com.example.app_finances.data.local.entity.TransactionEntity
 import com.example.app_finances.core.model.TransactionItem
 import com.example.app_finances.core.ui.BudgetRow
@@ -159,8 +159,8 @@ fun HistoryCard(history: List<MonthBar>, selected: Int, onSelect: (Int) -> Unit)
     val summary = stringResource(
         R.string.home_history_selected,
         Dates.month(chosen.month),
-        Money.format(chosen.totals.incomeCents),
-        Money.format(chosen.totals.expenseCents),
+        formatMoney(chosen.totals.incomeCents),
+        formatMoney(chosen.totals.expenseCents),
     )
     val groups = remember(history) {
         history.map { MonthBarGroup(Dates.shortMonth(it.month), it.totals.incomeCents, it.totals.expenseCents) }

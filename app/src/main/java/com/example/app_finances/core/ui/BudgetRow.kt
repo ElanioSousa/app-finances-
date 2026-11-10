@@ -14,9 +14,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.app_finances.R
+import com.example.app_finances.core.designsystem.component.formatMoney
 import com.example.app_finances.core.designsystem.component.ThinBar
 import com.example.app_finances.core.designsystem.theme.FinanceTheme
-import com.example.app_finances.core.format.Money
 import com.example.app_finances.domain.BudgetLevel
 import com.example.app_finances.domain.BudgetStatus
 import kotlin.math.roundToInt
@@ -35,7 +35,7 @@ fun BudgetRow(status: BudgetStatus, modifier: Modifier = Modifier) {
             Row {
                 Text(category.name, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(
-                    stringResource(R.string.budget_progress, Money.format(status.spentCents), Money.format(status.budgetCents)),
+                    stringResource(R.string.budget_progress, formatMoney(status.spentCents), formatMoney(status.budgetCents)),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -64,6 +64,6 @@ private fun levelText(status: BudgetStatus): String {
     return when (status.level) {
         BudgetLevel.OK -> stringResource(R.string.budget_ok, percent)
         BudgetLevel.WARNING -> stringResource(R.string.budget_warning, percent)
-        BudgetLevel.OVER -> stringResource(R.string.budget_over, Money.format(-status.remainingCents))
+        BudgetLevel.OVER -> stringResource(R.string.budget_over, formatMoney(-status.remainingCents))
     }
 }

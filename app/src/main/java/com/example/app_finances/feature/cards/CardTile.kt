@@ -22,11 +22,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.app_finances.R
+import com.example.app_finances.core.designsystem.component.formatMoney
 import com.example.app_finances.core.designsystem.component.MoneyText
 import com.example.app_finances.core.designsystem.theme.FinanceTheme
 import com.example.app_finances.core.designsystem.theme.Ink850
 import com.example.app_finances.core.format.Dates
-import com.example.app_finances.core.format.Money
 import com.example.app_finances.domain.CardSummary
 
 data class CardTileActions(val onOpen: () -> Unit, val onEdit: () -> Unit)
@@ -48,7 +48,7 @@ fun CardTile(summary: CardSummary, actions: CardTileActions) {
         CurrentInvoice(summary)
         summary.pending?.let {
             Text(
-                stringResource(R.string.card_pending_invoice, Money.format(it.remainingCents)),
+                stringResource(R.string.card_pending_invoice, formatMoney(it.remainingCents)),
                 style = MaterialTheme.typography.bodySmall,
                 color = FinanceTheme.colors.warning,
             )

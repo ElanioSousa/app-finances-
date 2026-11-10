@@ -57,9 +57,9 @@ fun ListRow(
     }
 }
 
-/** Texto à esquerda e chave à direita; tocar em qualquer ponto da linha liga/desliga. */
+/** Texto à esquerda (com explicação opcional) e chave à direita; tocar em qualquer ponto da linha liga/desliga. */
 @Composable
-fun LabeledSwitch(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
+fun LabeledSwitch(label: String, checked: Boolean, supporting: String? = null, onCheckedChange: (Boolean) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -67,7 +67,10 @@ fun LabeledSwitch(label: String, checked: Boolean, onCheckedChange: (Boolean) ->
             .padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(label, Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
+        Column(Modifier.weight(1f)) {
+            Text(label, style = MaterialTheme.typography.bodyLarge)
+            supporting?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+        }
         // A linha inteira já responde ao toque (e é o que leitores de tela anunciam).
         Switch(checked = checked, onCheckedChange = null)
     }

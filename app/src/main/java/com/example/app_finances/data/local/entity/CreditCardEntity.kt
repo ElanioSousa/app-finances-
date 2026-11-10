@@ -1,6 +1,7 @@
 package com.example.app_finances.data.local.entity
 
 import androidx.room.Entity
+import kotlinx.serialization.Serializable
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
@@ -21,6 +22,7 @@ import androidx.room.PrimaryKey
     ],
     indices = [Index("paymentAccountId")],
 )
+@Serializable
 data class CreditCardEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val name: String,

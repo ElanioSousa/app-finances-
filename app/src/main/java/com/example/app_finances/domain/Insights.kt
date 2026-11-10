@@ -70,6 +70,16 @@ object Insights {
         }
     }
 
+    /**
+     * Contas do lembrete diário: o que há para **pagar** (despesas pendentes e faturas)
+     * que já venceu ou vence até amanhã. Receitas a receber não entram.
+     */
+    fun billsDueByTomorrow(bills: List<UpcomingBill>, today: LocalDate): List<UpcomingBill> =
+        bills.filter { bill ->
+            val isIncome = bill is UpcomingBill.Pending && bill.transaction.type == TransactionType.INCOME
+            !isIncome && bill.date <= today.plusDays(1)
+        }
+
     /** Último dia da janela de contas a vencer. */
     fun upcomingLimit(today: LocalDate): LocalDate = today.plusDays(UPCOMING_DAYS.toLong())
 

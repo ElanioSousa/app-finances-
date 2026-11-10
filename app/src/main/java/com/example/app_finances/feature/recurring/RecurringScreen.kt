@@ -20,6 +20,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.app_finances.R
+import com.example.app_finances.core.designsystem.component.formatMoney
 import com.example.app_finances.core.designsystem.component.AmountTone
 import com.example.app_finances.core.designsystem.component.ConfirmDialog
 import com.example.app_finances.core.designsystem.component.ConfirmTexts
@@ -28,7 +29,6 @@ import com.example.app_finances.core.designsystem.component.EmptyState
 import com.example.app_finances.core.designsystem.component.MoneyText
 import com.example.app_finances.core.designsystem.component.ScreenColumn
 import com.example.app_finances.core.designsystem.component.SectionCard
-import com.example.app_finances.core.format.Money
 import com.example.app_finances.core.ui.LocalSnackbarHostState
 import com.example.app_finances.core.ui.containerViewModel
 
@@ -83,7 +83,7 @@ private fun TotalsCard(totals: RecurringTotals) {
         Text(stringResource(R.string.recurring_subscriptions_monthly), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
         MoneyText(totals.subscriptionsCents, tone = AmountTone.Expense, style = MaterialTheme.typography.headlineMedium)
         Text(
-            stringResource(R.string.recurring_fixed_summary, Money.format(totals.fixedIncomeCents), Money.format(totals.fixedExpenseCents)),
+            stringResource(R.string.recurring_fixed_summary, formatMoney(totals.fixedIncomeCents), formatMoney(totals.fixedExpenseCents)),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

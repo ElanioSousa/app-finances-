@@ -1,6 +1,12 @@
+@file:UseSerializers(LocalDateSerializer::class, YearMonthSerializer::class)
+
 package com.example.app_finances.data.local.entity
 
 import androidx.room.Entity
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.UseSerializers
+import com.example.app_finances.data.backup.LocalDateSerializer
+import com.example.app_finances.data.backup.YearMonthSerializer
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
@@ -34,6 +40,7 @@ import java.time.LocalDate
         Index(value = ["recurringId", "date"], unique = true),
     ],
 )
+@Serializable
 data class TransactionEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val type: TransactionType,

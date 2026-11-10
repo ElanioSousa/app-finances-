@@ -14,9 +14,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.app_finances.R
+import com.example.app_finances.core.designsystem.component.formatMoney
 import com.example.app_finances.core.designsystem.component.ThinBar
 import com.example.app_finances.core.designsystem.theme.FinanceTheme
-import com.example.app_finances.core.format.Money
 import com.example.app_finances.domain.CardSummary
 import com.example.app_finances.domain.InvoiceStatus
 
@@ -53,7 +53,7 @@ fun LimitSummary(summary: CardSummary, modifier: Modifier = Modifier) {
     Column(modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
         LimitBar(summary.usedFraction, Modifier.fillMaxWidth())
         Text(
-            stringResource(R.string.card_available, Money.format(summary.availableCents), Money.format(summary.card.limitCents)),
+            stringResource(R.string.card_available, formatMoney(summary.availableCents), formatMoney(summary.card.limitCents)),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

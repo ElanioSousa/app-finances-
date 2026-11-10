@@ -6,6 +6,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.example.app_finances.data.backup.BackupDao
 import com.example.app_finances.data.local.dao.AccountDao
 import com.example.app_finances.data.local.dao.CategoryDao
 import com.example.app_finances.data.local.dao.CreditCardDao
@@ -49,6 +50,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun recurringDao(): RecurringDao
     abstract fun transactionDao(): TransactionDao
     abstract fun invoicePaymentDao(): InvoicePaymentDao
+    abstract fun backupDao(): BackupDao
 
     companion object {
         private const val FILE_NAME = "financas.db"

@@ -15,6 +15,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.app_finances.R
+import com.example.app_finances.core.designsystem.component.formatMoney
 import com.example.app_finances.core.designsystem.chart.RankedBars
 import com.example.app_finances.core.designsystem.component.CategoryIcon
 import com.example.app_finances.core.designsystem.component.ListRow
@@ -24,7 +25,6 @@ import com.example.app_finances.core.designsystem.component.RowText
 import com.example.app_finances.core.designsystem.component.ScreenColumn
 import com.example.app_finances.core.designsystem.component.SectionCard
 import com.example.app_finances.core.format.Dates
-import com.example.app_finances.core.format.Money
 import com.example.app_finances.core.model.Catalog
 import com.example.app_finances.core.designsystem.component.PeriodSelector
 import com.example.app_finances.core.ui.MonthTotalsRow
@@ -80,7 +80,7 @@ private fun OriginsCard(origins: List<OriginTotal>, catalog: Catalog) {
             val card = origin.cardId?.let(catalog.cardById::get)
             val name = card?.name ?: origin.accountId?.let(catalog.accountNames::get).orEmpty()
             ListRow(
-                text = RowText(name, stringResource(R.string.reports_origin_line, Money.format(origin.incomeCents), Money.format(origin.expenseCents))),
+                text = RowText(name, stringResource(R.string.reports_origin_line, formatMoney(origin.incomeCents), formatMoney(origin.expenseCents))),
                 onClick = null,
                 leading = {
                     if (card != null) CategoryIcon(Icons.Outlined.CreditCard, Color(card.colorArgb), size = 32.dp)

@@ -8,7 +8,7 @@ import androidx.compose.ui.res.stringResource
 import com.example.app_finances.R
 import com.example.app_finances.core.designsystem.categoryIcon
 import com.example.app_finances.core.designsystem.chart.RankedBar
-import com.example.app_finances.core.format.Money
+import com.example.app_finances.core.designsystem.component.LocalMoneyFormatter
 import com.example.app_finances.data.local.entity.CategoryEntity
 import com.example.app_finances.domain.CategorySpend
 
@@ -18,12 +18,13 @@ fun rememberCategoryBars(totals: List<CategorySpend>, categoryById: Map<Long, Ca
     val other = stringResource(R.string.home_other_categories)
     val none = stringResource(R.string.category_none)
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
-    return remember(totals, categoryById, other, none, muted) {
+    val money = LocalMoneyFormatter.current
+    return remember(totals, categoryById, other, none, muted, money) {
         totals.map { total ->
             val category = total.categoryId?.takeUnless { total.isOther }?.let(categoryById::get)
             RankedBar(
                 label = category?.name ?: if (total.isOther) other else none,
-                value = Money.format(total.cents),
+                value = money.format(total.cents, false),
                 share = total.share,
                 icon = categoryIcon(category?.iconKey),
                 iconColor = category?.let { Color(it.colorArgb) } ?: muted,

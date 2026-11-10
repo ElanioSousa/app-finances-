@@ -11,6 +11,9 @@ object Money {
     /** Maior valor aceito na digitação: R$ 9.999.999.999,99. */
     const val MAX_INPUT_CENTS = 999_999_999_999L
 
+    /** O que aparece no lugar dos valores quando estão ocultos. */
+    const val HIDDEN = "R$ ••••"
+
     private const val CURRENCY = "R$"
     private const val NBSP = ' '
 

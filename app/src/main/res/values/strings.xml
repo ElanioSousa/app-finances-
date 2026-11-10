@@ -32,6 +32,7 @@
     <string name="action_undo">Desfazer</string>
     <string name="action_back">Voltar</string>
     <string name="action_clear">Limpar</string>
+    <string name="action_close">Fechar</string>
     <string name="action_delete">Excluir</string>
 
     <string name="type_expense">Despesa</string>
@@ -186,4 +187,39 @@
     <string name="reports_by_origin">Por conta e cartão</string>
     <string name="reports_empty">Nada lançado neste período.</string>
     <string name="reports_origin_line">Entrou %1$s · saiu %2$s</string>
+
+    <string name="settings_title">Configurações</string>
+    <string name="settings_privacy">Privacidade e segurança</string>
+    <string name="settings_hide_values">Ocultar valores</string>
+    <string name="settings_hide_values_hint">Mostra R$ •••• no lugar dos valores.</string>
+    <string name="settings_app_lock">Bloquear com biometria</string>
+    <string name="settings_app_lock_hint">Pede digital, rosto ou o bloqueio de tela ao abrir.</string>
+    <string name="settings_app_lock_unavailable">Configure um bloqueio de tela (PIN, padrão ou digital) no aparelho para usar esta opção.</string>
+    <string name="settings_notifications">Lembretes</string>
+    <string name="settings_bill_reminders">Avisar contas a vencer</string>
+    <string name="settings_bill_reminders_hint">Uma notificação por dia com o que vence hoje ou amanhã.</string>
+    <string name="settings_notifications_denied">Sem permissão de notificação. Ative nas configurações do Android.</string>
+    <string name="settings_data">Seus dados</string>
+    <string name="settings_export_backup">Fazer backup</string>
+    <string name="settings_export_backup_hint">Salva tudo num arquivo .json (ex.: Drive ou Downloads).</string>
+    <string name="settings_restore_backup">Restaurar backup</string>
+    <string name="settings_restore_backup_hint">Substitui os dados atuais pelos do arquivo.</string>
+    <string name="settings_export_csv">Exportar lançamentos (CSV)</string>
+    <string name="settings_export_csv_hint">Para abrir no Excel ou Google Planilhas.</string>
+    <string name="settings_restore_title">Restaurar backup?</string>
+    <string name="settings_restore_body">Todos os dados atuais serão substituídos pelos do arquivo. Faça um backup antes, se quiser guardar os atuais.</string>
+    <string name="settings_restore_confirm">Restaurar</string>
+    <string name="settings_backup_done">Backup salvo.</string>
+    <string name="settings_restore_done">Backup restaurado.</string>
+    <string name="settings_csv_done">Lançamentos exportados.</string>
+    <string name="settings_version">Versão %1$s</string>
+
+    <string name="reminder_channel">Contas a vencer</string>
+    <string name="reminder_title">%1$d contas a pagar até amanhã</string>
+    <string name="reminder_title_one">1 conta a pagar até amanhã</string>
+    <string name="reminder_overdue">%1$s (venceu)</string>
+
+    <string name="lock_title">Finanças está bloqueado</string>
+    <string name="lock_unlock">Desbloquear</string>
+    <string name="lock_prompt_title">Desbloquear Finanças</string>
 </resources>

@@ -42,7 +42,7 @@ private val entries = listOf(
     MoreEntry(R.string.more_accounts, Icons.Outlined.AccountBalanceWallet, Emerald, Routes.ACCOUNTS),
     MoreEntry(R.string.more_categories, Icons.Outlined.Category, Violet, Routes.CATEGORIES),
     MoreEntry(R.string.more_reports, Icons.AutoMirrored.Outlined.ShowChart, Sky, Routes.REPORTS),
-    MoreEntry(R.string.more_settings, Icons.Outlined.Settings, TextSecondary),
+    MoreEntry(R.string.more_settings, Icons.Outlined.Settings, TextSecondary, Routes.SETTINGS),
 )
 
 @Composable

@@ -46,6 +46,7 @@ import com.example.app_finances.feature.dashboard.DashboardScreen
 import com.example.app_finances.feature.categories.CategoriesScreen
 import com.example.app_finances.feature.more.MoreScreen
 import com.example.app_finances.feature.reports.ReportsScreen
+import com.example.app_finances.feature.settings.SettingsScreen
 import com.example.app_finances.feature.recurring.RecurringScreen
 import com.example.app_finances.feature.transactions.TransactionsScreen
 import com.example.app_finances.feature.transactions.form.TransactionFormSheet
@@ -142,6 +143,7 @@ private fun NavGraphBuilder.moreGraph(nav: AppNavContext) = tabGraph(TopLevelDes
     composable(Routes.RECURRING) { RecurringScreen(nav.padding, onBack = nav.navController::popBackStack) }
     composable(Routes.CATEGORIES) { CategoriesScreen(nav.padding, onBack = nav.navController::popBackStack) }
     composable(Routes.REPORTS) { ReportsScreen(nav.padding, onBack = nav.navController::popBackStack) }
+    composable(Routes.SETTINGS) { SettingsScreen(nav.padding, onBack = nav.navController::popBackStack) }
 }
 
 @Composable

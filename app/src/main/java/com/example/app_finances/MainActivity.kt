@@ -3,17 +3,40 @@ package com.example.app_finances
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
-import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.fragment.app.FragmentActivity
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.launch
+import com.example.app_finances.core.designsystem.component.HiddenMoney
+import com.example.app_finances.core.designsystem.component.LocalMoneyFormatter
+import com.example.app_finances.core.designsystem.component.VisibleMoney
 import com.example.app_finances.core.designsystem.theme.AppfinancesTheme
+import com.example.app_finances.core.security.LockScreen
+import com.example.app_finances.data.settings.AppSettings
 import com.example.app_finances.navigation.FinancesApp
+import com.example.app_finances.reminders.BillReminders
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
-class MainActivity : ComponentActivity() {
+/** FragmentActivity (e não só ComponentActivity) porque o pedido de biometria precisa dela. */
+class MainActivity : FragmentActivity() {
+
+    private val app get() = application as FinancesApplication
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         // Ícones claros nas barras do sistema, já que o app é sempre escuro.
         enableEdgeToEdge(
@@ -21,20 +44,38 @@ class MainActivity : ComponentActivity() {
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
         )
         // Uma vez por abertura (não a cada rotação de tela).
-        if (savedInstanceState == null) generateRecurringTransactions()
+        if (savedInstanceState == null) runStartupTasks()
         setContent {
             AppfinancesTheme {
-                FinancesApp()
+                // Até as preferências carregarem não desenha nada (só o fundo escuro da janela):
+                // assim nenhum dado aparece antes do bloqueio por biometria.
+                val settings by app.container.settingsRepository.settings.collectAsStateWithLifecycle(initialValue = null)
+                settings?.let { AppRoot(it) }
             }
         }
     }
 
-    /** Lança salário, aluguel, assinaturas… do mês. Pode rodar várias vezes: nunca duplica. */
-    private fun generateRecurringTransactions() {
-        val repository = (application as FinancesApplication).container.recurringRepository
+    @Composable
+    private fun AppRoot(settings: AppSettings) {
+        // Se o aparelho perdeu o bloqueio de tela, não há como autenticar: não trava o usuário fora do app.
+        if (settings.appLock && !app.appLock.unlocked && app.appLock.available) {
+            val title = stringResource(R.string.lock_prompt_title)
+            LockScreen(onUnlock = { app.appLock.prompt(this, title) })
+            return
+        }
+        CompositionLocalProvider(LocalMoneyFormatter provides if (settings.hideValues) HiddenMoney else VisibleMoney) {
+            Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) { FinancesApp() }
+        }
+    }
+
+    /** Lança as recorrências do mês e mantém o lembrete diário agendado, se ligado. Nunca duplicam. */
+    private fun runStartupTasks() {
+        val container = app.container
         lifecycleScope.launch {
-            runCatching { repository.generateDue() }
-                .onFailure { Log.e(TAG, "Falha ao gerar lançamentos recorrentes", it) }
+            runCatching {
+                container.recurringRepository.generateDue()
+                if (container.settingsRepository.settings.first().billReminders) BillReminders.schedule(applicationContext)
+            }.onFailure { Log.e(TAG, "Falha nas tarefas de abertura", it) }
         }
     }
 

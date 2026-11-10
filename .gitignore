@@ -15,3 +15,8 @@
 local.properties
 /.idea/deploymentTargetSelector.xml
 .kotlin/
+
+# Chave de assinatura e senhas: nunca no git
+keystore.properties
+*.jks
+*.keystore
