@@ -17,6 +17,7 @@ import com.example.app_finances.data.local.entity.TransactionEntity
 import com.example.app_finances.data.local.entity.TransactionType
 import com.example.app_finances.data.repository.AccountRepository
 import com.example.app_finances.data.repository.CardRepository
+import com.example.app_finances.data.repository.RecurringRepository
 import com.example.app_finances.domain.Installments
 import com.example.app_finances.data.repository.TransactionRepository
 import kotlinx.coroutines.flow.first
@@ -153,6 +154,52 @@ class DatabaseTest {
         cards.payInvoice(payment(5_000))
         assertTrue(failureOf { cards.payInvoice(payment(1)) } is IllegalArgumentException)
         assertEquals(-20_000L, accounts.observeBalances().first().single().balanceCents)
+    }
+
+    private fun recurringRepo(today: LocalDate) = RecurringRepository(db.recurringDao(), db.categoryDao()) { today }
+
+    private suspend fun occurrencesOf(recurringId: Long) =
+        db.transactionDao().observeBetween(LocalDate.of(2000, 1, 1), LocalDate.of(2100, 1, 1)).first()
+            .filter { it.recurringId == recurringId }.map { it.date }.sorted()
+
+    private val rent = RecurringEntity(
+        description = "Aluguel", amountCents = 150_000, type = TransactionType.EXPENSE,
+        accountId = WALLET, frequency = Frequency.MONTHLY, startDate = LocalDate.of(2026, 9, 5),
+    )
+
+    @Test
+    fun recorrenciaGeraSoDoMesAtualSemDuplicarNemRecriarApagadas() = runTest {
+        val repo = recurringRepo(nov10)
+        repo.add(rent)
+        val id = db.recurringDao().observeAll().first().single().id
+        assertEquals(listOf(LocalDate.of(2026, 11, 5)), occurrencesOf(id))
+
+        repo.generateDue()
+        assertEquals(1, occurrencesOf(id).size)
+
+        val generated = db.transactionDao().observeBetween(nov10.withDayOfMonth(1), nov10).first().single()
+        transactions.delete(generated)
+        repo.generateDue()
+        assertEquals(emptyList<LocalDate>(), occurrencesOf(id))
+
+        recurringRepo(LocalDate.of(2026, 12, 1)).generateDue()
+        assertEquals(listOf(LocalDate.of(2026, 12, 5)), occurrencesOf(id))
+    }
+
+    @Test
+    fun pausarApagaFuturasPendentesEEditarRefazComNovoValor() = runTest {
+        val repo = recurringRepo(LocalDate.of(2026, 11, 1))
+        repo.add(rent)
+        var recurring = db.recurringDao().observeAll().first().single()
+        assertEquals(listOf(LocalDate.of(2026, 11, 5)), occurrencesOf(recurring.id))
+
+        repo.update(recurring.copy(amountCents = 160_000))
+        recurring = db.recurringDao().observeAll().first().single()
+        val novembro = db.transactionDao().observeBetween(LocalDate.of(2026, 11, 1), LocalDate.of(2026, 11, 30)).first()
+        assertEquals(listOf(160_000L), novembro.map { it.amountCents })
+
+        repo.setActive(recurring, active = false)
+        assertEquals(emptyList<LocalDate>(), occurrencesOf(recurring.id))
     }
 
     private companion object {

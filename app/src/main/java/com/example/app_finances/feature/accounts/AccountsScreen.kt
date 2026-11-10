@@ -1,10 +1,6 @@
 package com.example.app_finances.feature.accounts
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
@@ -20,7 +16,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -32,6 +27,8 @@ import com.example.app_finances.R
 import com.example.app_finances.core.designsystem.component.AmountTone
 import com.example.app_finances.core.designsystem.component.CategoryIcon
 import com.example.app_finances.core.designsystem.component.DialogActions
+import com.example.app_finances.core.designsystem.component.ListRow
+import com.example.app_finances.core.designsystem.component.RowText
 import com.example.app_finances.core.designsystem.component.MoneyText
 import com.example.app_finances.core.designsystem.component.ScreenColumn
 import com.example.app_finances.core.designsystem.component.SectionCard
@@ -71,22 +68,14 @@ private fun TotalCard(totalCents: Long) {
 
 @Composable
 private fun AccountRow(balance: AccountBalance, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(MaterialTheme.shapes.large)
-            .clickable(onClick = onClick)
-            .padding(horizontal = 8.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        CategoryIcon(accountTypeIcon(balance.account.type), Color(balance.account.colorArgb))
-        Column(Modifier.weight(1f)) {
-            Text(balance.account.name, style = MaterialTheme.typography.bodyLarge)
-            Text(stringResource(accountTypeLabel(balance.account.type)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        MoneyText(balance.balanceCents, tone = if (balance.balanceCents < 0) AmountTone.Expense else AmountTone.Neutral)
-    }
+    val account = balance.account
+    ListRow(
+        text = RowText(account.name, stringResource(accountTypeLabel(account.type))),
+        onClick = onClick,
+        modifier = Modifier.clip(MaterialTheme.shapes.large),
+        leading = { CategoryIcon(accountTypeIcon(account.type), Color(account.colorArgb)) },
+        trailing = { MoneyText(balance.balanceCents, tone = if (balance.balanceCents < 0) AmountTone.Expense else AmountTone.Neutral) },
+    )
 }
 
 fun accountTypeIcon(type: AccountType): ImageVector = when (type) {

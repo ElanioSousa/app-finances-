@@ -7,6 +7,7 @@ import com.example.app_finances.data.local.AppDatabase
 import com.example.app_finances.data.repository.AccountRepository
 import com.example.app_finances.data.repository.CardRepository
 import com.example.app_finances.data.repository.CategoryRepository
+import com.example.app_finances.data.repository.RecurringRepository
 import com.example.app_finances.data.repository.TransactionRepository
 
 /**
@@ -29,6 +30,8 @@ class AppContainer(
     val cardRepository by lazy {
         CardRepository(database.creditCardDao(), database.transactionDao(), database.invoicePaymentDao())
     }
+
+    val recurringRepository by lazy { RecurringRepository(database.recurringDao(), database.categoryDao(), today) }
 
     /** De onde as telas tiram categorias, contas e cartões. */
     val catalogSources by lazy { CatalogSources(categoryRepository, accountRepository, cardRepository) }

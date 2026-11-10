@@ -34,7 +34,7 @@ enum class TopLevelDestination(
     ),
     More(
         "more", R.string.nav_more, Icons.Filled.GridView, Icons.Outlined.GridView,
-        showsAddButton = false, childRoutes = setOf(Routes.ACCOUNTS),
+        showsAddButton = false, childRoutes = setOf(Routes.ACCOUNTS, Routes.RECURRING),
     ),
     ;
 
@@ -47,6 +47,7 @@ enum class TopLevelDestination(
 /** Rotas das telas internas (fora da barra inferior). */
 object Routes {
     const val ACCOUNTS = "accounts"
+    const val RECURRING = "recurring"
     const val CARD_ID = "cardId"
     const val CARD_DETAIL = "cards/{$CARD_ID}"
 

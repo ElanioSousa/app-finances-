@@ -51,7 +51,6 @@ class TransactionRepository(
 
     private suspend fun requireValid(transaction: TransactionEntity) {
         TransactionRules.requireValid(transaction)
-        val categoryKind = transaction.categoryId?.let { categoryDao.getById(it)?.kind }
-        TransactionRules.categoryViolation(transaction.type, categoryKind)?.let { throw IllegalArgumentException(it) }
+        categoryDao.requireKindMatches(transaction.type, transaction.categoryId)
     }
 }

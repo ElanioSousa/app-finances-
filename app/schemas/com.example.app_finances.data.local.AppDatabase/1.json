@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "906f130cd30eb3cf31dfe6d390228289",
+    "identityHash": "e82dc37fd1377791b85a10132d6d7d2b",
     "entities": [
       {
         "tableName": "accounts",
@@ -201,7 +201,7 @@
       },
       {
         "tableName": "recurrings",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `description` TEXT NOT NULL, `amountCents` INTEGER NOT NULL, `type` TEXT NOT NULL, `categoryId` INTEGER, `accountId` INTEGER, `cardId` INTEGER, `frequency` TEXT NOT NULL, `startDate` INTEGER NOT NULL, `endDate` INTEGER, `isSubscription` INTEGER NOT NULL, `active` INTEGER NOT NULL, FOREIGN KEY(`categoryId`) REFERENCES `categories`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL , FOREIGN KEY(`accountId`) REFERENCES `accounts`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT , FOREIGN KEY(`cardId`) REFERENCES `credit_cards`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `description` TEXT NOT NULL, `amountCents` INTEGER NOT NULL, `type` TEXT NOT NULL, `categoryId` INTEGER, `accountId` INTEGER, `cardId` INTEGER, `frequency` TEXT NOT NULL, `startDate` INTEGER NOT NULL, `endDate` INTEGER, `isSubscription` INTEGER NOT NULL, `active` INTEGER NOT NULL, `generatedUntil` INTEGER, FOREIGN KEY(`categoryId`) REFERENCES `categories`(`id`) ON UPDATE NO ACTION ON DELETE SET NULL , FOREIGN KEY(`accountId`) REFERENCES `accounts`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT , FOREIGN KEY(`cardId`) REFERENCES `credit_cards`(`id`) ON UPDATE NO ACTION ON DELETE RESTRICT )",
         "fields": [
           {
             "fieldPath": "id",
@@ -270,6 +270,11 @@
             "columnName": "active",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "generatedUntil",
+            "columnName": "generatedUntil",
+            "affinity": "INTEGER"
           }
         ],
         "primaryKey": {
@@ -654,7 +659,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '906f130cd30eb3cf31dfe6d390228289')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'e82dc37fd1377791b85a10132d6d7d2b')"
     ]
   }
 }

@@ -13,7 +13,6 @@ import com.example.app_finances.data.local.entity.CategoryEntity
 import com.example.app_finances.data.local.entity.TransactionEntity
 import com.example.app_finances.data.repository.TransactionRepository
 import com.example.app_finances.domain.Installments
-import com.example.app_finances.domain.categoryKind
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,7 +45,7 @@ data class TransactionFormUiState(
 ) {
     /** Só as categorias que o tipo escolhido aceita (regra do domínio). */
     val categoriesForType: List<CategoryEntity>
-        get() = catalog.categories.filter { it.kind == draft.type.categoryKind }
+        get() = catalog.categoriesFor(draft.type)
 
     val accountOptions: List<Option<Long>>
         get() = catalog.accounts.toOptions()

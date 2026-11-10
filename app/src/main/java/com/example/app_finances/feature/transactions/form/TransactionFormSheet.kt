@@ -3,7 +3,6 @@ package com.example.app_finances.feature.transactions.form
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -21,14 +20,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -36,9 +33,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.rememberViewModelStoreOwner
 import com.example.app_finances.R
+import com.example.app_finances.core.model.PaymentOrigin
 import com.example.app_finances.core.designsystem.categoryIcon
 import com.example.app_finances.core.designsystem.component.AmountInput
 import com.example.app_finances.core.designsystem.component.DateField
+import com.example.app_finances.core.designsystem.component.LabeledSwitch
 import com.example.app_finances.core.designsystem.component.Option
 import com.example.app_finances.core.designsystem.component.OptionDropdown
 import com.example.app_finances.core.designsystem.component.OptionSegmentedRow
@@ -47,6 +46,7 @@ import com.example.app_finances.core.ui.containerViewModel
 import com.example.app_finances.core.ui.TransactionTypesInDisplayOrder
 import com.example.app_finances.core.ui.labelRes
 import com.example.app_finances.core.ui.paidLabelRes
+import com.example.app_finances.core.ui.paymentOriginOptions
 import com.example.app_finances.data.local.entity.CategoryEntity
 import com.example.app_finances.data.local.entity.TransactionType
 
@@ -122,13 +122,8 @@ private fun OriginSection(state: TransactionFormUiState, actions: FormActions) {
 }
 
 @Composable
-private fun OriginSelector(selected: PaymentOrigin, onSelect: (PaymentOrigin) -> Unit) {
-    val options = listOf(
-        Option(PaymentOrigin.ACCOUNT, stringResource(R.string.form_origin_account)),
-        Option(PaymentOrigin.CARD, stringResource(R.string.form_origin_card)),
-    )
-    OptionSegmentedRow(options, selected, onSelect)
-}
+private fun OriginSelector(selected: PaymentOrigin, onSelect: (PaymentOrigin) -> Unit) =
+    OptionSegmentedRow(paymentOriginOptions(), selected, onSelect)
 
 @Composable
 private fun CardFields(state: TransactionFormUiState, actions: FormActions) {
@@ -222,12 +217,8 @@ private fun AccountFields(state: TransactionFormUiState, actions: FormActions) {
 }
 
 @Composable
-private fun PaidSwitch(draft: TransactionDraft, actions: FormActions) {
-    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(stringResource(draft.type.paidLabelRes), Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
-        Switch(checked = draft.paid, onCheckedChange = { paid -> actions.onUpdate { it.copy(paid = paid) } })
-    }
-}
+private fun PaidSwitch(draft: TransactionDraft, actions: FormActions) =
+    LabeledSwitch(stringResource(draft.type.paidLabelRes), draft.paid) { paid -> actions.onUpdate { it.copy(paid = paid) } }
 
 @Composable
 private fun NotesField(value: String, onChange: (String) -> Unit) {

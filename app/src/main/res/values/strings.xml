@@ -120,4 +120,29 @@
     <string name="invoice_closed">Fechada</string>
     <string name="invoice_paid">Paga</string>
     <string name="invoice_overdue">Vencida</string>
+
+    <string name="recurring_title">Recorrentes e assinaturas</string>
+    <string name="recurring_new">Nova recorrência</string>
+    <string name="recurring_edit">Editar recorrência</string>
+    <string name="recurring_subscriptions">Assinaturas</string>
+    <string name="recurring_fixed">Receitas e despesas fixas</string>
+    <string name="recurring_subscriptions_monthly">Assinaturas por mês</string>
+    <string name="recurring_fixed_summary">Fixas por mês: %1$s de receitas e %2$s de despesas</string>
+    <string name="recurring_empty_title">Nada recorrente ainda</string>
+    <string name="recurring_empty_body">Cadastre salário, aluguel, contas fixas e assinaturas. O app lança cada uma no dia certo, como pendente.</string>
+    <string name="recurring_next">próxima %1$s</string>
+    <string name="recurring_ended">encerrada</string>
+    <string name="recurring_paused">Pausada</string>
+    <string name="recurring_pause">Pausar</string>
+    <string name="recurring_resume">Retomar</string>
+    <string name="recurring_more_actions">Mais ações</string>
+    <string name="recurring_frequency">Repete</string>
+    <string name="recurring_first_date">Primeira data</string>
+    <string name="recurring_is_subscription">É uma assinatura</string>
+    <string name="recurring_delete_title">Excluir recorrência?</string>
+    <string name="recurring_delete_body">Os lançamentos futuros ainda não pagos serão apagados. Os que já aconteceram continuam no histórico.</string>
+    <string name="frequency_weekly">Semanal</string>
+    <string name="frequency_monthly">Mensal</string>
+    <string name="frequency_yearly">Anual</string>
+    <string name="category_none">Sem categoria</string>
 </resources>

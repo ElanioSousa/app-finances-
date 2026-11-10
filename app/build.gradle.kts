@@ -51,6 +51,9 @@ dependencies {
     // Uma versão só de coroutines no app e nos testes (o Compose traz uma mais antiga).
     implementation(platform(libs.kotlinx.coroutines.bom))
     implementation(libs.kotlinx.coroutines.android)
+    // Room usa kotlinx-serialization; uma versão só no app e nos testes (room-testing pede 1.8).
+    implementation(platform(libs.kotlinx.serialization.bom))
+    androidTestImplementation(platform(libs.kotlinx.serialization.bom))
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)

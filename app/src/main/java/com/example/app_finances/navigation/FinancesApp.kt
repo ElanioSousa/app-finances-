@@ -16,12 +16,12 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -41,6 +41,7 @@ import com.example.app_finances.feature.cards.detail.CardDetailActions
 import com.example.app_finances.feature.cards.detail.CardDetailScreen
 import com.example.app_finances.feature.dashboard.DashboardScreen
 import com.example.app_finances.feature.more.MoreScreen
+import com.example.app_finances.feature.recurring.RecurringScreen
 import com.example.app_finances.feature.transactions.TransactionsScreen
 import com.example.app_finances.feature.transactions.form.TransactionFormSheet
 
@@ -103,6 +104,7 @@ private fun AppNavHost(navController: NavHostController, padding: PaddingValues,
         }
         composable(TopLevelDestination.More.route) { MoreScreen(padding, onOpen = navController::navigate) }
         composable(Routes.ACCOUNTS) { AccountsScreen(padding, onBack = navController::popBackStack) }
+        composable(Routes.RECURRING) { RecurringScreen(padding, onBack = navController::popBackStack) }
     }
 }
 

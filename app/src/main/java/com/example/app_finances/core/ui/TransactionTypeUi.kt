@@ -1,8 +1,13 @@
 package com.example.app_finances.core.ui
 
 import androidx.annotation.StringRes
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
 import com.example.app_finances.R
 import com.example.app_finances.core.designsystem.component.AmountTone
+import com.example.app_finances.core.designsystem.component.Option
+import com.example.app_finances.core.model.PaymentOrigin
+import com.example.app_finances.data.local.entity.Frequency
 import com.example.app_finances.data.local.entity.TransactionType
 
 /** Textos e cores de cada tipo de lançamento, num lugar só. */
@@ -33,3 +38,18 @@ val TransactionType.tone: AmountTone get() = ui().tone
 /** Ordem de exibição: despesa primeiro, por ser o lançamento mais comum. */
 val TransactionTypesInDisplayOrder: List<TransactionType> =
     listOf(TransactionType.EXPENSE, TransactionType.INCOME, TransactionType.TRANSFER)
+
+/** Opções "Conta | Cartão" para escolher de onde sai uma despesa. */
+@Composable
+fun paymentOriginOptions(): List<Option<PaymentOrigin>> = listOf(
+    Option(PaymentOrigin.ACCOUNT, stringResource(R.string.form_origin_account)),
+    Option(PaymentOrigin.CARD, stringResource(R.string.form_origin_card)),
+)
+
+/** "Semanal", "Mensal", "Anual". */
+val Frequency.labelRes: Int
+    get() = when (this) {
+        Frequency.WEEKLY -> R.string.frequency_weekly
+        Frequency.MONTHLY -> R.string.frequency_monthly
+        Frequency.YEARLY -> R.string.frequency_yearly
+    }

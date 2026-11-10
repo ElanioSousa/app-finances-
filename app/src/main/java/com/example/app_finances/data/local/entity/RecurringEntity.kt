@@ -33,4 +33,6 @@ data class RecurringEntity(
     val endDate: LocalDate? = null,
     val isSubscription: Boolean = false,
     val active: Boolean = true,
+    /** Até que dia os lançamentos já foram gerados (os seguintes ainda não existem). */
+    val generatedUntil: LocalDate? = null,
 )

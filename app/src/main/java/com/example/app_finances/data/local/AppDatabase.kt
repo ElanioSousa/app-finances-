@@ -1,6 +1,7 @@
 package com.example.app_finances.data.local
 
 import android.content.Context
+import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -31,8 +32,12 @@ import com.example.app_finances.data.local.entity.TransactionEntity
         TransactionEntity::class,
         InvoicePaymentEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = true,
+    autoMigrations = [
+        // v2: recorrências guardam até onde já geraram lançamentos.
+        AutoMigration(from = 1, to = 2),
+    ],
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {

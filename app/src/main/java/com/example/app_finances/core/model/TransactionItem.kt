@@ -9,6 +9,7 @@ import com.example.app_finances.data.local.entity.TransactionType
 import com.example.app_finances.data.repository.AccountRepository
 import com.example.app_finances.data.repository.CardRepository
 import com.example.app_finances.data.repository.CategoryRepository
+import com.example.app_finances.domain.categoryKind
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 
@@ -39,7 +40,14 @@ data class Catalog(
     val categories: List<CategoryEntity> = emptyList(),
     val accounts: List<AccountEntity> = emptyList(),
     val cards: List<CreditCardEntity> = emptyList(),
-)
+) {
+    val categoryById: Map<Long, CategoryEntity> by lazy { categories.associateBy { it.id } }
+    val accountNames: Map<Long, String> by lazy { accounts.associate { it.id to it.name } }
+    val cardNames: Map<Long, String> by lazy { cards.associate { it.id to it.name } }
+
+    /** Só as categorias que o tipo de lançamento aceita (regra do domínio). */
+    fun categoriesFor(type: TransactionType): List<CategoryEntity> = categories.filter { it.kind == type.categoryKind }
+}
 
 /** Repositórios de onde vem o [Catalog]. */
 data class CatalogSources(
@@ -53,19 +61,14 @@ fun observeCatalog(sources: CatalogSources): Flow<Catalog> =
     combine(sources.categories.observeActive(), sources.accounts.observeAccounts(), sources.cards.observeCards(), ::Catalog)
 
 /** Junta cada lançamento à sua categoria e às contas envolvidas. */
-fun List<TransactionEntity>.toItems(catalog: Catalog): List<TransactionItem> {
-    val categoryById = catalog.categories.associateBy { it.id }
-    val accountName = catalog.accounts.associate { it.id to it.name }
-    val cardName = catalog.cards.associate { it.id to it.name }
-    return map { t ->
-        TransactionItem(
-            transaction = t,
-            category = t.categoryId?.let(categoryById::get),
-            accountName = t.accountId?.let(accountName::get),
-            destinationName = t.destinationAccountId?.let(accountName::get),
-            cardName = t.cardId?.let(cardName::get),
-        )
-    }
+fun List<TransactionEntity>.toItems(catalog: Catalog): List<TransactionItem> = map { t ->
+    TransactionItem(
+        transaction = t,
+        category = t.categoryId?.let(catalog.categoryById::get),
+        accountName = t.accountId?.let(catalog.accountNames::get),
+        destinationName = t.destinationAccountId?.let(catalog.accountNames::get),
+        cardName = t.cardId?.let(catalog.cardNames::get),
+    )
 }
 
 /** Contas como opções de escolha (nome visível, id como valor). */

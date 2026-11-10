@@ -1,12 +1,10 @@
 package com.example.app_finances.feature.transactions.form
 
+import com.example.app_finances.core.model.PaymentOrigin
 import com.example.app_finances.data.local.entity.TransactionEntity
 import com.example.app_finances.data.local.entity.TransactionType
 import com.example.app_finances.domain.Installments
 import java.time.LocalDate
-
-/** De onde sai o dinheiro de uma despesa. */
-enum class PaymentOrigin { ACCOUNT, CARD }
 
 /** O que o usuário está preenchendo no formulário, antes de virar lançamento(s). */
 data class TransactionDraft(
@@ -71,7 +69,7 @@ data class TransactionDraft(
             destinationAccountId = entity.destinationAccountId,
             paid = entity.paid,
             notes = entity.notes.orEmpty(),
-            origin = if (entity.cardId != null) PaymentOrigin.CARD else PaymentOrigin.ACCOUNT,
+            origin = PaymentOrigin.of(entity.cardId),
             cardId = entity.cardId,
         )
     }
