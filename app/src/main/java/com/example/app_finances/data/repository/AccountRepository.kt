@@ -13,6 +13,9 @@ class AccountRepository(
     private val accountDao: AccountDao,
     private val transactionDao: TransactionDao,
 ) {
+    /** Contas ativas, sem calcular saldo (para listas de escolha e nomes). */
+    fun observeAccounts(): Flow<List<AccountEntity>> = accountDao.observeActive()
+
     /** Contas ativas com saldo atual; atualiza sozinho quando qualquer movimento muda. */
     fun observeBalances(): Flow<List<AccountBalance>> =
         combine(accountDao.observeActive(), transactionDao.observePaidMovements(), BalanceCalculator::balances)

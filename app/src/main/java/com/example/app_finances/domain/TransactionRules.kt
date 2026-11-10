@@ -43,7 +43,7 @@ object TransactionRules {
     fun categoryViolation(type: TransactionType, categoryKind: CategoryKind?): String? = when {
         categoryKind == null -> null
         type == TransactionType.TRANSFER -> "Transferências não têm categoria."
-        type.name != categoryKind.name -> "A categoria não combina com o tipo do lançamento."
+        type.categoryKind != categoryKind -> "A categoria não combina com o tipo do lançamento."
         else -> null
     }
 
@@ -56,3 +56,11 @@ object TransactionRules {
         return if (invalid) listOf("Parcelamento inválido.") else emptyList()
     }
 }
+
+/** Tipo de categoria aceito por um tipo de lançamento; transferências não têm categoria. */
+val TransactionType.categoryKind: CategoryKind?
+    get() = when (this) {
+        TransactionType.INCOME -> CategoryKind.INCOME
+        TransactionType.EXPENSE -> CategoryKind.EXPENSE
+        TransactionType.TRANSFER -> null
+    }

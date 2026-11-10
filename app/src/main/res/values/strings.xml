@@ -24,4 +24,63 @@
     <string name="more_reports">Relatórios</string>
     <string name="more_settings">Configurações</string>
     <string name="coming_soon">Em breve</string>
+
+    <string name="month_previous">Mês anterior</string>
+    <string name="month_next">Próximo mês</string>
+    <string name="action_save">Salvar</string>
+    <string name="action_cancel">Cancelar</string>
+    <string name="action_undo">Desfazer</string>
+    <string name="action_back">Voltar</string>
+    <string name="action_clear">Limpar</string>
+    <string name="action_delete">Excluir</string>
+
+    <string name="type_expense">Despesa</string>
+    <string name="type_income">Receita</string>
+    <string name="type_transfer">Transferência</string>
+    <string name="filter_all">Todos</string>
+    <string name="filter_incomes">Receitas</string>
+    <string name="filter_expenses">Despesas</string>
+    <string name="filter_transfers">Transferências</string>
+    <string name="filter_category">Categoria</string>
+    <string name="filter_account">Conta</string>
+    <string name="filter_any">Qualquer</string>
+    <string name="search_hint">Buscar lançamentos</string>
+    <string name="transactions_no_match_title">Nada encontrado</string>
+    <string name="transactions_no_match_body">Tente outro termo de busca ou limpe os filtros.</string>
+    <string name="transaction_deleted">\"%1$s\" excluído</string>
+    <string name="transaction_pending">Pendente</string>
+    <string name="month_result">Resultado</string>
+
+    <string name="form_new_title">Novo lançamento</string>
+    <string name="form_edit_title">Editar lançamento</string>
+    <string name="form_amount">Valor</string>
+    <string name="form_description">Descrição</string>
+    <string name="form_description_hint">Opcional se escolher uma categoria</string>
+    <string name="form_category">Categoria</string>
+    <string name="form_account">Conta</string>
+    <string name="form_from_account">De</string>
+    <string name="form_to_account">Para</string>
+    <string name="form_date">Data</string>
+    <string name="form_paid_expense">Já foi pago</string>
+    <string name="form_paid_income">Já foi recebido</string>
+    <string name="form_paid_transfer">Já foi feita</string>
+    <string name="form_notes">Observação</string>
+    <string name="form_today">Hoje</string>
+    <string name="form_yesterday">Ontem</string>
+    <string name="form_other_date">Outra data</string>
+
+    <string name="accounts_title">Contas</string>
+    <string name="accounts_total">Saldo de todas as contas</string>
+    <string name="accounts_new">Nova conta</string>
+    <string name="accounts_edit">Editar conta</string>
+    <string name="account_name">Nome</string>
+    <string name="account_initial_balance">Saldo inicial</string>
+    <string name="account_type">Tipo</string>
+    <string name="account_type_checking">Conta corrente</string>
+    <string name="account_type_savings">Poupança</string>
+    <string name="account_type_cash">Dinheiro</string>
+    <string name="account_type_investment">Investimento</string>
+
+    <string name="home_recent">Últimos lançamentos</string>
+    <string name="home_see_all">Ver todos</string>
 </resources>

@@ -42,6 +42,11 @@ room {
     schemaDirectory("$projectDir/schemas")
 }
 
+composeCompiler {
+    // Datas do java.time são imutáveis: evita recompor linhas da lista sem necessidade.
+    stabilityConfigurationFiles.add(layout.projectDirectory.file("compose-stability.conf"))
+}
+
 dependencies {
     // Uma versão só de coroutines no app e nos testes (o Compose traz uma mais antiga).
     implementation(platform(libs.kotlinx.coroutines.bom))

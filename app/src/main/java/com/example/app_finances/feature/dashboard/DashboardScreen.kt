@@ -13,7 +13,14 @@ import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.outlined.Savings
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.app_finances.core.ui.containerViewModel
+import com.example.app_finances.core.model.TransactionItem
+import com.example.app_finances.core.ui.TransactionRow
+import com.example.app_finances.domain.MonthTotals
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,25 +39,38 @@ import com.example.app_finances.core.designsystem.component.color
 import com.example.app_finances.core.designsystem.theme.EmeraldDeep
 import com.example.app_finances.core.designsystem.theme.Ink850
 
-/** Resumo do mês exibido no topo do Início. Os valores vêm do banco a partir da fase 2. */
-data class MonthSummary(
-    val balanceCents: Long = 0,
-    val incomeCents: Long = 0,
-    val expenseCents: Long = 0,
-)
+@Composable
+fun DashboardScreen(scaffoldPadding: PaddingValues, onOpenTransaction: (Long) -> Unit, onSeeAll: () -> Unit) {
+    val viewModel = containerViewModel {
+        DashboardViewModel(it.accountRepository, it.transactionRepository, it.categoryRepository)
+    }
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    ScreenColumn(title = stringResource(R.string.home_greeting), scaffoldPadding = scaffoldPadding) {
+        item { BalanceCard(state.balanceCents, state.monthTotals) }
+        if (!state.isLoading) {
+            item { RecentCard(state.recent, onOpenTransaction, onSeeAll) }
+        }
+    }
+}
 
 @Composable
-fun DashboardScreen(scaffoldPadding: PaddingValues, summary: MonthSummary = MonthSummary()) {
-    ScreenColumn(title = stringResource(R.string.home_greeting), scaffoldPadding = scaffoldPadding) {
-        item { BalanceCard(summary) }
-        item {
-            SectionCard {
-                EmptyState(
-                    icon = Icons.Outlined.Savings,
-                    title = stringResource(R.string.home_empty_title),
-                    body = stringResource(R.string.home_empty_body),
-                )
-            }
+private fun RecentCard(recent: List<TransactionItem>, onOpenTransaction: (Long) -> Unit, onSeeAll: () -> Unit) {
+    if (recent.isEmpty()) {
+        SectionCard {
+            EmptyState(
+                icon = Icons.Outlined.Savings,
+                title = stringResource(R.string.home_empty_title),
+                body = stringResource(R.string.home_empty_body),
+            )
+        }
+        return
+    }
+    SectionCard(
+        title = stringResource(R.string.home_recent),
+        action = { TextButton(onClick = onSeeAll) { Text(stringResource(R.string.home_see_all)) } },
+    ) {
+        recent.forEach { item ->
+            TransactionRow(item, onClick = { onOpenTransaction(item.id) }, modifier = Modifier.clip(MaterialTheme.shapes.medium))
         }
     }
 }
@@ -59,7 +79,7 @@ fun DashboardScreen(scaffoldPadding: PaddingValues, summary: MonthSummary = Mont
 private val BalanceGradient = Brush.linearGradient(listOf(EmeraldDeep, Ink850))
 
 @Composable
-private fun BalanceCard(summary: MonthSummary) {
+private fun BalanceCard(balanceCents: Long, month: MonthTotals) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -74,11 +94,11 @@ private fun BalanceCard(summary: MonthSummary) {
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            MoneyText(cents = summary.balanceCents, style = MaterialTheme.typography.displaySmall)
+            MoneyText(cents = balanceCents, style = MaterialTheme.typography.displaySmall)
         }
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            FlowTile(FlowTileData(R.string.home_income, summary.incomeCents, Icons.AutoMirrored.Filled.TrendingUp, AmountTone.Income), Modifier.weight(1f))
-            FlowTile(FlowTileData(R.string.home_expenses, summary.expenseCents, Icons.AutoMirrored.Filled.TrendingDown, AmountTone.Expense), Modifier.weight(1f))
+            FlowTile(FlowTileData(R.string.home_income, month.incomeCents, Icons.AutoMirrored.Filled.TrendingUp, AmountTone.Income), Modifier.weight(1f))
+            FlowTile(FlowTileData(R.string.home_expenses, month.expenseCents, Icons.AutoMirrored.Filled.TrendingDown, AmountTone.Expense), Modifier.weight(1f))
         }
     }
 }
