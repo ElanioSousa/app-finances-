@@ -76,4 +76,12 @@ class TransactionRulesTest {
         assertNotNull(TransactionRules.categoryViolation(TransactionType.INCOME, CategoryKind.EXPENSE))
         assertNotNull(TransactionRules.categoryViolation(TransactionType.TRANSFER, CategoryKind.EXPENSE))
     }
+
+    @Test
+    fun `parcela só no cartão e compra no cartão nunca pendente`() {
+        val installment = transaction().copy(installmentGroupId = "g", installmentNumber = 1, installmentCount = 2)
+        assertInvalid(installment)
+        assertValid(installment.copy(accountId = null, cardId = 1))
+        assertInvalid(transaction(accountId = null).copy(cardId = 1, paid = false))
+    }
 }

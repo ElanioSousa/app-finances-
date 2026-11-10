@@ -16,6 +16,8 @@ import com.example.app_finances.data.local.entity.RecurringEntity
 import com.example.app_finances.data.local.entity.TransactionEntity
 import com.example.app_finances.data.local.entity.TransactionType
 import com.example.app_finances.data.repository.AccountRepository
+import com.example.app_finances.data.repository.CardRepository
+import com.example.app_finances.domain.Installments
 import com.example.app_finances.data.repository.TransactionRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -120,6 +122,37 @@ class DatabaseTest {
         assertThrows(SQLiteConstraintException::class.java) {
             db.openHelper.writableDatabase.execSQL("DELETE FROM accounts WHERE id = $WALLET")
         }
+    }
+
+    @Test
+    fun excluirParcelaExcluiACompraInteiraEDesfazRestaura() = runTest {
+        val card = db.creditCardDao().insert(CreditCardEntity(name = "Cartão", limitCents = 500_000, closingDay = 5, dueDay = 12, colorArgb = 0))
+        val purchase = expense(30_000, accountId = null).copy(cardId = card)
+        transactions.addAll(Installments.schedule(purchase, 3) { "grupo" })
+        val parcels = db.transactionDao().getInstallmentGroup("grupo")
+        assertEquals(3, parcels.size)
+
+        val deleted = transactions.delete(parcels[1])
+        assertEquals(3, deleted.size)
+        assertEquals(0, db.transactionDao().getInstallmentGroup("grupo").size)
+
+        transactions.addAll(deleted)
+        assertEquals(parcels, db.transactionDao().getInstallmentGroup("grupo"))
+    }
+
+    @Test
+    fun pagamentoDeFaturaConfereRestanteESaiDaConta() = runTest {
+        val cards = CardRepository(db.creditCardDao(), db.transactionDao(), db.invoicePaymentDao())
+        val card = cards.add(CreditCardEntity(name = "Cartão", limitCents = 500_000, closingDay = 5, dueDay = 12, colorArgb = 0))
+        transactions.add(expense(20_000, date = LocalDate.of(2026, 11, 1), accountId = null).copy(cardId = card))
+        val month = YearMonth.of(2026, 11)
+        fun payment(cents: Long) = InvoicePaymentEntity(cardId = card, referenceMonth = month, amountCents = cents, date = nov10, accountId = WALLET)
+
+        assertTrue(failureOf { cards.payInvoice(payment(20_001)) } is IllegalArgumentException)
+        cards.payInvoice(payment(15_000))
+        cards.payInvoice(payment(5_000))
+        assertTrue(failureOf { cards.payInvoice(payment(1)) } is IllegalArgumentException)
+        assertEquals(-20_000L, accounts.observeBalances().first().single().balanceCents)
     }
 
     private companion object {

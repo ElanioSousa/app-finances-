@@ -19,6 +19,17 @@ interface TransactionDao {
     @Query("SELECT * FROM transactions WHERE id = :id")
     suspend fun getById(id: Long): TransactionEntity?
 
+    /** Todas as compras no cartão (a fatura de cada mês é calculada no domínio). */
+    @Query("SELECT * FROM transactions WHERE cardId IS NOT NULL ORDER BY date DESC, id DESC")
+    fun observeCardPurchases(): Flow<List<TransactionEntity>>
+
+    @Query("SELECT * FROM transactions WHERE cardId = :cardId")
+    suspend fun getCardPurchases(cardId: Long): List<TransactionEntity>
+
+    /** Parcelas de uma mesma compra. */
+    @Query("SELECT * FROM transactions WHERE installmentGroupId = :groupId ORDER BY installmentNumber")
+    suspend fun getInstallmentGroup(groupId: String): List<TransactionEntity>
+
     /**
      * Movimentos pagos que mexem no saldo de cada conta, numa consulta só
      * (uma atualização por gravação). Compras no cartão ficam de fora: só o
@@ -54,5 +65,5 @@ interface TransactionDao {
     suspend fun update(transaction: TransactionEntity)
 
     @Delete
-    suspend fun delete(transaction: TransactionEntity)
+    suspend fun delete(transactions: List<TransactionEntity>)
 }

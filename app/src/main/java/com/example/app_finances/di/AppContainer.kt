@@ -1,8 +1,11 @@
 package com.example.app_finances.di
 
 import android.content.Context
+import java.time.LocalDate
+import com.example.app_finances.core.model.CatalogSources
 import com.example.app_finances.data.local.AppDatabase
 import com.example.app_finances.data.repository.AccountRepository
+import com.example.app_finances.data.repository.CardRepository
 import com.example.app_finances.data.repository.CategoryRepository
 import com.example.app_finances.data.repository.TransactionRepository
 
@@ -15,10 +18,18 @@ import com.example.app_finances.data.repository.TransactionRepository
 class AppContainer(
     context: Context,
     createDatabase: (Context) -> AppDatabase = AppDatabase::create,
+    /** "Hoje" para as regras que dependem da data (faturas); testes podem fixar. */
+    val today: () -> LocalDate = LocalDate::now,
 ) {
     private val database: AppDatabase by lazy { createDatabase(context.applicationContext) }
 
     val accountRepository by lazy { AccountRepository(database.accountDao(), database.transactionDao()) }
     val categoryRepository by lazy { CategoryRepository(database.categoryDao()) }
     val transactionRepository by lazy { TransactionRepository(database.transactionDao(), database.categoryDao()) }
+    val cardRepository by lazy {
+        CardRepository(database.creditCardDao(), database.transactionDao(), database.invoicePaymentDao())
+    }
+
+    /** De onde as telas tiram categorias, contas e cartões. */
+    val catalogSources by lazy { CatalogSources(categoryRepository, accountRepository, cardRepository) }
 }

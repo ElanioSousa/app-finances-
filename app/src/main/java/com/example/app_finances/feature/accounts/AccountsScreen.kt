@@ -31,6 +31,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.app_finances.R
 import com.example.app_finances.core.designsystem.component.AmountTone
 import com.example.app_finances.core.designsystem.component.CategoryIcon
+import com.example.app_finances.core.designsystem.component.DialogActions
 import com.example.app_finances.core.designsystem.component.MoneyText
 import com.example.app_finances.core.designsystem.component.ScreenColumn
 import com.example.app_finances.core.designsystem.component.SectionCard
@@ -56,7 +57,7 @@ fun AccountsScreen(scaffoldPadding: PaddingValues, onBack: () -> Unit) {
         }
     }
     state.editor?.let { editor ->
-        AccountFormDialog(editor, AccountFormActions(viewModel::edit, viewModel::save, viewModel::close))
+        AccountFormDialog(editor, AccountFormActions(viewModel::edit, DialogActions(viewModel::save, viewModel::close)))
     }
 }
 

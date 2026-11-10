@@ -59,7 +59,7 @@ private data class TransactionsActions(
 @Composable
 fun TransactionsScreen(scaffoldPadding: PaddingValues, onOpenTransaction: (Long) -> Unit) {
     val viewModel = containerViewModel {
-        TransactionsViewModel(it.transactionRepository, it.categoryRepository, it.accountRepository)
+        TransactionsViewModel(it.transactionRepository, it.catalogSources)
     }
     val state by viewModel.state.collectAsStateWithLifecycle()
     TransactionEvents(viewModel)

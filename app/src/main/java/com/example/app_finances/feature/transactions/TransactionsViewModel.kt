@@ -3,14 +3,13 @@ package com.example.app_finances.feature.transactions
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.app_finances.core.model.Catalog
+import com.example.app_finances.core.model.CatalogSources
 import com.example.app_finances.core.model.TransactionItem
 import com.example.app_finances.core.model.observeCatalog
 import com.example.app_finances.core.model.toItems
 import com.example.app_finances.core.ui.WhileUiSubscribed
 import com.example.app_finances.core.ui.runForUserMessage
 import com.example.app_finances.data.local.entity.TransactionEntity
-import com.example.app_finances.data.repository.AccountRepository
-import com.example.app_finances.data.repository.CategoryRepository
 import com.example.app_finances.data.repository.TransactionRepository
 import com.example.app_finances.domain.MonthTotals
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -44,21 +43,20 @@ sealed interface TransactionsEvent {
 @OptIn(ExperimentalCoroutinesApi::class)
 class TransactionsViewModel(
     private val transactionRepository: TransactionRepository,
-    categoryRepository: CategoryRepository,
-    accountRepository: AccountRepository,
+    catalogSources: CatalogSources,
 ) : ViewModel() {
 
     private val month = MutableStateFlow(YearMonth.now())
     private val filter = MutableStateFlow(TransactionFilter())
     private val events = Channel<TransactionsEvent>(Channel.BUFFERED)
-    private var lastDeleted: TransactionEntity? = null
+    private var lastDeleted: List<TransactionEntity> = emptyList()
 
     val eventFlow: Flow<TransactionsEvent> = events.receiveAsFlow()
 
     /** Itens e totais do mês: só são refeitos quando os dados mudam, não a cada letra da busca. */
     private val monthData: Flow<MonthData> = combine(
         month.flatMapLatest(transactionRepository::observeMonth),
-        observeCatalog(categoryRepository, accountRepository),
+        observeCatalog(catalogSources),
     ) { transactions, catalog -> MonthData(transactions.toItems(catalog), MonthTotals.of(transactions), catalog) }
 
     val state: StateFlow<TransactionsUiState> = combine(month, filter, monthData) { month, filter, data ->
@@ -80,18 +78,21 @@ class TransactionsViewModel(
 
     fun delete(item: TransactionItem) {
         viewModelScope.launch {
-            val error = runForUserMessage { transactionRepository.delete(item.transaction) }
+            var deleted = emptyList<TransactionEntity>()
+            val error = runForUserMessage { deleted = transactionRepository.delete(item.transaction) }
             if (error != null) return@launch events.send(TransactionsEvent.Error(error))
-            lastDeleted = item.transaction
+            lastDeleted = deleted
             events.send(TransactionsEvent.Deleted(item.transaction.description))
         }
     }
 
-    /** Recoloca o último lançamento apagado, com o mesmo id. */
-    fun undoDelete() = viewModelScope.launch {
-        val deleted = lastDeleted ?: return@launch
-        lastDeleted = null
-        runForUserMessage { transactionRepository.add(deleted) }?.let { events.send(TransactionsEvent.Error(it)) }
+    /** Recoloca o que foi apagado por último (todas as parcelas, se era uma compra parcelada), com os mesmos ids. */
+    fun undoDelete() {
+        val deleted = lastDeleted.ifEmpty { return }
+        lastDeleted = emptyList()
+        viewModelScope.launch {
+            runForUserMessage { transactionRepository.addAll(deleted) }?.let { events.send(TransactionsEvent.Error(it)) }
+        }
     }
 }
 

@@ -27,6 +27,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -35,6 +37,8 @@ import com.example.app_finances.R
 import com.example.app_finances.core.ui.LocalSnackbarHostState
 import com.example.app_finances.feature.accounts.AccountsScreen
 import com.example.app_finances.feature.cards.CardsScreen
+import com.example.app_finances.feature.cards.detail.CardDetailActions
+import com.example.app_finances.feature.cards.detail.CardDetailScreen
 import com.example.app_finances.feature.dashboard.DashboardScreen
 import com.example.app_finances.feature.more.MoreScreen
 import com.example.app_finances.feature.transactions.TransactionsScreen
@@ -90,7 +94,13 @@ private fun AppNavHost(navController: NavHostController, padding: PaddingValues,
             DashboardScreen(padding, onOpenTransaction, onSeeAll = { navController.navigateToTab(TopLevelDestination.Transactions) })
         }
         composable(TopLevelDestination.Transactions.route) { TransactionsScreen(padding, onOpenTransaction) }
-        composable(TopLevelDestination.Cards.route) { CardsScreen(padding) }
+        composable(TopLevelDestination.Cards.route) {
+            CardsScreen(padding, onOpenCard = { navController.navigate(Routes.cardDetail(it)) })
+        }
+        composable(Routes.CARD_DETAIL, arguments = listOf(navArgument(Routes.CARD_ID) { type = NavType.LongType })) { entry ->
+            val cardId = entry.arguments?.getLong(Routes.CARD_ID) ?: return@composable
+            CardDetailScreen(cardId, padding, CardDetailActions(navController::popBackStack, onOpenTransaction))
+        }
         composable(TopLevelDestination.More.route) { MoreScreen(padding, onOpen = navController::navigate) }
         composable(Routes.ACCOUNTS) { AccountsScreen(padding, onBack = navController::popBackStack) }
     }

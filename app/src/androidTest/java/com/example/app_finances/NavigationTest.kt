@@ -1,12 +1,15 @@
 package com.example.app_finances
 
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
+import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -15,9 +18,18 @@ import org.junit.runner.RunWith
 class NavigationTest {
 
     @get:Rule
-    val compose = createAndroidComposeRule<MainActivity>()
+    val compose = createEmptyComposeRule()
+    private lateinit var scenario: ActivityScenario<MainActivity>
 
-    private fun string(id: Int) = compose.activity.getString(id)
+    private fun string(id: Int) = TestApp.string(id)
+
+    @Before
+    fun start() {
+        scenario = TestApp.launchWithFreshDatabase()
+    }
+
+    @After
+    fun stop() = scenario.close()
 
     @Test
     fun abreNoInicioComSaldo() {

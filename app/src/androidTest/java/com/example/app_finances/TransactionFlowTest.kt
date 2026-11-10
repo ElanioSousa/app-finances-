@@ -1,10 +1,6 @@
 package com.example.app_finances
 
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.room.Room
-import com.example.app_finances.data.local.AppDatabase
-import com.example.app_finances.data.local.SeedCallback
-import com.example.app_finances.di.AppContainer
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isEnabled
@@ -19,7 +15,6 @@ import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
 import androidx.test.core.app.ActivityScenario
-import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.app_finances.core.format.Money
 import org.junit.After
@@ -35,16 +30,11 @@ class TransactionFlowTest {
     @get:Rule
     val compose = createEmptyComposeRule()
     private lateinit var scenario: ActivityScenario<MainActivity>
-    private val context = ApplicationProvider.getApplicationContext<FinancesApplication>()
-
-    private fun string(id: Int) = context.getString(id)
+    private fun string(id: Int) = TestApp.string(id)
 
     @Before
     fun start() {
-        context.container = AppContainer(context) {
-            Room.inMemoryDatabaseBuilder(it, AppDatabase::class.java).addCallback(SeedCallback).build()
-        }
-        scenario = ActivityScenario.launch(MainActivity::class.java)
+        scenario = TestApp.launchWithFreshDatabase()
     }
 
     @After

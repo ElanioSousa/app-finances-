@@ -28,6 +28,8 @@ object TransactionRules {
         val hasCard = t.cardId != null
         if (hasAccount == hasCard) add("Escolha uma conta ou um cartão.")
         if (hasCard && t.type != TransactionType.EXPENSE) add("Cartão de crédito só recebe despesas.")
+        // No cartão, quem fica pendente é a fatura, nunca a compra.
+        if (hasCard && !t.paid) add("Compra no cartão não fica pendente; o que se paga é a fatura.")
         if (t.type == TransactionType.TRANSFER) {
             if (t.destinationAccountId == null) add("Escolha a conta de destino.")
             if (t.destinationAccountId == t.accountId) add("Origem e destino devem ser contas diferentes.")
@@ -53,7 +55,10 @@ object TransactionRules {
         val count = t.installmentCount
         if (group == null && number == null && count == null) return emptyList()
         val invalid = group == null || number == null || count == null || count < 2 || number !in 1..count
-        return if (invalid) listOf("Parcelamento inválido.") else emptyList()
+        return buildList {
+            if (invalid) add("Parcelamento inválido.")
+            if (t.cardId == null) add("Só compras no cartão podem ser parceladas.")
+        }
     }
 }
 

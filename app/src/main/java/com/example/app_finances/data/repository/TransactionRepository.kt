@@ -27,12 +27,27 @@ class TransactionRepository(
         return transactionDao.insert(transaction)
     }
 
+    /** Grava vários de uma vez (ex.: parcelas): ou entram todos, ou nenhum. */
+    suspend fun addAll(transactions: List<TransactionEntity>) {
+        transactions.forEach { requireValid(it) }
+        transactionDao.insertAll(transactions)
+    }
+
     suspend fun update(transaction: TransactionEntity) {
         requireValid(transaction)
         transactionDao.update(transaction)
     }
 
-    suspend fun delete(transaction: TransactionEntity) = transactionDao.delete(transaction)
+    /**
+     * Exclui o lançamento; se for parcela, exclui a compra inteira (todas as parcelas).
+     * Devolve o que foi excluído, para permitir desfazer.
+     */
+    suspend fun delete(transaction: TransactionEntity): List<TransactionEntity> {
+        val group = transaction.installmentGroupId?.let { transactionDao.getInstallmentGroup(it) }
+        val deleted = group?.takeIf { it.isNotEmpty() } ?: listOf(transaction)
+        transactionDao.delete(deleted)
+        return deleted
+    }
 
     private suspend fun requireValid(transaction: TransactionEntity) {
         TransactionRules.requireValid(transaction)

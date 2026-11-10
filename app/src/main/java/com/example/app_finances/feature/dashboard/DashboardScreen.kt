@@ -42,7 +42,7 @@ import com.example.app_finances.core.designsystem.theme.Ink850
 @Composable
 fun DashboardScreen(scaffoldPadding: PaddingValues, onOpenTransaction: (Long) -> Unit, onSeeAll: () -> Unit) {
     val viewModel = containerViewModel {
-        DashboardViewModel(it.accountRepository, it.transactionRepository, it.categoryRepository)
+        DashboardViewModel(it.accountRepository, it.transactionRepository, it.catalogSources)
     }
     val state by viewModel.state.collectAsStateWithLifecycle()
     ScreenColumn(title = stringResource(R.string.home_greeting), scaffoldPadding = scaffoldPadding) {

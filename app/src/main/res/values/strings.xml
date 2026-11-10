@@ -68,6 +68,14 @@
     <string name="form_today">Hoje</string>
     <string name="form_yesterday">Ontem</string>
     <string name="form_other_date">Outra data</string>
+    <string name="form_origin_account">Conta</string>
+    <string name="form_origin_card">Cartão</string>
+    <string name="form_card">Cartão</string>
+    <string name="form_installments">Parcelas</string>
+    <string name="form_cash">À vista</string>
+    <string name="form_installment_option">%1$dx de %2$s</string>
+    <string name="form_installment_info">Parcela %1$d de %2$d — a edição vale só para esta parcela.</string>
+    <string name="form_no_cards">Cadastre um cartão na aba Cartões para lançar compras nele.</string>
 
     <string name="accounts_title">Contas</string>
     <string name="accounts_total">Saldo de todas as contas</string>
@@ -83,4 +91,33 @@
 
     <string name="home_recent">Últimos lançamentos</string>
     <string name="home_see_all">Ver todos</string>
+
+    <string name="cards_new">Novo cartão</string>
+    <string name="cards_edit">Editar cartão</string>
+    <string name="card_name">Nome</string>
+    <string name="card_brand">Bandeira (opcional)</string>
+    <string name="card_limit">Limite</string>
+    <string name="card_closing_day">Dia do fechamento</string>
+    <string name="card_due_day">Dia do vencimento</string>
+    <string name="card_payment_account">Conta que paga a fatura</string>
+    <string name="card_day">Dia %1$d</string>
+    <string name="card_current_invoice">Fatura atual</string>
+    <string name="card_pending_invoice">Fatura fechada a pagar: %1$s</string>
+    <string name="card_due_on">Vence %1$s</string>
+    <string name="card_closes_on">Fecha %1$s</string>
+    <string name="card_available">Disponível %1$s de %2$s</string>
+    <string name="card_paid_amount">Pago</string>
+    <string name="card_remaining">Falta pagar</string>
+    <string name="card_purchases">Compras da fatura</string>
+    <string name="card_no_purchases">Nenhuma compra nesta fatura.</string>
+    <string name="card_payments">Pagamentos</string>
+    <string name="card_pay_invoice">Pagar fatura</string>
+    <string name="card_pay_title">Pagar fatura de %1$s</string>
+    <string name="card_pay_amount">Valor a pagar</string>
+    <string name="card_pay_from">Pagar com a conta</string>
+    <string name="card_payment_line">%1$s · %2$s</string>
+    <string name="invoice_open">Aberta</string>
+    <string name="invoice_closed">Fechada</string>
+    <string name="invoice_paid">Paga</string>
+    <string name="invoice_overdue">Vencida</string>
 </resources>
