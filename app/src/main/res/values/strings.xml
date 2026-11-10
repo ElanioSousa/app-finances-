@@ -1,3 +1,27 @@
 <resources>
-    <string name="app_name">app-finances</string>
+    <string name="app_name">Finanças</string>
+
+    <string name="nav_home">Início</string>
+    <string name="nav_transactions">Lançamentos</string>
+    <string name="nav_cards">Cartões</string>
+    <string name="nav_more">Mais</string>
+    <string name="action_new_transaction">Novo lançamento</string>
+
+    <string name="home_greeting">Olá!</string>
+    <string name="home_total_balance">Saldo total</string>
+    <string name="home_income">Receitas</string>
+    <string name="home_expenses">Despesas</string>
+    <string name="home_empty_title">Tudo pronto para começar</string>
+    <string name="home_empty_body">Registre sua primeira receita ou despesa no botão +.</string>
+
+    <string name="transactions_empty_title">Nenhum lançamento</string>
+    <string name="transactions_empty_body">Receitas, despesas avulsas e transferências aparecerão aqui.</string>
+    <string name="cards_empty_title">Nenhum cartão</string>
+    <string name="cards_empty_body">Cadastre seus cartões para acompanhar faturas, limite e parcelas.</string>
+    <string name="more_recurring">Recorrentes e assinaturas</string>
+    <string name="more_categories">Categorias</string>
+    <string name="more_accounts">Contas</string>
+    <string name="more_reports">Relatórios</string>
+    <string name="more_settings">Configurações</string>
+    <string name="coming_soon">Em breve</string>
 </resources>
