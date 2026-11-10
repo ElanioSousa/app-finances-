@@ -31,3 +31,8 @@ val PickerPalette = listOf(
     Coral, Color(0xFFFB923C), Amber, Color(0xFF2DD4BF),
     Color(0xFF94A3B8), Color(0xFF8B5CF6), Color(0xFFE11D48), Color(0xFF0EA5E9),
 )
+
+// Gráficos: tons validados para o fundo escuro (faixa de luminosidade, croma, daltonismo e contraste).
+val ChartIncome = Color(0xFF059669)
+val ChartExpense = Color(0xFFDC2626)
+val ChartMagnitude = Color(0xFF3B82F6)

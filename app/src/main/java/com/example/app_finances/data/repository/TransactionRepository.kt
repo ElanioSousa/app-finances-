@@ -3,21 +3,25 @@ package com.example.app_finances.data.repository
 import com.example.app_finances.data.local.dao.CategoryDao
 import com.example.app_finances.data.local.dao.TransactionDao
 import com.example.app_finances.data.local.entity.TransactionEntity
-import com.example.app_finances.domain.MonthTotals
 import com.example.app_finances.domain.TransactionRules
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import java.time.LocalDate
 import java.time.YearMonth
 
 class TransactionRepository(
     private val transactionDao: TransactionDao,
     private val categoryDao: CategoryDao,
 ) {
-    fun observeMonth(month: YearMonth): Flow<List<TransactionEntity>> =
-        transactionDao.observeBetween(month.atDay(1), month.atEndOfMonth())
+    fun observeMonth(month: YearMonth): Flow<List<TransactionEntity>> = observeMonths(month, month)
 
-    fun observeMonthTotals(month: YearMonth): Flow<MonthTotals> =
-        observeMonth(month).map(MonthTotals::of)
+    /** Lançamentos de [from] até [to] (meses inteiros), numa consulta só. */
+    fun observeMonths(from: YearMonth, to: YearMonth): Flow<List<TransactionEntity>> =
+        transactionDao.observeBetween(from.atDay(1), to.atEndOfMonth())
+
+    fun observePendingUntil(until: LocalDate): Flow<List<TransactionEntity>> = transactionDao.observePendingUntil(until)
+
+    /** Confirma que foi pago/recebido. */
+    suspend fun markPaid(transaction: TransactionEntity) = update(transaction.copy(paid = true))
 
     suspend fun getById(id: Long): TransactionEntity? = transactionDao.getById(id)
 

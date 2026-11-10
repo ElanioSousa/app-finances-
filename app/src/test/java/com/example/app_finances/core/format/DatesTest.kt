@@ -14,6 +14,7 @@ class DatesTest {
         assertEquals("Ontem", Dates.dayHeader(today.minusDays(1), today))
         assertEquals("Domingo, 8 de novembro", Dates.dayHeader(LocalDate.of(2026, 11, 8), today))
         assertEquals("08/11/2026", Dates.short(LocalDate.of(2026, 11, 8), today))
+        assertEquals("08/11", Dates.dayMonth(LocalDate.of(2026, 11, 8), today))
     }
 
     @Test

@@ -19,6 +19,7 @@ import com.example.app_finances.data.repository.AccountRepository
 import com.example.app_finances.data.repository.CardRepository
 import com.example.app_finances.data.repository.RecurringRepository
 import com.example.app_finances.domain.Installments
+import com.example.app_finances.domain.MonthTotals
 import com.example.app_finances.data.repository.TransactionRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -92,7 +93,8 @@ class DatabaseTest {
         transactions.add(expense(3_000, date = LocalDate.of(2026, 11, 30)))
         transactions.add(expense(4_000, date = LocalDate.of(2026, 12, 1)))
 
-        assertEquals(5_000, transactions.observeMonthTotals(YearMonth.of(2026, 11)).first().expenseCents)
+        val november = YearMonth.of(2026, 11)
+        assertEquals(5_000, MonthTotals.of(transactions.observeMonths(november, november).first()).expenseCents)
     }
 
     @Test

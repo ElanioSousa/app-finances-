@@ -33,6 +33,7 @@ class NavigationTest {
 
     @Test
     fun abreNoInicioComSaldo() {
+        compose.waitUntil(5_000) { compose.onAllNodesWithText(string(R.string.home_total_balance)).fetchSemanticsNodes().isNotEmpty() }
         compose.onNodeWithText(string(R.string.home_total_balance)).assertIsDisplayed()
     }
 
@@ -46,5 +47,19 @@ class NavigationTest {
 
         compose.onAllNodesWithText(string(R.string.nav_transactions)).onFirst().performClick()
         compose.onNodeWithText(string(R.string.transactions_empty_title)).assertIsDisplayed()
+    }
+
+    /** Regressão: tocar em Início de dentro de uma tela interna voltava para a tela interna. */
+    @Test
+    fun inicioSaiDaTelaInternaECadaAbaGuardaSuaPilha() {
+        compose.onAllNodesWithText(string(R.string.nav_more)).onFirst().performClick()
+        compose.onNodeWithText(string(R.string.more_accounts)).performClick()
+        compose.waitUntil(5_000) { compose.onAllNodesWithText(string(R.string.accounts_total)).fetchSemanticsNodes().isNotEmpty() }
+
+        compose.onAllNodesWithText(string(R.string.nav_home)).onFirst().performClick()
+        compose.waitUntil(5_000) { compose.onAllNodesWithText(string(R.string.home_total_balance)).fetchSemanticsNodes().isNotEmpty() }
+
+        compose.onAllNodesWithText(string(R.string.nav_more)).onFirst().performClick()
+        compose.waitUntil(5_000) { compose.onAllNodesWithText(string(R.string.accounts_total)).fetchSemanticsNodes().isNotEmpty() }
     }
 }

@@ -15,8 +15,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.app_finances.core.ui.LocalSnackbarHostState
 import com.example.app_finances.core.ui.containerViewModel
 import com.example.app_finances.core.model.TransactionItem
 import com.example.app_finances.core.ui.TransactionRow
@@ -39,17 +41,32 @@ import com.example.app_finances.core.designsystem.component.color
 import com.example.app_finances.core.designsystem.theme.EmeraldDeep
 import com.example.app_finances.core.designsystem.theme.Ink850
 
+/** Ações do Início, agrupadas. */
+data class DashboardActions(
+    val onOpenTransaction: (Long) -> Unit,
+    val onOpenCard: (Long) -> Unit,
+    val onSeeAll: () -> Unit,
+)
+
 @Composable
-fun DashboardScreen(scaffoldPadding: PaddingValues, onOpenTransaction: (Long) -> Unit, onSeeAll: () -> Unit) {
+fun DashboardScreen(scaffoldPadding: PaddingValues, actions: DashboardActions) {
     val viewModel = containerViewModel {
-        DashboardViewModel(it.accountRepository, it.transactionRepository, it.catalogSources)
+        DashboardViewModel(DashboardSources(it.accountRepository, it.transactionRepository, it.cardRepository, it.categoryRepository), it.today)
     }
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val snackbar = LocalSnackbarHostState.current
+    LaunchedEffect(viewModel) { viewModel.errorFlow.collect { snackbar.showSnackbar(it) } }
+    val data = state.data
+
     ScreenColumn(title = stringResource(R.string.home_greeting), scaffoldPadding = scaffoldPadding) {
-        item { BalanceCard(state.balanceCents, state.monthTotals) }
-        if (!state.isLoading) {
-            item { RecentCard(state.recent, onOpenTransaction, onSeeAll) }
-        }
+        // Só mostra números depois de carregar: "R$ 0,00" provisório engana.
+        if (data == null) return@ScreenColumn
+        item { BalanceCard(data.balanceCents, data.monthTotals) }
+        item { UpcomingCard(data.upcoming, data.today, UpcomingActions(actions.onOpenTransaction, actions.onOpenCard, viewModel::markPaid)) }
+        if (data.cards.isNotEmpty()) item { CardsCard(data.cards, data.today, actions.onOpenCard) }
+        item { SpendingCard(data.spending) }
+        item { HistoryCard(data.history, state.selectedMonth, viewModel::selectMonth) }
+        item { RecentCard(data.recent, actions.onOpenTransaction, actions.onSeeAll) }
     }
 }
 

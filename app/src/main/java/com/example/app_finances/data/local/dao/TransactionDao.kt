@@ -16,6 +16,10 @@ interface TransactionDao {
     @Query("SELECT * FROM transactions WHERE date BETWEEN :start AND :end ORDER BY date DESC, id DESC")
     fun observeBetween(start: LocalDate, end: LocalDate): Flow<List<TransactionEntity>>
 
+    /** Pendentes (não pagos/recebidos) até [until], inclusive os atrasados. */
+    @Query("SELECT * FROM transactions WHERE paid = 0 AND date <= :until ORDER BY date, id")
+    fun observePendingUntil(until: LocalDate): Flow<List<TransactionEntity>>
+
     @Query("SELECT * FROM transactions WHERE id = :id")
     suspend fun getById(id: Long): TransactionEntity?
 

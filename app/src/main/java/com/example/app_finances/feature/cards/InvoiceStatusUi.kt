@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.example.app_finances.R
+import com.example.app_finances.core.designsystem.component.ThinBar
 import com.example.app_finances.core.designsystem.theme.FinanceTheme
 import com.example.app_finances.core.format.Money
 import com.example.app_finances.domain.CardSummary
@@ -44,13 +44,7 @@ fun InvoiceStatusChip(status: InvoiceStatus, modifier: Modifier = Modifier) {
 @Composable
 fun LimitBar(fraction: Float, modifier: Modifier = Modifier) {
     val color: Color = if (fraction > 0.9f) FinanceTheme.colors.expense else MaterialTheme.colorScheme.primary
-    LinearProgressIndicator(
-        progress = { fraction.coerceIn(0f, 1f) },
-        modifier = modifier,
-        color = color,
-        trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-        drawStopIndicator = {},
-    )
+    ThinBar(fraction, color, modifier)
 }
 
 /** Barra do limite com "Disponível X de Y" logo abaixo. */

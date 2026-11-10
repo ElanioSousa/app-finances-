@@ -26,7 +26,9 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.navigation
 import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import androidx.navigation.compose.NavHost
@@ -39,6 +41,7 @@ import com.example.app_finances.feature.accounts.AccountsScreen
 import com.example.app_finances.feature.cards.CardsScreen
 import com.example.app_finances.feature.cards.detail.CardDetailActions
 import com.example.app_finances.feature.cards.detail.CardDetailScreen
+import com.example.app_finances.feature.dashboard.DashboardActions
 import com.example.app_finances.feature.dashboard.DashboardScreen
 import com.example.app_finances.feature.more.MoreScreen
 import com.example.app_finances.feature.recurring.RecurringScreen
@@ -54,7 +57,7 @@ fun FinancesApp() {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val route = backStackEntry?.destination?.route
-    val current = TopLevelDestination.forRoute(route)
+    val current = TopLevelDestination.of(backStackEntry?.destination)
     val showFab = current.showsAddButton && route == current.route
     val snackbarHostState = remember { SnackbarHostState() }
     var editorTarget by rememberSaveable { mutableStateOf<Long?>(null) }
@@ -88,24 +91,53 @@ private fun PaddingValues.withFabClearance(hasFab: Boolean): PaddingValues {
 
 private val FabClearance = 80.dp
 
+/** O que as telas de todas as abas precisam para navegar. */
+private class AppNavContext(
+    val navController: NavHostController,
+    val padding: PaddingValues,
+    val onOpenTransaction: (Long) -> Unit,
+)
+
 @Composable
 private fun AppNavHost(navController: NavHostController, padding: PaddingValues, onOpenTransaction: (Long) -> Unit) {
-    NavHost(navController = navController, startDestination = TopLevelDestination.Home.route) {
-        composable(TopLevelDestination.Home.route) {
-            DashboardScreen(padding, onOpenTransaction, onSeeAll = { navController.navigateToTab(TopLevelDestination.Transactions) })
-        }
-        composable(TopLevelDestination.Transactions.route) { TransactionsScreen(padding, onOpenTransaction) }
-        composable(TopLevelDestination.Cards.route) {
-            CardsScreen(padding, onOpenCard = { navController.navigate(Routes.cardDetail(it)) })
-        }
-        composable(Routes.CARD_DETAIL, arguments = listOf(navArgument(Routes.CARD_ID) { type = NavType.LongType })) { entry ->
-            val cardId = entry.arguments?.getLong(Routes.CARD_ID) ?: return@composable
-            CardDetailScreen(cardId, padding, CardDetailActions(navController::popBackStack, onOpenTransaction))
-        }
-        composable(TopLevelDestination.More.route) { MoreScreen(padding, onOpen = navController::navigate) }
-        composable(Routes.ACCOUNTS) { AccountsScreen(padding, onBack = navController::popBackStack) }
-        composable(Routes.RECURRING) { RecurringScreen(padding, onBack = navController::popBackStack) }
+    val nav = AppNavContext(navController, padding, onOpenTransaction)
+    NavHost(navController = navController, startDestination = TopLevelDestination.Home.graphRoute) {
+        homeGraph(nav)
+        tabGraph(TopLevelDestination.Transactions) { composable(it) { TransactionsScreen(padding, onOpenTransaction) } }
+        cardsGraph(nav)
+        moreGraph(nav)
     }
+}
+
+/** Grafo de uma aba: começa na tela da aba e reúne as telas internas dela. */
+private fun NavGraphBuilder.tabGraph(tab: TopLevelDestination, screens: NavGraphBuilder.(String) -> Unit) =
+    navigation(startDestination = tab.route, route = tab.graphRoute) { screens(tab.route) }
+
+private fun NavGraphBuilder.homeGraph(nav: AppNavContext) = tabGraph(TopLevelDestination.Home) { route ->
+    composable(route) {
+        DashboardScreen(
+            nav.padding,
+            DashboardActions(
+                onOpenTransaction = nav.onOpenTransaction,
+                onOpenCard = { nav.navController.navigateToCard(it) },
+                onSeeAll = { nav.navController.navigateToTab(TopLevelDestination.Transactions) },
+            ),
+        )
+    }
+}
+
+private fun NavGraphBuilder.cardsGraph(nav: AppNavContext) = tabGraph(TopLevelDestination.Cards) { route ->
+    composable(route) { CardsScreen(nav.padding, onOpenCard = { nav.navController.navigate(Routes.cardDetail(it)) }) }
+    composable(Routes.CARD_DETAIL, arguments = listOf(navArgument(Routes.CARD_ID) { type = NavType.LongType })) { entry ->
+        val cardId = entry.arguments?.getLong(Routes.CARD_ID) ?: return@composable
+        CardDetailScreen(cardId, nav.padding, CardDetailActions(nav.navController::popBackStack, nav.onOpenTransaction))
+    }
+}
+
+private fun NavGraphBuilder.moreGraph(nav: AppNavContext) = tabGraph(TopLevelDestination.More) { route ->
+    composable(route) { MoreScreen(nav.padding, onOpen = nav.navController::navigate) }
+    composable(Routes.ACCOUNTS) { AccountsScreen(nav.padding, onBack = nav.navController::popBackStack) }
+    composable(Routes.RECURRING) { RecurringScreen(nav.padding, onBack = nav.navController::popBackStack) }
 }
 
 @Composable
@@ -145,9 +177,15 @@ private fun AddButton(onClick: () -> Unit) {
     }
 }
 
-/** Troca de aba sem empilhar telas e preservando o estado de cada aba. */
+/** Abre o detalhe de um cartão dentro da aba Cartões (de onde quer que se esteja). */
+private fun NavHostController.navigateToCard(cardId: Long) {
+    navigateToTab(TopLevelDestination.Cards)
+    navigate(Routes.cardDetail(cardId))
+}
+
+/** Troca de aba sem empilhar telas e preservando a pilha de cada aba. */
 private fun NavHostController.navigateToTab(destination: TopLevelDestination) {
-    navigate(destination.route) {
+    navigate(destination.graphRoute) {
         popUpTo(graph.findStartDestination().id) { saveState = true }
         launchSingleTop = true
         restoreState = true

@@ -32,8 +32,9 @@ fun TransactionRow(item: TransactionItem, onClick: () -> Unit, modifier: Modifie
     )
 }
 
+/** Ícone da categoria (ou de transferência) de um lançamento. */
 @Composable
-private fun TransactionIcon(item: TransactionItem) {
+fun TransactionIcon(item: TransactionItem) {
     if (item.transaction.type == TransactionType.TRANSFER) {
         CategoryIcon(Icons.AutoMirrored.Outlined.CompareArrows, FinanceTheme.colors.transfer)
     } else {
@@ -42,8 +43,9 @@ private fun TransactionIcon(item: TransactionItem) {
     }
 }
 
+/** Valor colorido pelo tipo, com "Pendente" embaixo quando ainda não foi pago. */
 @Composable
-private fun TransactionAmount(item: TransactionItem) {
+fun TransactionAmount(item: TransactionItem) {
     Column(horizontalAlignment = Alignment.End) {
         MoneyText(cents = item.transaction.amountCents, tone = item.transaction.type.tone)
         if (!item.transaction.paid) {

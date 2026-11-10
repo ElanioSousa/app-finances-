@@ -145,4 +145,19 @@
     <string name="frequency_monthly">Mensal</string>
     <string name="frequency_yearly">Anual</string>
     <string name="category_none">Sem categoria</string>
+
+    <string name="home_upcoming">Próximos %1$d dias</string>
+    <string name="home_upcoming_empty">Nada vencendo nos próximos %1$d dias.</string>
+    <string name="home_overdue">Venceu %1$s</string>
+    <string name="home_due_today">Vence hoje</string>
+    <string name="home_due_on">Vence %1$s</string>
+    <string name="home_card_invoice">Fatura %1$s</string>
+    <string name="home_mark_paid">Marcar como pago</string>
+    <string name="home_spending">Gastos do mês por categoria</string>
+    <string name="home_spending_empty">Sem despesas neste mês ainda.</string>
+    <string name="home_other_categories">Outras</string>
+    <string name="home_history">Últimos %1$d meses</string>
+    <string name="home_history_selected">%1$s · receitas %2$s · despesas %3$s</string>
+    <string name="home_history_description">Gráfico de receitas e despesas dos últimos meses. Selecionado: %1$s.</string>
+    <string name="home_cards">Cartões</string>
 </resources>
