@@ -12,6 +12,7 @@ import com.example.app_finances.domain.InvoiceCalculator
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import java.time.LocalDate
+import java.time.YearMonth
 
 /** Cartões com tudo o que é preciso para montar faturas e limite. */
 data class CardData(
@@ -46,6 +47,13 @@ class CardRepository(
         CardRules.requireNoViolations(CardRules.cardViolations(card))
         cardDao.update(card)
     }
+
+    /** Pagamentos de fatura feitos no [month] (pela data do pagamento). */
+    fun observePaymentsIn(month: YearMonth): Flow<List<InvoicePaymentEntity>> =
+        invoicePaymentDao.observeBetween(month.atDay(1), month.atEndOfMonth())
+
+    /** Desfaz um pagamento: o valor volta para a conta e a fatura volta a ter o que faltava. */
+    suspend fun deletePayment(payment: InvoicePaymentEntity) = invoicePaymentDao.delete(payment)
 
     /** Registra o pagamento conferindo, com os dados atuais do banco, quanto falta pagar da fatura. */
     suspend fun payInvoice(payment: InvoicePaymentEntity) {

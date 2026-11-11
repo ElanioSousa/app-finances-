@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ReceiptLong
+import androidx.compose.material.icons.outlined.CreditCard
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material3.Icon
@@ -25,12 +26,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.app_finances.R
+import com.example.app_finances.core.designsystem.component.CategoryIcon
 import com.example.app_finances.core.designsystem.component.EmptyState
+import com.example.app_finances.core.designsystem.component.ListRow
+import com.example.app_finances.core.designsystem.component.MoneyText
+import com.example.app_finances.core.designsystem.component.RowText
 import com.example.app_finances.core.designsystem.component.MonthSelector
 import com.example.app_finances.core.designsystem.component.ScreenColumn
 import com.example.app_finances.core.designsystem.theme.FinanceTheme
@@ -48,16 +54,17 @@ private data class TransactionsActions(
     val onFilterChange: (TransactionFilter) -> Unit,
     val onOpen: (Long) -> Unit,
     val onDelete: (TransactionItem) -> Unit,
+    val onOpenCard: (Long) -> Unit,
 )
 
 @Composable
-fun TransactionsScreen(scaffoldPadding: PaddingValues, onOpenTransaction: (Long) -> Unit) {
+fun TransactionsScreen(scaffoldPadding: PaddingValues, onOpenTransaction: (Long) -> Unit, onOpenCard: (Long) -> Unit) {
     val viewModel = containerViewModel {
         TransactionsViewModel(it.transactionRepository, it.catalogSources)
     }
     val state by viewModel.state.collectAsStateWithLifecycle()
     TransactionEvents(viewModel)
-    val actions = TransactionsActions(viewModel::setMonth, viewModel::setFilter, onOpenTransaction, viewModel::delete)
+    val actions = TransactionsActions(viewModel::setMonth, viewModel::setFilter, onOpenTransaction, viewModel::delete, onOpenCard)
 
     ScreenColumn(title = stringResource(R.string.nav_transactions), scaffoldPadding = scaffoldPadding) {
         item { MonthSelector(state.month, actions.onMonthChange) }
@@ -120,7 +127,21 @@ private fun LazyListScope.dayGroups(days: List<DayGroup>, actions: TransactionsA
             )
         }
         items(day.items, key = { it.id }) { item -> SwipeableRow(item, actions) }
+        items(day.payments, key = { "payment-${it.payment.id}" }) { item -> PaymentRow(item) { actions.onOpenCard(item.payment.cardId) } }
     }
+}
+
+/** "Fatura Mercado Pago · Pagamento · Carteira": toca e abre o cartão (onde dá para excluir o pagamento). */
+@Composable
+private fun PaymentRow(item: PaymentItem, onClick: () -> Unit) {
+    val cardName = item.card?.name ?: stringResource(R.string.form_card)
+    ListRow(
+        text = RowText(stringResource(R.string.transactions_payment_title, cardName), stringResource(R.string.transactions_payment_subtitle, item.accountName)),
+        onClick = onClick,
+        modifier = Modifier.clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.surfaceContainer),
+        leading = { CategoryIcon(Icons.Outlined.CreditCard, item.card?.let { Color(it.colorArgb) } ?: MaterialTheme.colorScheme.primary) },
+        trailing = { MoneyText(-item.payment.amountCents) },
+    )
 }
 
 /**

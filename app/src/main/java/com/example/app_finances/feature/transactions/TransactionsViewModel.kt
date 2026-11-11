@@ -53,17 +53,24 @@ class TransactionsViewModel(
 
     val eventFlow: Flow<TransactionsEvent> = events.receiveAsFlow()
 
-    /** Itens e totais do mês: só são refeitos quando os dados mudam, não a cada letra da busca. */
+    /**
+     * Itens e totais do mês: só são refeitos quando os dados mudam, não a cada letra da busca.
+     * Pagamentos de fatura entram na lista, mas não nos totais (as compras do cartão já contaram).
+     */
     private val monthData: Flow<MonthData> = combine(
         month.flatMapLatest(transactionRepository::observeMonth),
+        month.flatMapLatest(catalogSources.cards::observePaymentsIn),
         observeCatalog(catalogSources),
-    ) { transactions, catalog -> MonthData(transactions.toItems(catalog), MonthTotals.of(transactions), catalog) }
+    ) { transactions, payments, catalog ->
+        val paymentItems = payments.map { PaymentItem(it, catalog.cardById[it.cardId], catalog.accountNames[it.accountId].orEmpty()) }
+        MonthData(transactions.toItems(catalog), paymentItems, MonthTotals.of(transactions), catalog)
+    }
 
     val state: StateFlow<TransactionsUiState> = combine(month, filter, monthData) { month, filter, data ->
         TransactionsUiState(
             month = month,
             filter = filter,
-            days = data.items.filter(filter::matches).groupByDay(),
+            days = groupByDay(data.items.filter(filter::matches), data.payments.filter(filter::matches)),
             totals = data.totals,
             catalog = data.catalog,
             isLoading = false,
@@ -96,4 +103,4 @@ class TransactionsViewModel(
     }
 }
 
-private data class MonthData(val items: List<TransactionItem>, val totals: MonthTotals, val catalog: Catalog)
+private data class MonthData(val items: List<TransactionItem>, val payments: List<PaymentItem>, val totals: MonthTotals, val catalog: Catalog)

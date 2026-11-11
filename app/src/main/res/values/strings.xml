@@ -48,6 +48,8 @@
     <string name="search_hint">Buscar lançamentos</string>
     <string name="transactions_no_match_title">Nada encontrado</string>
     <string name="transactions_no_match_body">Tente outro termo de busca ou limpe os filtros.</string>
+    <string name="transactions_payment_title">Fatura %1$s</string>
+    <string name="transactions_payment_subtitle">Pagamento · %1$s</string>
     <string name="transaction_deleted">\"%1$s\" excluído</string>
     <string name="transaction_pending">Pendente</string>
     <string name="month_result">Resultado</string>
@@ -124,6 +126,9 @@
     <string name="card_pay_amount">Valor a pagar</string>
     <string name="card_pay_from">Pagar com a conta</string>
     <string name="card_payment_line">%1$s · %2$s</string>
+    <string name="card_payment_delete">Excluir pagamento</string>
+    <string name="card_payment_delete_title">Excluir pagamento?</string>
+    <string name="card_payment_delete_body">Os %1$s voltam para a conta que pagou e a fatura volta a mostrar esse valor como não pago.</string>
     <string name="invoice_open">Aberta</string>
     <string name="invoice_closed">Fechada</string>
     <string name="invoice_paid">Paga</string>

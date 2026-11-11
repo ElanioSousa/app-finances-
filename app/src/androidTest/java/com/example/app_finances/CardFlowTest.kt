@@ -71,6 +71,26 @@ class CardFlowTest {
         waitFor(string(R.string.transactions_empty_title))
     }
 
+    @Test
+    fun pagamentoDeFaturaApareceEmLancamentosEPodeSerExcluido() {
+        createCard("Nubank")
+        buyInInstallments(digits = "30000", installmentsLabel = string(R.string.form_installment_option).format(3, Money.format(10_000)))
+        payCurrentInvoice("Nubank")
+
+        // O pagamento aparece em Lançamentos; tocar nele abre o cartão.
+        compose.onAllNodesWithText(string(R.string.nav_transactions)).onFirst().performClick()
+        waitFor(string(R.string.transactions_payment_title).format("Nubank"))
+        compose.onNodeWithText(string(R.string.transactions_payment_title).format("Nubank")).performClick()
+
+        // Excluir devolve o valor à conta: o saldo volta a zero.
+        compose.onNodeWithContentDescription(string(R.string.card_payment_delete)).performScrollTo().performClick()
+        compose.onAllNodesWithText(string(R.string.action_delete)).onLast().performClick()
+        compose.waitUntil(5_000) { compose.onAllNodesWithText(string(R.string.card_payments)).fetchSemanticsNodes().isEmpty() }
+        compose.onAllNodesWithText(string(R.string.nav_home)).onFirst().performClick()
+        compose.waitUntil(5_000) { compose.onAllNodesWithText(Money.format(-10_000)).fetchSemanticsNodes().isEmpty() }
+        assertTrue(compose.onAllNodesWithText(Money.format(-10_000)).fetchSemanticsNodes().isEmpty())
+    }
+
     private fun createCard(name: String) {
         compose.onAllNodesWithText(string(R.string.nav_cards)).onFirst().performClick()
         compose.onNodeWithText(string(R.string.cards_new)).performClick()

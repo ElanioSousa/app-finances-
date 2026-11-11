@@ -121,7 +121,9 @@ private fun AppNavHost(navController: NavHostController, padding: PaddingValues,
         exitTransition = { ExitTransition.None },
     ) {
         homeGraph(nav)
-        tabGraph(TopLevelDestination.Transactions) { composable(it) { TransactionsScreen(padding, onOpenTransaction) } }
+        tabGraph(TopLevelDestination.Transactions) {
+            composable(it) { TransactionsScreen(padding, onOpenTransaction, onOpenCard = { id -> navController.navigateToCard(id) }) }
+        }
         cardsGraph(nav)
         moreGraph(nav)
     }

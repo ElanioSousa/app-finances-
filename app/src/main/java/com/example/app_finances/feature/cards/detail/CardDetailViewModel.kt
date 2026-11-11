@@ -10,6 +10,7 @@ import com.example.app_finances.core.model.observeCatalog
 import com.example.app_finances.core.model.toItems
 import com.example.app_finances.core.model.toOptions
 import com.example.app_finances.core.ui.EditorController
+import com.example.app_finances.core.ui.UserMessages
 import com.example.app_finances.core.ui.Editing
 import com.example.app_finances.core.ui.WhileUiSubscribed
 import com.example.app_finances.data.local.entity.InvoicePaymentEntity
@@ -63,6 +64,10 @@ class CardDetailViewModel(
     /** Fatura escolhida; nula = a fatura atual do cartão. */
     private val month = MutableStateFlow<YearMonth?>(null)
     private val pay = EditorController<PayEditor>(viewModelScope)
+    private val messages = UserMessages(viewModelScope)
+
+    /** Falhas ao excluir um pagamento, para a tela mostrar num aviso. */
+    val errorFlow: Flow<String> = messages.flow
 
     /** Só refeito quando os dados ou o mês mudam (não a cada tecla no pagamento). */
     private val detail: Flow<CardDetail?> =
@@ -79,6 +84,8 @@ class CardDetailViewModel(
         val account = detail.summary.card.paymentAccountId ?: detail.accountOptions.firstOrNull()?.value
         pay.open(PayEditor(amountCents = detail.invoice.remainingCents, accountId = account, date = today()))
     }
+
+    fun deletePayment(payment: InvoicePaymentEntity) = messages.launch { cardRepository.deletePayment(payment) }
 
     fun editPay(transform: (PayEditor) -> PayEditor) = pay.edit(transform)
 
