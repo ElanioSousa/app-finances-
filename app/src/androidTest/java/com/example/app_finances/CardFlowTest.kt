@@ -4,6 +4,7 @@ import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isEnabled
 import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onLast
@@ -55,6 +56,20 @@ class CardFlowTest {
         waitFor(Money.format(-10_000))
     }
 
+    @Test
+    fun compraParceladaExcluidaPeloFormulario() {
+        createCard("Nubank")
+        buyInInstallments(digits = "30000", installmentsLabel = string(R.string.form_installment_option).format(3, Money.format(10_000)))
+
+        compose.onAllNodesWithText(string(R.string.nav_transactions)).onFirst().performClick()
+        compose.onNodeWithText("Alimentação").performClick()
+        compose.waitUntil(5_000) { compose.onAllNodesWithContentDescription(string(R.string.action_delete)).fetchSemanticsNodes().isNotEmpty() }
+        compose.onAllNodesWithContentDescription(string(R.string.action_delete)).onLast().performClick()
+        compose.onNodeWithText(string(R.string.form_delete_installments_body).format(3)).assertExists()
+        compose.onAllNodesWithText(string(R.string.action_delete)).onLast().performClick()
+        waitFor(string(R.string.transactions_empty_title))
+    }
+
     private fun createCard(name: String) {
         compose.onAllNodesWithText(string(R.string.nav_cards)).onFirst().performClick()
         compose.onNodeWithText(string(R.string.cards_new)).performClick()
@@ -65,12 +80,12 @@ class CardFlowTest {
     }
 
     private fun buyInInstallments(digits: String, installmentsLabel: String) {
-        compose.onAllNodesWithText(string(R.string.nav_home)).onFirst().performClick()
-        compose.onNodeWithContentDescription(string(R.string.action_new_transaction)).performClick()
+        // Pelo botão "Nova compra" da aba Cartões: origem e cartão já vêm escolhidos.
+        compose.onAllNodesWithText(string(R.string.nav_cards)).onFirst().performClick()
+        compose.onNodeWithText(string(R.string.action_new_card_purchase), useUnmergedTree = true).performClick()
         compose.waitUntil(5_000) { compose.onAllNodes(hasText(string(R.string.action_save)) and isEnabled()).fetchSemanticsNodes().isNotEmpty() }
         compose.onNode(hasSetTextAction() and hasText(string(R.string.form_amount))).performTextInput(digits)
         compose.onNodeWithText("Alimentação").performClick()
-        compose.onNodeWithText(string(R.string.form_origin_card)).performScrollTo().performClick()
         compose.onNode(hasText(string(R.string.form_installments))).performScrollTo().performClick()
         compose.onNodeWithText(installmentsLabel).performClick()
         compose.onNodeWithText(string(R.string.action_save)).performScrollTo().performClick()

@@ -63,7 +63,8 @@ fun LabeledSwitch(label: String, checked: Boolean, supporting: String? = null, o
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .toggleable(value = checked, role = Role.Switch, onValueChange = onCheckedChange)
+            // Sem o realce retangular na linha: o próprio interruptor já mostra a mudança.
+            .toggleable(value = checked, interactionSource = null, indication = null, role = Role.Switch, onValueChange = onCheckedChange)
             .padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

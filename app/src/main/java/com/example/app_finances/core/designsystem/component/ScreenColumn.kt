@@ -31,11 +31,19 @@ fun ScreenColumn(
     onBack: (() -> Unit)? = null,
     content: LazyListScope.() -> Unit,
 ) {
+    // Em cima, o conteúdo para abaixo da barra de status (não rola por baixo do relógio).
+    // Embaixo, o espaço da barra inferior e do "+" é margem do conteúdo: a lista rola até
+    // a barra em vez de ser cortada antes dela.
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(scaffoldPadding),
-        contentPadding = PaddingValues(16.dp),
+            .padding(top = scaffoldPadding.calculateTopPadding()),
+        contentPadding = PaddingValues(
+            start = 16.dp,
+            end = 16.dp,
+            top = 16.dp,
+            bottom = scaffoldPadding.calculateBottomPadding() + 16.dp,
+        ),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item { ScreenTitle(title, onBack) }

@@ -15,6 +15,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -29,6 +30,9 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,6 +44,9 @@ import androidx.lifecycle.viewmodel.compose.rememberViewModelStoreOwner
 import com.example.app_finances.R
 import com.example.app_finances.core.designsystem.categoryIcon
 import com.example.app_finances.core.designsystem.component.AmountInput
+import com.example.app_finances.core.designsystem.component.ConfirmDialog
+import com.example.app_finances.core.designsystem.component.ConfirmTexts
+import com.example.app_finances.core.designsystem.component.DialogActions
 import com.example.app_finances.core.designsystem.component.DateField
 import com.example.app_finances.core.designsystem.component.LabeledSwitch
 import com.example.app_finances.core.designsystem.component.Option
@@ -59,16 +66,17 @@ private data class FormActions(
     val onUpdate: ((TransactionDraft) -> TransactionDraft) -> Unit,
     val onSave: () -> Unit,
     val onClose: () -> Unit,
+    val onDelete: () -> Unit,
 )
 
-/** Folha inferior para criar ([editingId] nulo) ou editar um lançamento. */
+/** Folha inferior para criar, lançar compra no cartão ou editar um lançamento (conforme o [request]). */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TransactionFormSheet(editingId: Long?, onDismiss: () -> Unit) {
+fun TransactionFormSheet(request: FormRequest, onDismiss: () -> Unit) {
     // Dono próprio: o ViewModel nasce com a folha e é descartado quando ela fecha.
     val owner = rememberViewModelStoreOwner()
     val viewModel = containerViewModel(owner) {
-        TransactionFormViewModel(editingId, it.transactionRepository, it.catalogSources)
+        TransactionFormViewModel(request, it.transactionRepository, it.catalogSources)
     }
     val state by viewModel.state.collectAsStateWithLifecycle()
     LaunchedEffect(viewModel) { viewModel.saved.collect { onDismiss() } }
@@ -82,7 +90,7 @@ fun TransactionFormSheet(editingId: Long?, onDismiss: () -> Unit) {
         sheetGesturesEnabled = false,
         dragHandle = null,
     ) {
-        TransactionForm(state, FormActions(viewModel::update, viewModel::save, onDismiss))
+        TransactionForm(state, FormActions(viewModel::update, viewModel::save, onDismiss, viewModel::delete))
     }
 }
 
@@ -118,6 +126,7 @@ private fun FormHeader(state: TransactionFormUiState, actions: FormActions) {
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.weight(1f),
         )
+        if (state.status.isEditing && !state.status.isLoading) DeleteButton(state.status.editedInstallment, actions.onDelete)
         IconButton(onClick = actions.onClose) { Icon(Icons.Filled.Close, stringResource(R.string.action_close)) }
     }
     TypeSelector(state.draft.type) { type -> actions.onUpdate { it.withType(type) } }
@@ -126,6 +135,22 @@ private fun FormHeader(state: TransactionFormUiState, actions: FormActions) {
         onCentsChange = { cents -> actions.onUpdate { it.copy(amountCents = cents) } },
         label = stringResource(R.string.form_amount),
         modifier = Modifier.fillMaxWidth(),
+    )
+}
+
+/** Lixeira do lançamento em edição; pergunta antes (numa parcela, a compra inteira sai). */
+@Composable
+private fun DeleteButton(installment: InstallmentInfo?, onDelete: () -> Unit) {
+    var asking by rememberSaveable { mutableStateOf(false) }
+    IconButton(onClick = { asking = true }) {
+        Icon(Icons.Outlined.Delete, stringResource(R.string.action_delete), tint = MaterialTheme.colorScheme.error)
+    }
+    if (!asking) return
+    val body = installment?.let { stringResource(R.string.form_delete_installments_body, it.count) }
+        ?: stringResource(R.string.form_delete_body)
+    ConfirmDialog(
+        ConfirmTexts(stringResource(R.string.form_delete_title), body, stringResource(R.string.action_delete)),
+        DialogActions(onConfirm = { asking = false; onDelete() }, onDismiss = { asking = false }),
     )
 }
 

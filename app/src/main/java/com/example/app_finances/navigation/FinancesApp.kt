@@ -5,6 +5,9 @@ import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -26,6 +29,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.navigation
@@ -49,11 +53,10 @@ import com.example.app_finances.feature.reports.ReportsScreen
 import com.example.app_finances.feature.settings.SettingsScreen
 import com.example.app_finances.feature.recurring.RecurringScreen
 import com.example.app_finances.feature.transactions.TransactionsScreen
+import com.example.app_finances.feature.transactions.form.FormRequest
 import com.example.app_finances.feature.transactions.form.TransactionFormSheet
 
 /** Valor do editor de lançamento para "novo" (ids reais começam em 1). */
-private const val NEW_TRANSACTION = 0L
-
 /** Esqueleto do app: barra inferior, botão "+", telas e o formulário de lançamento. */
 @Composable
 fun FinancesApp() {
@@ -61,21 +64,20 @@ fun FinancesApp() {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val route = backStackEntry?.destination?.route
     val current = TopLevelDestination.of(backStackEntry?.destination)
-    val showFab = current.showsAddButton && route == current.route
+    // Na aba Cartões o botão também aparece no detalhe do cartão (compra já nesse cartão).
+    val showFab = current.showsAddButton && (route == current.route || route == Routes.CARD_DETAIL)
     val snackbarHostState = remember { SnackbarHostState() }
-    var editorTarget by rememberSaveable { mutableStateOf<Long?>(null) }
+    var formRequest by rememberSaveable(stateSaver = FormRequest.Saver) { mutableStateOf<FormRequest?>(null) }
 
     CompositionLocalProvider(LocalSnackbarHostState provides snackbarHostState) {
         Scaffold(
             bottomBar = { BottomBar(current) { navController.selectTab(it, current) } },
-            floatingActionButton = { if (showFab) AddButton { editorTarget = NEW_TRANSACTION } },
+            floatingActionButton = { if (showFab) AddButton(current) { formRequest = addRequest(current, backStackEntry) } },
             snackbarHost = { SnackbarHost(snackbarHostState) },
         ) { padding ->
-            AppNavHost(navController, padding.withFabClearance(showFab)) { editorTarget = it }
+            AppNavHost(navController, padding.withFabClearance(showFab)) { formRequest = FormRequest.Edit(it) }
         }
-        editorTarget?.let { target ->
-            TransactionFormSheet(editingId = target.takeIf { it != NEW_TRANSACTION }, onDismiss = { editorTarget = null })
-        }
+        formRequest?.let { request -> TransactionFormSheet(request, onDismiss = { formRequest = null }) }
     }
 }
 
@@ -94,6 +96,13 @@ private fun PaddingValues.withFabClearance(hasFab: Boolean): PaddingValues {
 
 private val FabClearance = 80.dp
 
+/** O "+" da aba Cartões lança uma compra no cartão; no detalhe, já nesse cartão. */
+private fun addRequest(current: TopLevelDestination, entry: NavBackStackEntry?): FormRequest {
+    if (current != TopLevelDestination.Cards) return FormRequest.New
+    val cardId = entry?.arguments?.getLong(Routes.CARD_ID)?.takeIf { entry.destination.route == Routes.CARD_DETAIL }
+    return FormRequest.CardPurchase(cardId)
+}
+
 /** O que as telas de todas as abas precisam para navegar. */
 private class AppNavContext(
     val navController: NavHostController,
@@ -104,7 +113,13 @@ private class AppNavContext(
 @Composable
 private fun AppNavHost(navController: NavHostController, padding: PaddingValues, onOpenTransaction: (Long) -> Unit) {
     val nav = AppNavContext(navController, padding, onOpenTransaction)
-    NavHost(navController = navController, startDestination = TopLevelDestination.Home.graphRoute) {
+    // Troca de tela imediata, sem animação.
+    NavHost(
+        navController = navController,
+        startDestination = TopLevelDestination.Home.graphRoute,
+        enterTransition = { EnterTransition.None },
+        exitTransition = { ExitTransition.None },
+    ) {
         homeGraph(nav)
         tabGraph(TopLevelDestination.Transactions) { composable(it) { TransactionsScreen(padding, onOpenTransaction) } }
         cardsGraph(nav)
@@ -172,14 +187,23 @@ private fun BottomBar(current: TopLevelDestination, onSelect: (TopLevelDestinati
     }
 }
 
+/** "+" de novo lançamento; na aba Cartões vira "Nova compra", com texto, para ficar claro. */
 @Composable
-private fun AddButton(onClick: () -> Unit) {
-    FloatingActionButton(
-        onClick = onClick,
-        containerColor = MaterialTheme.colorScheme.primary,
-        contentColor = MaterialTheme.colorScheme.onPrimary,
-    ) {
-        Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.action_new_transaction))
+private fun AddButton(current: TopLevelDestination, onClick: () -> Unit) {
+    val containerColor = MaterialTheme.colorScheme.primary
+    val contentColor = MaterialTheme.colorScheme.onPrimary
+    if (current == TopLevelDestination.Cards) {
+        ExtendedFloatingActionButton(
+            text = { Text(stringResource(R.string.action_new_card_purchase)) },
+            icon = { Icon(Icons.Filled.Add, contentDescription = null) },
+            onClick = onClick,
+            containerColor = containerColor,
+            contentColor = contentColor,
+        )
+    } else {
+        FloatingActionButton(onClick = onClick, containerColor = containerColor, contentColor = contentColor) {
+            Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.action_new_transaction))
+        }
     }
 }
 

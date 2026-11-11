@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.app_finances.core.designsystem.component.Option
 import com.example.app_finances.core.model.Catalog
+import com.example.app_finances.core.model.PaymentOrigin
 import com.example.app_finances.core.model.CatalogSources
 import com.example.app_finances.core.model.observeCatalog
 import com.example.app_finances.core.model.toOptions
@@ -71,16 +72,17 @@ data class TransactionFormUiState(
 }
 
 /**
- * Formulário de novo lançamento ([editingId] nulo) ou de edição.
+ * Formulário de novo lançamento, de compra no cartão ou de edição (conforme o [request]).
  * Vive só enquanto a folha está aberta; confirma apenas depois que o banco aceitar.
  */
 class TransactionFormViewModel(
-    private val editingId: Long?,
+    private val request: FormRequest,
     private val transactionRepository: TransactionRepository,
     private val catalogSources: CatalogSources,
 ) : ViewModel() {
 
     private val draft = MutableStateFlow(TransactionDraft())
+    private val editingId = (request as? FormRequest.Edit)?.id
     private val status = MutableStateFlow(FormStatus(isEditing = editingId != null))
     private val catalog = observeCatalog(catalogSources)
     private val savedEvents = Channel<Unit>(Channel.CONFLATED)
@@ -89,7 +91,7 @@ class TransactionFormViewModel(
     val state: StateFlow<TransactionFormUiState> = combine(draft, status, catalog, ::TransactionFormUiState)
         .stateIn(viewModelScope, WhileUiSubscribed, TransactionFormUiState(status = status.value))
 
-    /** Emite uma vez por gravação aceita. */
+    /** Emite uma vez por gravação (ou exclusão) aceita. */
     val saved: Flow<Unit> = savedEvents.receiveAsFlow()
 
     init {
@@ -105,10 +107,21 @@ class TransactionFormViewModel(
     }
 
     fun save() {
-        if (status.value.isSaving || status.value.isLoading) return
+        if (!status.value.isLoading) submit { persist() }
+    }
+
+    /** Exclui o lançamento em edição (se for parcela, a compra inteira) e fecha o formulário. */
+    fun delete() {
+        val editing = original ?: return
+        submit { transactionRepository.delete(editing) }
+    }
+
+    /** Grava (ou exclui) uma vez só; o formulário fecha apenas se o banco aceitar. */
+    private fun submit(block: suspend () -> Unit) {
+        if (status.value.isSaving) return
         status.update { it.copy(isSaving = true, error = null) }
         viewModelScope.launch {
-            val error = runForUserMessage { persist() }
+            val error = runForUserMessage(block)
             status.update { it.copy(isSaving = false, error = error) }
             if (error == null) savedEvents.send(Unit)
         }
@@ -123,10 +136,12 @@ class TransactionFormViewModel(
             status.update { it.copy(editedInstallment = installment) }
         } else {
             val defaults = catalog.first()
+            val cardPurchase = request as? FormRequest.CardPurchase
             draft.update {
                 it.copy(
                     accountId = it.accountId ?: defaults.accounts.firstOrNull()?.id,
-                    cardId = it.cardId ?: defaults.cards.firstOrNull()?.id,
+                    cardId = cardPurchase?.cardId ?: it.cardId ?: defaults.cards.firstOrNull()?.id,
+                    origin = if (cardPurchase != null) PaymentOrigin.CARD else it.origin,
                 )
             }
         }

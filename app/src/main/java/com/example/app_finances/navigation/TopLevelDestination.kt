@@ -28,7 +28,7 @@ enum class TopLevelDestination(
         "transactions", R.string.nav_transactions,
         Icons.AutoMirrored.Filled.ReceiptLong, Icons.AutoMirrored.Outlined.ReceiptLong, showsAddButton = true,
     ),
-    Cards("cards", R.string.nav_cards, Icons.Filled.CreditCard, Icons.Outlined.CreditCard, showsAddButton = false),
+    Cards("cards", R.string.nav_cards, Icons.Filled.CreditCard, Icons.Outlined.CreditCard, showsAddButton = true),
     More("more", R.string.nav_more, Icons.Filled.GridView, Icons.Outlined.GridView, showsAddButton = false),
     ;
 
