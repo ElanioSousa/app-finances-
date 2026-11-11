@@ -20,8 +20,14 @@ data class TransactionItem(
     val accountName: String?,
     val destinationName: String?,
     val cardName: String? = null,
+    /** Ainda não existe: é a previsão de uma recorrência para um mês futuro. */
+    val isProjected: Boolean = false,
 ) {
     val id: Long get() = transaction.id
+
+    /** Chave única nas listas (previstos ainda não têm id). */
+    val key: String
+        get() = if (isProjected) "projected-${transaction.recurringId}-${transaction.date}" else "t-${transaction.id}"
 
     /** "2/10" para parcelas; nulo para compras à vista. */
     val installmentLabel: String?

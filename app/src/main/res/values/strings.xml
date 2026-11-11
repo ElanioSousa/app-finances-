@@ -52,6 +52,8 @@
     <string name="transactions_payment_subtitle">Pagamento · %1$s</string>
     <string name="transaction_deleted">\"%1$s\" excluído</string>
     <string name="transaction_pending">Pendente</string>
+    <string name="transaction_projected">Prevista</string>
+    <string name="home_includes_projected">Inclui o previsto das recorrências</string>
     <string name="month_result">Resultado</string>
 
     <string name="form_new_title">Novo lançamento</string>

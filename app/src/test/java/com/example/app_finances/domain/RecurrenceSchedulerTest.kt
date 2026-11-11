@@ -118,4 +118,13 @@ class RecurrenceSchedulerTest {
         val error = runCatching { RecurrenceScheduler.endDateFor(recurring(), 0) }.exceptionOrNull()
         assertEquals("Informe de 1 a ${RecurrenceScheduler.MAX_OCCURRENCES} parcelas.", error?.message)
     }
+
+    @Test
+    fun `previsão mostra só o que ainda não foi gerado, sem pausadas`() {
+        val salary = recurring(start = d(2026, 1, 5)).copy(generatedUntil = d(2026, 11, 30))
+        val paused = salary.copy(id = 8, active = false)
+        val projected = RecurrenceScheduler.projected(listOf(salary, paused), d(2026, 11, 1), d(2027, 1, 31))
+        assertEquals(listOf(d(2026, 12, 5), d(2027, 1, 5)), projected.map { it.date })
+        assertTrue(projected.none { it.paid })
+    }
 }

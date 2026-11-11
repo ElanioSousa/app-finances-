@@ -52,7 +52,7 @@ data class DashboardActions(
 @Composable
 fun DashboardScreen(scaffoldPadding: PaddingValues, actions: DashboardActions) {
     val viewModel = containerViewModel {
-        DashboardViewModel(DashboardSources(it.accountRepository, it.transactionRepository, it.cardRepository, it.categoryRepository), it.today)
+        DashboardViewModel(DashboardSources(it.accountRepository, it.transactionRepository, it.cardRepository, it.categoryRepository, it.recurringRepository), it.today)
     }
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbar = LocalSnackbarHostState.current
@@ -63,7 +63,7 @@ fun DashboardScreen(scaffoldPadding: PaddingValues, actions: DashboardActions) {
         // Só mostra números depois de carregar: "R$ 0,00" provisório engana.
         if (data == null) return@ScreenColumn
         item { MonthSelector(state.month, viewModel::setMonth) }
-        item { BalanceCard(data.balanceCents, data.monthTotals) }
+        item { BalanceCard(data.balanceCents, data.monthTotals, data.includesProjected) }
         item { UpcomingCard(data.upcoming, data.today, UpcomingActions(actions.onOpenTransaction, actions.onOpenCard, viewModel::markPaid)) }
         if (data.budgets.isNotEmpty()) item { BudgetsCard(data.budgets) }
         if (data.cards.isNotEmpty()) item { CardsCard(data.cards, data.today, actions.onOpenCard) }
@@ -99,7 +99,7 @@ private fun RecentCard(recent: List<TransactionItem>, onOpenTransaction: (Long) 
 private val BalanceGradient = Brush.linearGradient(listOf(EmeraldDeep, Ink850))
 
 @Composable
-private fun BalanceCard(balanceCents: Long, month: MonthTotals) {
+private fun BalanceCard(balanceCents: Long, month: MonthTotals, includesProjected: Boolean) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -119,6 +119,9 @@ private fun BalanceCard(balanceCents: Long, month: MonthTotals) {
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             FlowTile(FlowTileData(R.string.home_income, month.incomeCents, Icons.AutoMirrored.Filled.TrendingUp, AmountTone.Income), Modifier.weight(1f))
             FlowTile(FlowTileData(R.string.home_expenses, month.expenseCents, Icons.AutoMirrored.Filled.TrendingDown, AmountTone.Expense), Modifier.weight(1f))
+        }
+        if (includesProjected) {
+            Text(stringResource(R.string.home_includes_projected), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }

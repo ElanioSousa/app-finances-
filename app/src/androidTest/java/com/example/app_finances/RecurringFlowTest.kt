@@ -5,6 +5,7 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
@@ -71,5 +72,27 @@ class RecurringFlowTest {
         waitFor(string(R.string.recurring_term_count).format(12))
         compose.onAllNodesWithText(string(R.string.nav_transactions)).onFirst().performClick()
         waitFor("Empréstimo (1/12)")
+    }
+
+    @Test
+    fun salarioApareceComoPrevistoNoProximoMes() {
+        compose.onAllNodesWithText(string(R.string.nav_more)).onFirst().performClick()
+        compose.onNodeWithText(string(R.string.more_recurring)).performClick()
+        compose.onNodeWithText(string(R.string.recurring_new)).performClick()
+        compose.onNodeWithText(string(R.string.type_income)).performClick()
+        compose.onNode(hasSetTextAction() and hasText(string(R.string.form_amount))).performTextInput("276014")
+        compose.onNode(hasSetTextAction() and hasText(string(R.string.form_description))).performTextInput("Salário")
+        compose.onNodeWithText(string(R.string.action_save)).performClick()
+        waitFor(string(R.string.recurring_fixed))
+
+        // No mês seguinte o salário ainda não foi lançado, mas aparece como previsto.
+        compose.onAllNodesWithText(string(R.string.nav_home)).onFirst().performClick()
+        compose.onNodeWithContentDescription(string(R.string.month_next)).performClick()
+        waitFor(string(R.string.home_includes_projected))
+        compose.onAllNodesWithText(Money.format(276_014), substring = true).onFirst().assertExists()
+
+        compose.onAllNodesWithText(string(R.string.nav_transactions)).onFirst().performClick()
+        compose.onNodeWithContentDescription(string(R.string.month_next)).performClick()
+        waitFor(string(R.string.transaction_projected))
     }
 }

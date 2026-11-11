@@ -60,7 +60,7 @@ private data class TransactionsActions(
 @Composable
 fun TransactionsScreen(scaffoldPadding: PaddingValues, onOpenTransaction: (Long) -> Unit, onOpenCard: (Long) -> Unit) {
     val viewModel = containerViewModel {
-        TransactionsViewModel(it.transactionRepository, it.catalogSources)
+        TransactionsViewModel(it.transactionRepository, it.catalogSources, it.recurringRepository)
     }
     val state by viewModel.state.collectAsStateWithLifecycle()
     TransactionEvents(viewModel)
@@ -126,8 +126,18 @@ private fun LazyListScope.dayGroups(days: List<DayGroup>, actions: TransactionsA
                 modifier = Modifier.padding(top = 8.dp),
             )
         }
-        items(day.items, key = { it.id }) { item -> SwipeableRow(item, actions) }
+        items(day.items, key = { it.key }) { item ->
+            // Previsões não existem ainda: nada para abrir nem excluir.
+            if (item.isProjected) ProjectedRow(item) else SwipeableRow(item, actions)
+        }
         items(day.payments, key = { "payment-${it.payment.id}" }) { item -> PaymentRow(item) { actions.onOpenCard(item.payment.cardId) } }
+    }
+}
+
+@Composable
+private fun ProjectedRow(item: TransactionItem) {
+    Box(Modifier.clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.surfaceContainer)) {
+        TransactionRow(item, onClick = {})
     }
 }
 

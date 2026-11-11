@@ -10,7 +10,10 @@ import com.example.app_finances.core.model.toItems
 import com.example.app_finances.core.ui.WhileUiSubscribed
 import com.example.app_finances.core.ui.runForUserMessage
 import com.example.app_finances.data.local.entity.TransactionEntity
+import com.example.app_finances.data.local.entity.RecurringEntity
+import com.example.app_finances.data.repository.RecurringRepository
 import com.example.app_finances.data.repository.TransactionRepository
+import com.example.app_finances.domain.RecurrenceScheduler
 import com.example.app_finances.domain.MonthTotals
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
@@ -44,6 +47,7 @@ sealed interface TransactionsEvent {
 class TransactionsViewModel(
     private val transactionRepository: TransactionRepository,
     catalogSources: CatalogSources,
+    recurringRepository: RecurringRepository,
 ) : ViewModel() {
 
     private val month = MutableStateFlow(YearMonth.now())
@@ -60,10 +64,12 @@ class TransactionsViewModel(
     private val monthData: Flow<MonthData> = combine(
         month.flatMapLatest(transactionRepository::observeMonth),
         month.flatMapLatest(catalogSources.cards::observePaymentsIn),
+        combine(month, recurringRepository.observeAll(), ::projectedIn),
         observeCatalog(catalogSources),
-    ) { transactions, payments, catalog ->
+    ) { transactions, payments, projected, catalog ->
         val paymentItems = payments.map { PaymentItem(it, catalog.cardById[it.cardId], catalog.accountNames[it.accountId].orEmpty()) }
-        MonthData(transactions.toItems(catalog), paymentItems, MonthTotals.of(transactions), catalog)
+        val items = transactions.toItems(catalog) + projected.toItems(catalog).map { it.copy(isProjected = true) }
+        MonthData(items.sortedByDescending { it.transaction.date }, paymentItems, MonthTotals.of(transactions + projected), catalog)
     }
 
     val state: StateFlow<TransactionsUiState> = combine(month, filter, monthData) { month, filter, data ->
@@ -102,5 +108,9 @@ class TransactionsViewModel(
         }
     }
 }
+
+/** O que as recorrências ainda vão lançar no mês (vazio para meses já gerados). */
+private fun projectedIn(month: YearMonth, recurrings: List<RecurringEntity>): List<TransactionEntity> =
+    RecurrenceScheduler.projected(recurrings, month.atDay(1), month.atEndOfMonth())
 
 private data class MonthData(val items: List<TransactionItem>, val payments: List<PaymentItem>, val totals: MonthTotals, val catalog: Catalog)

@@ -23,7 +23,8 @@ import com.example.app_finances.data.local.entity.TransactionType
 fun TransactionRow(item: TransactionItem, onClick: () -> Unit, modifier: Modifier = Modifier) {
     ListRow(
         text = RowText(item.transaction.description, item.subtitle),
-        onClick = onClick,
+        // Previsões de recorrência não abrem o formulário: ainda não existem.
+        onClick = onClick.takeUnless { item.isProjected },
         modifier = modifier,
         leading = { TransactionIcon(item) },
         trailing = { TransactionAmount(item) },
@@ -47,7 +48,7 @@ fun TransactionAmount(item: TransactionItem) {
         MoneyText(cents = item.transaction.amountCents, tone = item.transaction.type.tone)
         if (!item.transaction.paid) {
             Text(
-                stringResource(R.string.transaction_pending),
+                stringResource(if (item.isProjected) R.string.transaction_projected else R.string.transaction_pending),
                 style = MaterialTheme.typography.labelSmall,
                 color = FinanceTheme.colors.warning,
             )
