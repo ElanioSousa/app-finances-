@@ -72,8 +72,11 @@
     <string name="form_origin_account">Conta</string>
     <string name="form_origin_card">Cartão</string>
     <string name="form_card">Cartão</string>
-    <string name="form_installments">Parcelas</string>
-    <string name="form_cash">À vista</string>
+    <string name="form_payment">Pagamento</string>
+    <string name="form_card_cash">À vista no cartão</string>
+    <string name="form_card_installments">Compra parcelada</string>
+    <string name="form_installments_count">Quantidade de parcelas</string>
+    <string name="form_installments_range">De 2 a %1$d parcelas</string>
     <string name="form_installment_option">%1$dx de %2$s</string>
     <string name="form_installment_info">Parcela %1$d de %2$d — a edição vale só para esta parcela.</string>
     <string name="form_delete_title">Excluir lançamento?</string>
@@ -143,6 +146,12 @@
     <string name="recurring_more_actions">Mais ações</string>
     <string name="recurring_frequency">Repete</string>
     <string name="recurring_first_date">Primeira data</string>
+    <string name="recurring_term">Prazo</string>
+    <string name="recurring_term_none">Sem prazo definido</string>
+    <string name="recurring_term_installments">Número de parcelas</string>
+    <string name="recurring_occurrences">Quantidade de parcelas</string>
+    <string name="recurring_occurrences_hint">Ex.: empréstimo em 12 vezes. Cada lançamento mostra a parcela (3/12).</string>
+    <string name="recurring_term_count">%1$dx</string>
     <string name="recurring_is_subscription">É uma assinatura</string>
     <string name="recurring_delete_title">Excluir recorrência?</string>
     <string name="recurring_delete_body">Os lançamentos futuros ainda não pagos serão apagados. Os que já aconteceram continuam no histórico.</string>

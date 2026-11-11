@@ -7,6 +7,7 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -53,5 +54,22 @@ class RecurringFlowTest {
         compose.onAllNodesWithText(string(R.string.nav_transactions)).onFirst().performClick()
         waitFor("Streaming")
         compose.onNodeWithText(string(R.string.transaction_pending)).assertExists()
+    }
+
+    @Test
+    fun emprestimoComPrazoNumeraAsParcelas() {
+        compose.onAllNodesWithText(string(R.string.nav_more)).onFirst().performClick()
+        compose.onNodeWithText(string(R.string.more_recurring)).performClick()
+        compose.onNodeWithText(string(R.string.recurring_new)).performClick()
+        compose.onNode(hasSetTextAction() and hasText(string(R.string.form_amount))).performTextInput("50000")
+        compose.onNode(hasSetTextAction() and hasText(string(R.string.form_description))).performTextInput("Empréstimo")
+        compose.onNode(hasText(string(R.string.recurring_term))).performScrollTo().performClick()
+        compose.onNodeWithText(string(R.string.recurring_term_installments)).performClick()
+        compose.onNode(hasSetTextAction() and hasText(string(R.string.recurring_occurrences))).performScrollTo().performTextInput("12")
+        compose.onNodeWithText(string(R.string.action_save)).performClick()
+
+        waitFor(string(R.string.recurring_term_count).format(12))
+        compose.onAllNodesWithText(string(R.string.nav_transactions)).onFirst().performClick()
+        waitFor("Empréstimo (1/12)")
     }
 }

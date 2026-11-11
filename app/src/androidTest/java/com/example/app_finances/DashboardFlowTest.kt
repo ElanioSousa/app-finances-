@@ -16,6 +16,8 @@ import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.app_finances.core.format.Money
 import com.example.app_finances.domain.Insights
+import com.example.app_finances.core.format.Dates
+import java.time.YearMonth
 import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -55,6 +57,14 @@ class DashboardFlowTest {
         compose.onAllNodesWithContentDescription(string(R.string.home_mark_paid)).onFirst().performClick()
         compose.waitUntil(5_000) { exists(TestApp.context.getString(R.string.home_upcoming_empty, Insights.UPCOMING_DAYS)) }
         compose.waitUntil(5_000) { exists(Money.format(-11_990)) }
+    }
+
+    @Test
+    fun inicioTrocaDeMes() {
+        val previous = Dates.month(YearMonth.now().minusMonths(1))
+        compose.waitUntil(5_000) { exists(Dates.month(YearMonth.now())) }
+        compose.onNodeWithContentDescription(string(R.string.month_previous)).performClick()
+        compose.waitUntil(5_000) { exists(previous) }
     }
 
     private fun addPendingExpense(digits: String, category: String) {

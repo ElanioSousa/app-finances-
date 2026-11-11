@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.example.app_finances.R
 import com.example.app_finances.core.designsystem.component.AmountInput
+import com.example.app_finances.core.designsystem.component.CountInput
 import com.example.app_finances.core.designsystem.component.DateField
 import com.example.app_finances.core.designsystem.component.DialogActions
 import com.example.app_finances.core.designsystem.component.FormDialog
@@ -24,6 +25,7 @@ import com.example.app_finances.core.ui.labelRes
 import com.example.app_finances.core.ui.paymentOriginOptions
 import com.example.app_finances.data.local.entity.Frequency
 import com.example.app_finances.data.local.entity.TransactionType
+import com.example.app_finances.domain.RecurrenceScheduler
 
 data class RecurringFormActions(
     val onEdit: ((RecurringEditor) -> RecurringEditor) -> Unit,
@@ -54,10 +56,28 @@ fun RecurringFormDialog(editing: Editing<RecurringEditor>, catalog: Catalog, act
         )
         Text(stringResource(R.string.recurring_first_date), style = MaterialTheme.typography.labelLarge)
         DateField(editor.startDate, { date -> onEdit { it.copy(startDate = date) } })
+        TermFields(editor, onEdit)
         LabeledSwitch(stringResource(R.string.recurring_is_subscription), editor.isSubscription) { checked ->
             onEdit { it.copy(isSubscription = checked) }
         }
     }
+}
+
+/** Sem prazo (aluguel, salário) ou com um número de parcelas (empréstimo). */
+@Composable
+private fun TermFields(editor: RecurringEditor, onEdit: ((RecurringEditor) -> RecurringEditor) -> Unit) {
+    val options = listOf(
+        Option(false, stringResource(R.string.recurring_term_none)),
+        Option(true, stringResource(R.string.recurring_term_installments)),
+    )
+    OptionDropdown(stringResource(R.string.recurring_term), options, editor.hasTerm, { has -> onEdit { it.copy(hasTerm = has) } })
+    if (!editor.hasTerm) return
+    CountInput(
+        value = editor.occurrences,
+        label = stringResource(R.string.recurring_occurrences),
+        max = RecurrenceScheduler.MAX_OCCURRENCES,
+        hint = stringResource(R.string.recurring_occurrences_hint),
+    ) { count -> onEdit { it.copy(occurrences = count) } }
 }
 
 @Composable

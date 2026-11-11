@@ -30,6 +30,7 @@ import com.example.app_finances.core.format.Dates
 import com.example.app_finances.core.ui.labelRes
 import com.example.app_finances.core.ui.tone
 import com.example.app_finances.data.local.entity.RecurringEntity
+import com.example.app_finances.domain.RecurrenceScheduler
 
 data class RecurringRowActions(
     val onEdit: (RecurringEntity) -> Unit,
@@ -65,7 +66,8 @@ fun RecurringRowItem(row: RecurringRow, actions: RecurringRowActions) {
 private fun subtitle(row: RecurringRow): String {
     val next = row.nextDate?.let { stringResource(R.string.recurring_next, Dates.short(it)) }
         ?: stringResource(R.string.recurring_ended)
-    return listOf(stringResource(row.recurring.frequency.labelRes), next, row.originName)
+    val term = RecurrenceScheduler.totalOccurrences(row.recurring)?.let { stringResource(R.string.recurring_term_count, it) }.orEmpty()
+    return listOf(stringResource(row.recurring.frequency.labelRes), term, next, row.originName)
         .filter { it.isNotEmpty() }
         .joinToString(" · ")
 }

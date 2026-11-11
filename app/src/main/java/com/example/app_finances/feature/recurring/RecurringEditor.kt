@@ -5,6 +5,7 @@ import com.example.app_finances.data.local.entity.Frequency
 import com.example.app_finances.data.local.entity.RecurringEntity
 import com.example.app_finances.data.local.entity.TransactionType
 import com.example.app_finances.core.model.PaymentOrigin
+import com.example.app_finances.domain.RecurrenceScheduler
 import java.time.LocalDate
 
 /** Recorrência sendo criada ou editada no diálogo. */
@@ -20,6 +21,9 @@ data class RecurringEditor(
     val frequency: Frequency = Frequency.MONTHLY,
     val startDate: LocalDate,
     val isSubscription: Boolean = false,
+    /** Com prazo (empréstimo, financiamento): repete só esta quantidade de vezes. */
+    val hasTerm: Boolean = false,
+    val occurrences: Int = 0,
 ) {
     val isCard: Boolean get() = type == TransactionType.EXPENSE && origin == PaymentOrigin.CARD
 
@@ -39,7 +43,7 @@ data class RecurringEditor(
             frequency = frequency,
             startDate = startDate,
             isSubscription = isSubscription,
-        )
+        ).let { entity -> entity.copy(endDate = if (hasTerm) RecurrenceScheduler.endDateFor(entity, occurrences) else null) }
     }
 
     companion object {
@@ -61,6 +65,8 @@ data class RecurringEditor(
             frequency = r.frequency,
             startDate = r.startDate,
             isSubscription = r.isSubscription,
+            hasTerm = r.endDate != null,
+            occurrences = RecurrenceScheduler.totalOccurrences(r) ?: 0,
         )
     }
 }

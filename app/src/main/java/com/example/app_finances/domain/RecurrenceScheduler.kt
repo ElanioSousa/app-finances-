@@ -59,13 +59,36 @@ object RecurrenceScheduler {
         type = recurring.type,
         amountCents = recurring.amountCents,
         date = date,
-        description = recurring.description,
+        description = describe(recurring, date),
         categoryId = recurring.categoryId,
         accountId = recurring.accountId,
         cardId = recurring.cardId,
         paid = recurring.cardId != null,
         recurringId = recurring.id,
     )
+
+    /** Maior prazo aceito: 40 anos de parcelas mensais. */
+    const val MAX_OCCURRENCES = 480
+
+    /** Data da última de [count] ocorrências (prazo determinado, como um empréstimo). */
+    fun endDateFor(recurring: RecurringEntity, count: Int): LocalDate {
+        require(count in 1..MAX_OCCURRENCES) { "Informe de 1 a $MAX_OCCURRENCES parcelas." }
+        return recurring.dateAt(count - 1L)
+    }
+
+    /** Quantas ocorrências a recorrência tem no total; nulo se não tem prazo. */
+    fun totalOccurrences(recurring: RecurringEntity): Int? =
+        recurring.endDate?.let { occurrences(recurring, recurring.startDate, it).size }
+
+    /** Número (1, 2, …) da ocorrência em [date]. */
+    fun occurrenceNumber(recurring: RecurringEntity, date: LocalDate): Int =
+        occurrences(recurring, recurring.startDate, date).size
+
+    /** Com prazo, cada lançamento diz qual parcela é: "Empréstimo (3/12)". */
+    private fun describe(recurring: RecurringEntity, date: LocalDate): String {
+        val total = totalOccurrences(recurring) ?: return recurring.description
+        return "${recurring.description} (${occurrenceNumber(recurring, date)}/$total)"
+    }
 
     /** Custo mensal equivalente: semanal × 52 / 12, anual / 12. */
     fun monthlyEquivalent(recurring: RecurringEntity): Long = when (recurring.frequency) {

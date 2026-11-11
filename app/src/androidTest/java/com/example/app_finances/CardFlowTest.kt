@@ -13,6 +13,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTextReplacement
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.app_finances.core.format.Money
@@ -86,8 +87,10 @@ class CardFlowTest {
         compose.waitUntil(5_000) { compose.onAllNodes(hasText(string(R.string.action_save)) and isEnabled()).fetchSemanticsNodes().isNotEmpty() }
         compose.onNode(hasSetTextAction() and hasText(string(R.string.form_amount))).performTextInput(digits)
         compose.onNodeWithText("Alimentação").performClick()
-        compose.onNode(hasText(string(R.string.form_installments))).performScrollTo().performClick()
-        compose.onNodeWithText(installmentsLabel).performClick()
+        compose.onNode(hasText(string(R.string.form_payment))).performScrollTo().performClick()
+        compose.onNodeWithText(string(R.string.form_card_installments)).performClick()
+        compose.onNode(hasSetTextAction() and hasText(string(R.string.form_installments_count))).performScrollTo().performTextReplacement("3")
+        compose.onNodeWithText(installmentsLabel).assertExists()
         compose.onNodeWithText(string(R.string.action_save)).performScrollTo().performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithText(string(R.string.form_new_title)).fetchSemanticsNodes().isEmpty() }
     }

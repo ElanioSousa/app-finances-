@@ -19,6 +19,8 @@ data class TransactionDraft(
     val notes: String = "",
     val origin: PaymentOrigin = PaymentOrigin.ACCOUNT,
     val cardId: Long? = null,
+    /** "Compra parcelada" escolhida (senão é à vista no cartão). */
+    val inInstallments: Boolean = false,
     val installments: Int = 1,
 ) {
     val isTransfer: Boolean get() = type == TransactionType.TRANSFER
@@ -29,7 +31,7 @@ data class TransactionDraft(
     /** Troca o tipo limpando o que não vale para o novo (categoria, destino, cartão). */
     fun withType(newType: TransactionType): TransactionDraft =
         if (newType == type) this
-        else copy(type = newType, categoryId = null, destinationAccountId = null, origin = PaymentOrigin.ACCOUNT, installments = 1)
+        else copy(type = newType, categoryId = null, destinationAccountId = null, origin = PaymentOrigin.ACCOUNT, inInstallments = false, installments = 1)
 
     /**
      * Monta o lançamento. Sem descrição, usa o nome da categoria.
@@ -52,10 +54,20 @@ data class TransactionDraft(
         )
     }
 
+    /** À vista no cartão ou parcelada: escolher parcelada já sugere 2 parcelas. */
+    fun withInstallments(parcelled: Boolean): TransactionDraft =
+        copy(inInstallments = parcelled, installments = if (parcelled) installments.coerceAtLeast(2) else 1)
+
+    /** Quantidade de parcelas que vai ser gravada (1 = à vista ou fora do cartão). */
+    val installmentCount: Int get() = if (isCardPurchase && inInstallments) installments else 1
+
     /** Novo lançamento: uma compra parcelada vira um lançamento por parcela. */
     fun toNewEntities(categoryName: String?, newGroupId: () -> String): List<TransactionEntity> {
+        if (isCardPurchase && inInstallments) {
+            require(installments in 2..Installments.MAX) { "Informe de 2 a ${Installments.MAX} parcelas." }
+        }
         val entity = toEntity(original = null, categoryName = categoryName)
-        return Installments.schedule(entity, if (isCardPurchase) installments else 1, newGroupId)
+        return Installments.schedule(entity, installmentCount, newGroupId)
     }
 
     companion object {

@@ -33,7 +33,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -45,6 +44,7 @@ import com.example.app_finances.R
 import com.example.app_finances.core.designsystem.categoryIcon
 import com.example.app_finances.core.designsystem.component.AmountInput
 import com.example.app_finances.core.designsystem.component.ConfirmDialog
+import com.example.app_finances.core.designsystem.component.CountInput
 import com.example.app_finances.core.designsystem.component.ConfirmTexts
 import com.example.app_finances.core.designsystem.component.DialogActions
 import com.example.app_finances.core.designsystem.component.DateField
@@ -61,6 +61,7 @@ import com.example.app_finances.core.ui.paidLabelRes
 import com.example.app_finances.core.ui.paymentOriginOptions
 import com.example.app_finances.data.local.entity.CategoryEntity
 import com.example.app_finances.data.local.entity.TransactionType
+import com.example.app_finances.domain.Installments
 
 private data class FormActions(
     val onUpdate: ((TransactionDraft) -> TransactionDraft) -> Unit,
@@ -178,30 +179,26 @@ private fun CardFields(state: TransactionFormUiState, actions: FormActions) {
     if (state.canChangeOrigin) {
         OptionDropdown(stringResource(R.string.form_card), state.cardOptions, draft.cardId, { id -> actions.onUpdate { it.copy(cardId = id) } }, Modifier.fillMaxWidth())
     }
-    if (state.canChooseInstallments) {
-        OptionDropdown(
-            stringResource(R.string.form_installments),
-            installmentOptions(state.installmentPreview),
-            draft.installments,
-            { count -> actions.onUpdate { it.copy(installments = count) } },
-            Modifier.fillMaxWidth(),
-        )
-    }
+    if (state.canChooseInstallments) InstallmentFields(state, actions)
     state.status.editedInstallment?.let { info ->
         Text(stringResource(R.string.form_installment_info, info.number, info.count), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
-/** "À vista", "2x de R$ 50,00", … usando o valor real da 1ª parcela de cada opção. */
+/** "À vista no cartão" ou "Compra parcelada" — e, parcelada, a quantidade de parcelas. */
 @Composable
-private fun installmentOptions(firstInstallments: List<Long>): List<Option<Int>> {
-    val cash = stringResource(R.string.form_cash)
-    val template = stringResource(R.string.form_installment_option)
-    return remember(firstInstallments, cash, template) {
-        firstInstallments.mapIndexed { index, cents ->
-            val count = index + 1
-            Option(count, if (count == 1) cash else template.format(count, Money.format(cents)))
-        }
+private fun InstallmentFields(state: TransactionFormUiState, actions: FormActions) {
+    val draft = state.draft
+    val options = listOf(
+        Option(false, stringResource(R.string.form_card_cash)),
+        Option(true, stringResource(R.string.form_card_installments)),
+    )
+    OptionDropdown(stringResource(R.string.form_payment), options, draft.inInstallments, { parcelled -> actions.onUpdate { it.withInstallments(parcelled) } }, Modifier.fillMaxWidth())
+    if (!draft.inInstallments) return
+    val hint = state.firstInstallmentCents?.let { stringResource(R.string.form_installment_option, draft.installments, Money.format(it)) }
+        ?: stringResource(R.string.form_installments_range, Installments.MAX)
+    CountInput(draft.installments, stringResource(R.string.form_installments_count), Installments.MAX, hint) { count ->
+        actions.onUpdate { it.copy(installments = count) }
     }
 }
 

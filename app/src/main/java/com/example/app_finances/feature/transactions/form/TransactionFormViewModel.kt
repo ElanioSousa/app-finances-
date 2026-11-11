@@ -62,9 +62,9 @@ data class TransactionFormUiState(
     val canChangeOrigin: Boolean
         get() = status.editedInstallment == null
 
-    /** Valor da 1ª parcela para cada quantidade (é ela que leva os centavos que sobram). */
-    val installmentPreview: List<Long>
-        get() = (1..Installments.MAX).map { Installments.split(draft.amountCents, it).first() }
+    /** Valor da 1ª parcela (a que leva os centavos que sobram); nulo se a quantidade não vale. */
+    val firstInstallmentCents: Long?
+        get() = draft.installments.takeIf { it in 2..Installments.MAX }?.let { Installments.split(draft.amountCents, it).first() }
 
     /** Destino de transferência: qualquer conta menos a de origem. */
     val destinationOptions: List<Option<Long>>

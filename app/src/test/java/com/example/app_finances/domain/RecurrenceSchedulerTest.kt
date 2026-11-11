@@ -99,4 +99,23 @@ class RecurrenceSchedulerTest {
         assertEquals(listOf(d(2026, 11, 2), d(2026, 11, 9)), RecurrenceScheduler.occurrences(old, d(2026, 11, 1), d(2026, 11, 10)))
         assertEquals(d(2026, 11, 16), RecurrenceScheduler.nextOccurrence(old, d(2026, 11, 10)))
     }
+
+    @Test
+    fun `com prazo termina na última parcela e numera cada lançamento`() {
+        val loan = recurring().let { it.copy(endDate = RecurrenceScheduler.endDateFor(it, 3)) }
+        assertEquals(d(2026, 3, 31), loan.endDate)
+        assertEquals(3, RecurrenceScheduler.totalOccurrences(loan))
+        assertEquals(
+            listOf("Aluguel (1/3)", "Aluguel (2/3)", "Aluguel (3/3)"),
+            RecurrenceScheduler.pending(loan, d(2026, 12, 31)).map { it.description },
+        )
+        assertEquals("Aluguel", RecurrenceScheduler.toTransaction(recurring(), d(2026, 2, 28)).description)
+        assertEquals(null, RecurrenceScheduler.totalOccurrences(recurring()))
+    }
+
+    @Test
+    fun `prazo precisa de ao menos uma parcela`() {
+        val error = runCatching { RecurrenceScheduler.endDateFor(recurring(), 0) }.exceptionOrNull()
+        assertEquals("Informe de 1 a ${RecurrenceScheduler.MAX_OCCURRENCES} parcelas.", error?.message)
+    }
 }

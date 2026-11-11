@@ -37,6 +37,7 @@ import com.example.app_finances.core.designsystem.component.EmptyState
 import com.example.app_finances.core.designsystem.component.MoneyText
 import com.example.app_finances.core.designsystem.component.ScreenColumn
 import com.example.app_finances.core.designsystem.component.SectionCard
+import com.example.app_finances.core.designsystem.component.MonthSelector
 import com.example.app_finances.core.designsystem.component.color
 import com.example.app_finances.core.designsystem.theme.EmeraldDeep
 import com.example.app_finances.core.designsystem.theme.Ink850
@@ -61,6 +62,7 @@ fun DashboardScreen(scaffoldPadding: PaddingValues, actions: DashboardActions) {
     ScreenColumn(title = stringResource(R.string.home_greeting), scaffoldPadding = scaffoldPadding) {
         // Só mostra números depois de carregar: "R$ 0,00" provisório engana.
         if (data == null) return@ScreenColumn
+        item { MonthSelector(state.month, viewModel::setMonth) }
         item { BalanceCard(data.balanceCents, data.monthTotals) }
         item { UpcomingCard(data.upcoming, data.today, UpcomingActions(actions.onOpenTransaction, actions.onOpenCard, viewModel::markPaid)) }
         if (data.budgets.isNotEmpty()) item { BudgetsCard(data.budgets) }

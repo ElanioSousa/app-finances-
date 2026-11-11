@@ -26,12 +26,14 @@ import com.example.app_finances.domain.MonthBar
 import com.example.app_finances.domain.MonthTotals
 import com.example.app_finances.domain.UpcomingBill
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -60,8 +62,10 @@ data class DashboardData(
 data class DashboardUiState(
     /** Nulo enquanto carrega: o Início não mostra "R$ 0,00" provisório. */
     val data: DashboardData? = null,
-    /** Mês selecionado no gráfico (índice em `history`); padrão = o mês atual. */
+    /** Mês selecionado no gráfico (índice em `history`); padrão = o mês visto. */
     val selectedMonth: Int = Insights.HISTORY_MONTHS - 1,
+    /** Mês que o Início mostra (totais, categorias, orçamentos, recentes e o gráfico até ele). */
+    val month: YearMonth = YearMonth.now(),
 )
 
 /** Repositórios que o Início lê. */
@@ -78,6 +82,7 @@ class DashboardViewModel(
 ) : ViewModel() {
 
     private val selectedMonth = MutableStateFlow(Insights.HISTORY_MONTHS - 1)
+    private val month = MutableStateFlow(YearMonth.from(today()))
     private val messages = UserMessages(viewModelScope)
 
     /** Falhas ao marcar como pago, para a tela mostrar num aviso. */
@@ -87,7 +92,9 @@ class DashboardViewModel(
      * Cada consulta é observada uma vez só (o catálogo sai das mesmas contas e cartões);
      * gravações em sequência viram um recálculo (conflate), feito fora da thread da tela.
      */
-    private val data: Flow<DashboardData> = observeSnapshot()
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val data: Flow<DashboardData> = month
+        .flatMapLatest(::observeSnapshot)
         .conflate()
         .map(::buildData)
         .flowOn(Dispatchers.Default)
@@ -97,14 +104,21 @@ class DashboardViewModel(
             emit(DashboardData(today()))
         }
 
-    val state: StateFlow<DashboardUiState> = combine(data, selectedMonth, ::DashboardUiState)
-        .stateIn(viewModelScope, WhileUiSubscribed, DashboardUiState())
+    val state: StateFlow<DashboardUiState> = combine(data, selectedMonth, month, ::DashboardUiState)
+        .stateIn(viewModelScope, WhileUiSubscribed, DashboardUiState(month = month.value))
 
     fun selectMonth(index: Int) = selectedMonth.update { index }
+
+    /** Troca o mês visto; o gráfico volta a destacar esse mês (a última barra). */
+    fun setMonth(value: YearMonth) {
+        month.value = value
+        selectedMonth.value = Insights.HISTORY_MONTHS - 1
+    }
 
     fun markPaid(transaction: TransactionEntity) = messages.launch { sources.transactions.markPaid(transaction) }
 
     private class Snapshot(
+        val month: YearMonth,
         val balances: List<AccountBalance>,
         val history: List<TransactionEntity>,
         val pending: List<TransactionEntity>,
@@ -112,23 +126,22 @@ class DashboardViewModel(
         val categories: List<CategoryEntity>,
     )
 
-    private fun observeSnapshot(): Flow<Snapshot> {
+    /** Contas a vencer e cartões seguem o dia de hoje; o resto, o [month] escolhido. */
+    private fun observeSnapshot(month: YearMonth): Flow<Snapshot> {
         val now = today()
-        val month = YearMonth.from(now)
         return combine(
             sources.accounts.observeBalances(),
             sources.transactions.observeMonths(month.minusMonths(Insights.HISTORY_MONTHS - 1L), month),
             sources.transactions.observePendingUntil(Insights.upcomingLimit(now)),
             sources.cards.observeCardData(),
             sources.categories.observeAll(),
-            ::Snapshot,
-        )
+        ) { balances, history, pending, cards, categories -> Snapshot(month, balances, history, pending, cards, categories) }
     }
 
     private fun buildData(snapshot: Snapshot): DashboardData {
         val now = today()
         val catalog = Catalog(snapshot.categories, snapshot.balances.map { it.account }, snapshot.cards.cards)
-        val thisMonth = snapshot.history.filter { YearMonth.from(it.date) == YearMonth.from(now) }
+        val thisMonth = snapshot.history.filter { YearMonth.from(it.date) == snapshot.month }
         val cards = snapshot.cards.summaries(now)
         val pendingItems = snapshot.pending.toItems(catalog).associateBy { it.id }
         return DashboardData(
@@ -141,7 +154,7 @@ class DashboardViewModel(
             spending = Insights.spendingByCategory(thisMonth),
             categoryById = catalog.categoryById,
             budgets = Budgets.statuses(snapshot.categories, thisMonth),
-            history = Insights.monthlyHistory(snapshot.history, YearMonth.from(now)),
+            history = Insights.monthlyHistory(snapshot.history, snapshot.month),
             cards = cards,
             recent = thisMonth.take(RECENT_COUNT).toItems(catalog),
         )
