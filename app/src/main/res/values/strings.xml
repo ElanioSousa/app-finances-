@@ -198,7 +198,6 @@
     <string name="settings_notifications">Lembretes</string>
     <string name="settings_bill_reminders">Avisar contas a vencer</string>
     <string name="settings_bill_reminders_hint">Uma notificação por dia com o que vence hoje ou amanhã.</string>
-    <string name="settings_notifications_denied">Sem permissão de notificação. Ative nas configurações do Android.</string>
     <string name="settings_data">Seus dados</string>
     <string name="settings_export_backup">Fazer backup</string>
     <string name="settings_export_backup_hint">Salva tudo num arquivo .json (ex.: Drive ou Downloads).</string>

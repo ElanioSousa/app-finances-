@@ -23,6 +23,10 @@ import com.example.app_finances.data.local.entity.TransactionEntity
 /**
  * Banco local do app. Mudanças de esquema exigem subir [version] e escrever uma
  * migração; os esquemas exportados ficam em `app/schemas` para servir de base.
+ *
+ * As entidades também são o formato do backup (`BackupFile`): se uma mudança aqui
+ * alterar o JSON (campo renomeado ou obrigatório novo), suba `BackupFile.VERSION` e
+ * mantenha a leitura dos backups antigos — o `BackupFormatTest` guarda um backup v1.
  */
 @Database(
     entities = [

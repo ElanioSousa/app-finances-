@@ -33,6 +33,13 @@ class BackupFormatTest {
         assertEquals(content, BackupFile.parse(text).content)
     }
 
+    /** Backup gravado pela versão 1: mudanças nas entidades não podem impedir de restaurá-lo. */
+    @Test
+    fun `backups da versão 1 continuam legíveis`() {
+        val text = javaClass.getResource("/backup-v1.json")!!.readText()
+        assertEquals(content, BackupFile.parse(text).content)
+    }
+
     @Test
     fun `recusa arquivo que não é backup ou é de versão mais nova`() {
         assertEquals("Este arquivo não é um backup válido do app.", runCatching { BackupFile.parse("{ nada") }.exceptionOrNull()?.message)

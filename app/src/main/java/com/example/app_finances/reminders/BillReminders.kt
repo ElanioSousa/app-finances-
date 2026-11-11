@@ -1,8 +1,12 @@
 package com.example.app_finances.reminders
 
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
@@ -30,6 +34,14 @@ object BillReminders {
     fun cancel(context: Context) {
         WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME)
     }
+
+    /** Agenda se [enabled], senão cancela — o único ponto que liga ou desliga o lembrete. */
+    fun apply(context: Context, enabled: Boolean) = if (enabled) schedule(context) else cancel(context)
+
+    /** O app pode mostrar notificações? (Android 13+ exige a permissão.) */
+    fun canNotify(context: Context): Boolean =
+        Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
 
     /** Canal de notificação (Android 8+); criar de novo não faz nada. */
     fun createChannel(context: Context) {

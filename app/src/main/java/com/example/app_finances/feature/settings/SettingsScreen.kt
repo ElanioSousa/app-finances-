@@ -1,8 +1,6 @@
 package com.example.app_finances.feature.settings
 
 import android.Manifest
-import android.content.pm.PackageManager
-import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.PaddingValues
@@ -21,7 +19,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.app_finances.BuildConfig
 import com.example.app_finances.R
@@ -42,10 +39,7 @@ import java.time.LocalDate
 
 @Composable
 fun SettingsScreen(scaffoldPadding: PaddingValues, onBack: () -> Unit) {
-    val context = LocalContext.current.applicationContext
-    val viewModel = containerViewModel {
-        SettingsViewModel(it.settingsRepository, SettingsServices(it.backupRepository) { on -> if (on) BillReminders.schedule(context) else BillReminders.cancel(context) })
-    }
+    val viewModel = containerViewModel { SettingsViewModel(it.settingsRepository, it.backupRepository) }
     val state by viewModel.state.collectAsStateWithLifecycle()
     SettingsEvents(viewModel)
 
@@ -104,9 +98,7 @@ private fun RemindersSection(enabled: Boolean, onChange: (Boolean) -> Unit) {
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted -> onChange(granted) }
     SectionCard(title = stringResource(R.string.settings_notifications)) {
         LabeledSwitch(stringResource(R.string.settings_bill_reminders), enabled, stringResource(R.string.settings_bill_reminders_hint)) { on ->
-            val needsPermission = on && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
-            if (needsPermission) permission.launch(Manifest.permission.POST_NOTIFICATIONS) else onChange(on)
+            if (on && !BillReminders.canNotify(context)) permission.launch(Manifest.permission.POST_NOTIFICATIONS) else onChange(on)
         }
     }
 }

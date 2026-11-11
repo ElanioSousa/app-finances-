@@ -129,7 +129,7 @@ class DashboardViewModel(
         val now = today()
         val catalog = Catalog(snapshot.categories, snapshot.balances.map { it.account }, snapshot.cards.cards)
         val thisMonth = snapshot.history.filter { YearMonth.from(it.date) == YearMonth.from(now) }
-        val cards = CardSummary.ofAll(snapshot.cards.cards, snapshot.cards.purchases, snapshot.cards.payments, now)
+        val cards = snapshot.cards.summaries(now)
         val pendingItems = snapshot.pending.toItems(catalog).associateBy { it.id }
         return DashboardData(
             today = now,

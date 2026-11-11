@@ -99,7 +99,6 @@ dependencies {
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.biometric)
     implementation(libs.androidx.lifecycle.process)
-    implementation(libs.androidx.fragment.ktx)
     implementation(libs.androidx.core.splashscreen)
 
     testImplementation(libs.junit)
@@ -112,7 +111,6 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.room.testing)
-    androidTestImplementation(libs.androidx.work.testing)
     androidTestImplementation(platform(libs.kotlinx.coroutines.bom))
     androidTestImplementation(libs.kotlinx.coroutines.test)
     debugImplementation(libs.androidx.compose.ui.test.manifest)

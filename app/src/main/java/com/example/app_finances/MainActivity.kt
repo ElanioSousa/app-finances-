@@ -26,8 +26,6 @@ import com.example.app_finances.core.designsystem.theme.AppfinancesTheme
 import com.example.app_finances.core.security.LockScreen
 import com.example.app_finances.data.settings.AppSettings
 import com.example.app_finances.navigation.FinancesApp
-import com.example.app_finances.reminders.BillReminders
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /** FragmentActivity (e não só ComponentActivity) porque o pedido de biometria precisa dela. */
@@ -74,7 +72,6 @@ class MainActivity : FragmentActivity() {
         lifecycleScope.launch {
             runCatching {
                 container.recurringRepository.generateDue()
-                if (container.settingsRepository.settings.first().billReminders) BillReminders.schedule(applicationContext)
             }.onFailure { Log.e(TAG, "Falha nas tarefas de abertura", it) }
         }
     }

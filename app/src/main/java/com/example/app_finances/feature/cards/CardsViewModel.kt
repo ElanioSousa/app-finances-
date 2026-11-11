@@ -61,9 +61,7 @@ class CardsViewModel(
     private val editor = EditorController<CardEditor>(viewModelScope)
 
     /** Resumos só são refeitos quando os dados mudam, não a cada letra digitada no diálogo. */
-    private val summaries = cardRepository.observeCardData().map { data ->
-        CardSummary.ofAll(data.cards, data.purchases, data.payments, today())
-    }
+    private val summaries = cardRepository.observeCardData().map { it.summaries(today()) }
 
     val state: StateFlow<CardsUiState> = combine(summaries, accountRepository.observeAccounts(), editor.state) { summaries, accounts, editing ->
         CardsUiState(summaries, accounts.toOptions(), editing, isLoading = false)

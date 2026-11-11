@@ -1,13 +1,11 @@
 package com.example.app_finances.reminders
 
-import android.Manifest
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-import androidx.core.content.ContextCompat
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.example.app_finances.FinancesApplication
@@ -15,30 +13,40 @@ import com.example.app_finances.MainActivity
 import com.example.app_finances.R
 import com.example.app_finances.core.format.Dates
 import com.example.app_finances.core.format.Money
-import com.example.app_finances.domain.CardSummary
 import com.example.app_finances.domain.Insights
 import com.example.app_finances.domain.UpcomingBill
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 import java.time.LocalDate
 
 /** Uma vez por dia: avisa o que vence hoje ou amanhã (e o que já venceu). */
 class BillReminderWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
 
-    override suspend fun doWork(): Result {
+    override suspend fun doWork(): Result = try {
+        remind()
+        Result.success()
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        // Falha pontual (banco ocupado etc.): tenta de novo algumas vezes antes de esperar o próximo dia.
+        Log.e(TAG, "Falha ao montar o lembrete de contas", e)
+        if (runAttemptCount < MAX_RETRIES) Result.retry() else Result.failure()
+    }
+
+    private suspend fun remind() {
         val container = (applicationContext as FinancesApplication).container
         val today = container.today()
         val pending = container.transactionRepository.observePendingUntil(today.plusDays(1)).first()
-        val cards = container.cardRepository.observeCardData().first()
-        val summaries = CardSummary.ofAll(cards.cards, cards.purchases, cards.payments, today)
+        val summaries = container.cardRepository.observeCardData().first().summaries(today)
         val due = Insights.billsDueByTomorrow(Insights.upcomingBills(pending, summaries, today), today)
-        if (due.isNotEmpty() && canNotify()) notify(due, today)
-        return Result.success()
+        if (due.isNotEmpty() && BillReminders.canNotify(applicationContext)) notify(due, today)
     }
 
-    private fun canNotify(): Boolean =
-        ContextCompat.checkSelfPermission(applicationContext, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+    private fun builder(title: String) = NotificationCompat.Builder(applicationContext, BillReminders.CHANNEL_ID)
+        .setSmallIcon(R.drawable.ic_notification)
+        .setContentTitle(title)
 
-    @Suppress("MissingPermission") // conferida em canNotify()
+    @Suppress("MissingPermission") // conferida em BillReminders.canNotify()
     private fun notify(due: List<UpcomingBill>, today: LocalDate) {
         val title = if (due.size == 1) applicationContext.getString(R.string.reminder_title_one)
         else applicationContext.getString(R.string.reminder_title, due.size)
@@ -49,15 +57,9 @@ class BillReminderWorker(context: Context, params: WorkerParameters) : Coroutine
             PendingIntent.FLAG_IMMUTABLE,
         )
         // Na tela de bloqueio aparece só o título, sem valores.
-        val public = NotificationCompat.Builder(applicationContext, BillReminders.CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(title)
-            .build()
-        val notification = NotificationCompat.Builder(applicationContext, BillReminders.CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification)
+        val notification = builder(title)
             .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
-            .setPublicVersion(public)
-            .setContentTitle(title)
+            .setPublicVersion(builder(title).build())
             .setContentText(lines.first())
             .setStyle(NotificationCompat.InboxStyle().also { style -> lines.forEach(style::addLine) })
             .setContentIntent(open)
@@ -78,5 +80,7 @@ class BillReminderWorker(context: Context, params: WorkerParameters) : Coroutine
 
     private companion object {
         const val NOTIFICATION_ID = 1001
+        const val MAX_RETRIES = 3
+        const val TAG = "BillReminderWorker"
     }
 }

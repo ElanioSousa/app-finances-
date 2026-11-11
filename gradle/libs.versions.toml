@@ -13,7 +13,6 @@ datastore = "1.3.0"
 work = "2.12.0"
 biometric = "1.1.0"
 splashscreen = "1.2.0"
-fragment = "1.9.1"
 coroutines = "1.11.0"
 serialization = "1.8.1"
 turbine = "1.2.1"
@@ -49,10 +48,8 @@ kotlinx-serialization-bom = { group = "org.jetbrains.kotlinx", name = "kotlinx-s
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json" }
 androidx-datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "work" }
-androidx-work-testing = { group = "androidx.work", name = "work-testing", version.ref = "work" }
 androidx-biometric = { group = "androidx.biometric", name = "biometric", version.ref = "biometric" }
 androidx-core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "splashscreen" }
-androidx-fragment-ktx = { group = "androidx.fragment", name = "fragment-ktx", version.ref = "fragment" }
 turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }

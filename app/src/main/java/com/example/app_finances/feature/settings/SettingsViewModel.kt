@@ -33,16 +33,9 @@ data class SettingsUiState(
     val isWorking: Boolean = false,
 )
 
-/** Serviços de que as configurações precisam, além do armazenamento das preferências. */
-data class SettingsServices(
-    val backup: BackupRepository,
-    /** Liga/desliga o agendamento do lembrete diário. */
-    val applyReminders: (Boolean) -> Unit,
-)
-
 class SettingsViewModel(
     private val settingsRepository: SettingsRepository,
-    private val services: SettingsServices,
+    private val backup: BackupRepository,
 ) : ViewModel() {
 
     private val pendingRestore = MutableStateFlow<Uri?>(null)
@@ -58,19 +51,17 @@ class SettingsViewModel(
 
     fun setAppLock(value: Boolean) = launchSetting { settingsRepository.setAppLock(value) }
 
-    fun setBillReminders(value: Boolean) = launchSetting {
-        settingsRepository.setBillReminders(value)
-        services.applyReminders(value)
-    }
+    /** O agendamento acompanha a preferência sozinho (ver `FinancesApplication`). */
+    fun setBillReminders(value: Boolean) = launchSetting { settingsRepository.setBillReminders(value) }
 
     /** Aviso pronto vindo da tela (ex.: aparelho sem bloqueio de tela). */
     fun warn(message: String) {
         events.trySend(SettingsEvent.Failed(message))
     }
 
-    fun exportBackup(uri: Uri) = runFileTask(FileTask.BACKUP) { services.backup.exportBackup(uri) }
+    fun exportBackup(uri: Uri) = runFileTask(FileTask.BACKUP) { backup.exportBackup(uri) }
 
-    fun exportCsv(uri: Uri) = runFileTask(FileTask.CSV) { services.backup.exportCsv(uri) }
+    fun exportCsv(uri: Uri) = runFileTask(FileTask.CSV) { backup.exportCsv(uri) }
 
     /** Restaurar apaga os dados atuais: primeiro pede confirmação. */
     fun askRestore(uri: Uri) = pendingRestore.update { uri }
@@ -80,7 +71,7 @@ class SettingsViewModel(
     fun confirmRestore() {
         val uri = pendingRestore.value ?: return
         pendingRestore.update { null }
-        runFileTask(FileTask.RESTORE) { services.backup.restoreBackup(uri) }
+        runFileTask(FileTask.RESTORE) { backup.restoreBackup(uri) }
     }
 
     private fun launchSetting(block: suspend () -> Unit) {

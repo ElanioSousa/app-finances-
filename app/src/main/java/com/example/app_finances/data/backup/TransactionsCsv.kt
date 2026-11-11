@@ -2,7 +2,7 @@ package com.example.app_finances.data.backup
 
 import com.example.app_finances.core.model.TransactionItem
 import com.example.app_finances.data.local.entity.TransactionType
-import kotlin.math.absoluteValue
+import java.math.BigDecimal
 
 /**
  * Lançamentos em CSV para planilhas em português: separador ";", vírgula decimal,
@@ -42,11 +42,7 @@ object TransactionsCsv {
     }
 
     /** -12345 → "-123,45" (sem separador de milhar, que confunde planilhas). */
-    internal fun decimal(cents: Long): String {
-        val sign = if (cents < 0) "-" else ""
-        val abs = cents.absoluteValue
-        return "$sign${abs / 100},${(abs % 100).toString().padStart(2, '0')}"
-    }
+    internal fun decimal(cents: Long): String = BigDecimal.valueOf(cents, 2).toPlainString().replace('.', ',')
 
     private fun quote(cell: String): String =
         if (cell.any { it == ';' || it == '"' || it == '\n' }) "\"${cell.replace("\"", "\"\"")}\"" else cell

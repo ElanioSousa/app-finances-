@@ -5,8 +5,8 @@ package com.example.app_finances.data.local.entity
 import androidx.room.Entity
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
-import com.example.app_finances.data.backup.LocalDateSerializer
-import com.example.app_finances.data.backup.YearMonthSerializer
+import com.example.app_finances.data.local.LocalDateSerializer
+import com.example.app_finances.data.local.YearMonthSerializer
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey

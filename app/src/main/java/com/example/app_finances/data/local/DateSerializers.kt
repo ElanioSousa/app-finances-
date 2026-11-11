@@ -1,4 +1,4 @@
-package com.example.app_finances.data.backup
+package com.example.app_finances.data.local
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -8,7 +8,7 @@ import kotlinx.serialization.encoding.Encoder
 import java.time.LocalDate
 import java.time.YearMonth
 
-/** Datas no backup como texto ISO ("2026-11-10"), legível e estável entre versões. */
+/** Datas em JSON (backup) como texto ISO ("2026-11-10"), legível e estável entre versões. */
 object LocalDateSerializer : KSerializer<LocalDate> {
     override val descriptor = PrimitiveSerialDescriptor("LocalDate", PrimitiveKind.STRING)
     override fun serialize(encoder: Encoder, value: LocalDate) = encoder.encodeString(value.toString())

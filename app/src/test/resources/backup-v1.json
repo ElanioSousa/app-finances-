@@ -1,0 +1,75 @@
+{
+    "format": "financas-backup",
+    "version": 1,
+    "exportedAt": "2026-11-10T09:00:00",
+    "content": {
+        "accounts": [
+            {
+                "id": 1,
+                "name": "Conta 1",
+                "type": "CHECKING",
+                "initialBalanceCents": 1000,
+                "colorArgb": 0,
+                "archived": false
+            }
+        ],
+        "categories": [
+            {
+                "id": 3,
+                "name": "Mercado",
+                "kind": "EXPENSE",
+                "iconKey": "food",
+                "colorArgb": -1,
+                "archived": false,
+                "monthlyBudgetCents": 50000
+            }
+        ],
+        "cards": [],
+        "recurrings": [
+            {
+                "id": 2,
+                "description": "Aluguel",
+                "amountCents": 150000,
+                "type": "EXPENSE",
+                "categoryId": null,
+                "accountId": 1,
+                "cardId": null,
+                "frequency": "MONTHLY",
+                "startDate": "2026-01-31",
+                "endDate": null,
+                "isSubscription": false,
+                "active": true,
+                "generatedUntil": "2026-11-30"
+            }
+        ],
+        "transactions": [
+            {
+                "id": 9,
+                "type": "EXPENSE",
+                "amountCents": 12345,
+                "date": "2026-11-10",
+                "description": "Teste",
+                "notes": "feira",
+                "categoryId": 3,
+                "accountId": 1,
+                "destinationAccountId": null,
+                "cardId": null,
+                "paid": true,
+                "installmentGroupId": null,
+                "installmentNumber": null,
+                "installmentCount": null,
+                "recurringId": null
+            }
+        ],
+        "invoicePayments": [
+            {
+                "id": 4,
+                "cardId": 7,
+                "referenceMonth": "2026-11",
+                "amountCents": 100,
+                "date": "2026-11-10",
+                "accountId": 1
+            }
+        ]
+    }
+}

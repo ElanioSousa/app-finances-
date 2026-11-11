@@ -14,12 +14,23 @@ import com.example.app_finances.data.local.entity.TransactionEntity
 /** Lê e substitui o banco inteiro, para backup e restauração. */
 @Dao
 abstract class BackupDao {
-    @Query("SELECT * FROM accounts") abstract suspend fun accounts(): List<AccountEntity>
-    @Query("SELECT * FROM categories") abstract suspend fun categories(): List<CategoryEntity>
-    @Query("SELECT * FROM credit_cards") abstract suspend fun cards(): List<CreditCardEntity>
-    @Query("SELECT * FROM recurrings") abstract suspend fun recurrings(): List<RecurringEntity>
-    @Query("SELECT * FROM transactions") abstract suspend fun transactions(): List<TransactionEntity>
-    @Query("SELECT * FROM invoice_payments") abstract suspend fun invoicePayments(): List<InvoicePaymentEntity>
+    @Query("SELECT * FROM accounts")
+    abstract suspend fun accounts(): List<AccountEntity>
+
+    @Query("SELECT * FROM categories")
+    abstract suspend fun categories(): List<CategoryEntity>
+
+    @Query("SELECT * FROM credit_cards")
+    abstract suspend fun cards(): List<CreditCardEntity>
+
+    @Query("SELECT * FROM recurrings")
+    abstract suspend fun recurrings(): List<RecurringEntity>
+
+    @Query("SELECT * FROM transactions")
+    abstract suspend fun transactions(): List<TransactionEntity>
+
+    @Query("SELECT * FROM invoice_payments")
+    abstract suspend fun invoicePayments(): List<InvoicePaymentEntity>
 
     /** Uma leitura consistente de tudo (nada muda no meio). */
     @Transaction
@@ -31,7 +42,13 @@ abstract class BackupDao {
      */
     @Transaction
     open suspend fun replaceAll(content: BackupContent) {
-        deleteInvoicePayments(); deleteTransactions(); deleteRecurrings(); deleteCards(); deleteCategories(); deleteAccounts()
+        // Apaga dos dependentes para os principais (as chaves estrangeiras exigem essa ordem).
+        deleteInvoicePayments()
+        deleteTransactions()
+        deleteRecurrings()
+        deleteCards()
+        deleteCategories()
+        deleteAccounts()
         insertAccounts(content.accounts)
         insertCategories(content.categories)
         insertCards(content.cards)
@@ -40,17 +57,40 @@ abstract class BackupDao {
         insertInvoicePayments(content.invoicePayments)
     }
 
-    @Query("DELETE FROM invoice_payments") protected abstract suspend fun deleteInvoicePayments()
-    @Query("DELETE FROM transactions") protected abstract suspend fun deleteTransactions()
-    @Query("DELETE FROM recurrings") protected abstract suspend fun deleteRecurrings()
-    @Query("DELETE FROM credit_cards") protected abstract suspend fun deleteCards()
-    @Query("DELETE FROM categories") protected abstract suspend fun deleteCategories()
-    @Query("DELETE FROM accounts") protected abstract suspend fun deleteAccounts()
+    @Query("DELETE FROM invoice_payments")
+    protected abstract suspend fun deleteInvoicePayments()
 
-    @Insert protected abstract suspend fun insertAccounts(list: List<AccountEntity>)
-    @Insert protected abstract suspend fun insertCategories(list: List<CategoryEntity>)
-    @Insert protected abstract suspend fun insertCards(list: List<CreditCardEntity>)
-    @Insert protected abstract suspend fun insertRecurrings(list: List<RecurringEntity>)
-    @Insert protected abstract suspend fun insertTransactions(list: List<TransactionEntity>)
-    @Insert protected abstract suspend fun insertInvoicePayments(list: List<InvoicePaymentEntity>)
+    @Query("DELETE FROM transactions")
+    protected abstract suspend fun deleteTransactions()
+
+    @Query("DELETE FROM recurrings")
+    protected abstract suspend fun deleteRecurrings()
+
+    @Query("DELETE FROM credit_cards")
+    protected abstract suspend fun deleteCards()
+
+    @Query("DELETE FROM categories")
+    protected abstract suspend fun deleteCategories()
+
+    @Query("DELETE FROM accounts")
+    protected abstract suspend fun deleteAccounts()
+
+    @Insert
+    protected abstract suspend fun insertAccounts(list: List<AccountEntity>)
+
+    @Insert
+    protected abstract suspend fun insertCategories(list: List<CategoryEntity>)
+
+    @Insert
+    protected abstract suspend fun insertCards(list: List<CreditCardEntity>)
+
+    @Insert
+    protected abstract suspend fun insertRecurrings(list: List<RecurringEntity>)
+
+    @Insert
+    protected abstract suspend fun insertTransactions(list: List<TransactionEntity>)
+
+    @Insert
+    protected abstract suspend fun insertInvoicePayments(list: List<InvoicePaymentEntity>)
+
 }
