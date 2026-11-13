@@ -12,9 +12,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.outlined.AutoFixHigh
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -36,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -68,6 +72,7 @@ private data class FormActions(
     val onSave: () -> Unit,
     val onClose: () -> Unit,
     val onDelete: () -> Unit,
+    val onQuickText: (String) -> Unit,
 )
 
 /** Folha inferior para criar, lançar compra no cartão ou editar um lançamento (conforme o [request]). */
@@ -91,7 +96,7 @@ fun TransactionFormSheet(request: FormRequest, onDismiss: () -> Unit) {
         sheetGesturesEnabled = false,
         dragHandle = null,
     ) {
-        TransactionForm(state, FormActions(viewModel::update, viewModel::save, onDismiss, viewModel::delete))
+        TransactionForm(state, FormActions(viewModel::update, viewModel::save, onDismiss, viewModel::delete, viewModel::applyQuickText))
     }
 }
 
@@ -130,11 +135,34 @@ private fun FormHeader(state: TransactionFormUiState, actions: FormActions) {
         if (state.status.isEditing && !state.status.isLoading) DeleteButton(state.status.editedInstallment, actions.onDelete)
         IconButton(onClick = actions.onClose) { Icon(Icons.Filled.Close, stringResource(R.string.action_close)) }
     }
+    if (!state.status.isEditing) QuickEntryField(actions.onQuickText)
     TypeSelector(state.draft.type) { type -> actions.onUpdate { it.withType(type) } }
     AmountInput(
         cents = state.draft.amountCents,
         onCentsChange = { cents -> actions.onUpdate { it.copy(amountCents = cents) } },
         label = stringResource(R.string.form_amount),
+        modifier = Modifier.fillMaxWidth(),
+    )
+}
+
+/** "mercado 45,90 nubank" + Preencher: completa valor, categoria, cartão, parcelas e data de uma vez. */
+@Composable
+private fun QuickEntryField(onApply: (String) -> Unit) {
+    var text by rememberSaveable { mutableStateOf("") }
+    val apply = { onApply(text) }
+    OutlinedTextField(
+        value = text,
+        onValueChange = { text = it },
+        label = { Text(stringResource(R.string.form_quick)) },
+        placeholder = { Text(stringResource(R.string.form_quick_hint)) },
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+        keyboardActions = KeyboardActions(onDone = { apply() }),
+        trailingIcon = {
+            IconButton(onClick = apply, enabled = text.isNotBlank()) {
+                Icon(Icons.Outlined.AutoFixHigh, stringResource(R.string.form_quick_apply))
+            }
+        },
         modifier = Modifier.fillMaxWidth(),
     )
 }

@@ -1,5 +1,6 @@
 package com.example.app_finances
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
@@ -13,6 +14,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -33,6 +36,9 @@ class MainActivity : FragmentActivity() {
 
     private val app get() = application as FinancesApplication
 
+    /** Texto recebido pelo "Compartilhar", esperando o formulário abrir (depois do desbloqueio). */
+    private var sharedText by mutableStateOf<String?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
@@ -42,7 +48,10 @@ class MainActivity : FragmentActivity() {
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
         )
         // Uma vez por abertura (não a cada rotação de tela).
-        if (savedInstanceState == null) runStartupTasks()
+        if (savedInstanceState == null) {
+            runStartupTasks()
+            sharedText = intent.sharedText()
+        }
         setContent {
             AppfinancesTheme {
                 // Até as preferências carregarem não desenha nada (só o fundo escuro da janela):
@@ -62,9 +71,22 @@ class MainActivity : FragmentActivity() {
             return
         }
         CompositionLocalProvider(LocalMoneyFormatter provides if (settings.hideValues) HiddenMoney else VisibleMoney) {
-            Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) { FinancesApp() }
+            Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+                FinancesApp(sharedText, onSharedTextUsed = { sharedText = null })
+            }
         }
     }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        intent.sharedText()?.let { sharedText = it }
+    }
+
+    /** Texto de um "Compartilhar" (limitado: é só para preencher um lançamento). */
+    private fun Intent.sharedText(): String? =
+        getStringExtra(Intent.EXTRA_TEXT)
+            ?.takeIf { action == Intent.ACTION_SEND && type?.startsWith("text/") == true }
+            ?.trim()?.take(MAX_SHARED_TEXT)?.takeIf { it.isNotEmpty() }
 
     /** Lança as recorrências do mês e mantém o lembrete diário agendado, se ligado. Nunca duplicam. */
     private fun runStartupTasks() {
@@ -78,5 +100,6 @@ class MainActivity : FragmentActivity() {
 
     private companion object {
         const val TAG = "MainActivity"
+        const val MAX_SHARED_TEXT = 300
     }
 }

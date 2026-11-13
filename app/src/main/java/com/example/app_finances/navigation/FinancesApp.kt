@@ -23,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -57,9 +58,12 @@ import com.example.app_finances.feature.transactions.form.FormRequest
 import com.example.app_finances.feature.transactions.form.TransactionFormSheet
 
 /** Valor do editor de lançamento para "novo" (ids reais começam em 1). */
-/** Esqueleto do app: barra inferior, botão "+", telas e o formulário de lançamento. */
+/**
+ * Esqueleto do app: barra inferior, botão "+", telas e o formulário de lançamento.
+ * [sharedText] (vindo do "Compartilhar") abre o formulário já preenchido.
+ */
 @Composable
-fun FinancesApp() {
+fun FinancesApp(sharedText: String? = null, onSharedTextUsed: () -> Unit = {}) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val route = backStackEntry?.destination?.route
@@ -68,6 +72,13 @@ fun FinancesApp() {
     val showFab = current.showsAddButton && (route == current.route || route == Routes.CARD_DETAIL)
     val snackbarHostState = remember { SnackbarHostState() }
     var formRequest by rememberSaveable(stateSaver = FormRequest.Saver) { mutableStateOf<FormRequest?>(null) }
+
+    LaunchedEffect(sharedText) {
+        sharedText?.let {
+            formRequest = FormRequest.Quick(it)
+            onSharedTextUsed()
+        }
+    }
 
     CompositionLocalProvider(LocalSnackbarHostState provides snackbarHostState) {
         Scaffold(

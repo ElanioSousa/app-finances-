@@ -4,6 +4,7 @@ import com.example.app_finances.core.model.PaymentOrigin
 import com.example.app_finances.data.local.entity.TransactionEntity
 import com.example.app_finances.data.local.entity.TransactionType
 import com.example.app_finances.domain.Installments
+import com.example.app_finances.domain.QuickEntry
 import java.time.LocalDate
 
 /** O que o usuário está preenchendo no formulário, antes de virar lançamento(s). */
@@ -52,6 +53,20 @@ data class TransactionDraft(
             cardId = cardId.takeIf { isCardPurchase },
             paid = paid || isCardPurchase,
         )
+    }
+
+    /** Preenche com o que foi entendido de um texto ("mercado 45,90 nubank"); o resto fica como estava. */
+    fun withQuickEntry(entry: QuickEntry): TransactionDraft {
+        val onCard = entry.type == TransactionType.EXPENSE && (entry.onCard || entry.cardId != null)
+        return withType(entry.type).copy(
+            amountCents = entry.amountCents ?: amountCents,
+            description = entry.description,
+            categoryId = entry.categoryId,
+            date = entry.date ?: date,
+            accountId = entry.accountId ?: accountId,
+            origin = if (onCard) PaymentOrigin.CARD else PaymentOrigin.ACCOUNT,
+            cardId = entry.cardId ?: cardId,
+        ).withInstallments(entry.installments > 1).let { if (entry.installments > 1) it.copy(installments = entry.installments) else it }
     }
 
     /** À vista no cartão ou parcelada: escolher parcelada já sugere 2 parcelas. */

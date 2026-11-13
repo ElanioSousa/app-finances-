@@ -14,6 +14,9 @@ import com.example.app_finances.data.local.entity.CategoryEntity
 import com.example.app_finances.data.local.entity.TransactionEntity
 import com.example.app_finances.data.repository.TransactionRepository
 import com.example.app_finances.domain.Installments
+import com.example.app_finances.domain.QuickEntryCatalog
+import com.example.app_finances.domain.QuickEntryParser
+import java.time.LocalDate
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -127,6 +130,17 @@ class TransactionFormViewModel(
         }
     }
 
+    /** Preenche o formulário a partir de um texto como "mercado 45,90 nubank". */
+    fun applyQuickText(text: String) {
+        if (text.isNotBlank()) viewModelScope.launch { fillFromText(text) }
+    }
+
+    private suspend fun fillFromText(text: String) {
+        val current = catalog.first()
+        val entry = QuickEntryParser.parse(text, QuickEntryCatalog(current.categories, current.accounts, current.cards), LocalDate.now())
+        update { it.withQuickEntry(entry) }
+    }
+
     private suspend fun load() {
         val existing = editingId?.let { transactionRepository.getById(it) }
         if (existing != null) {
@@ -144,6 +158,7 @@ class TransactionFormViewModel(
                     origin = if (cardPurchase != null) PaymentOrigin.CARD else it.origin,
                 )
             }
+            (request as? FormRequest.Quick)?.let { fillFromText(it.text) }
         }
     }
 
