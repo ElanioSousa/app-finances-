@@ -43,7 +43,7 @@ class InsightsTest {
             expense(4_000, 1, LocalDate.of(2026, 9, 15)),
             expense(9_999, 1, LocalDate.of(2026, 4, 30)),
         )
-        val history = Insights.monthlyHistory(list, YearMonth.of(2026, 11))
+        val history = Insights.monthlyHistory(list, YearMonth.of(2026, 11), monthOf = { YearMonth.from(it.date) })
         assertEquals((6..11).map { YearMonth.of(2026, it) }, history.map { it.month })
         assertEquals(listOf(0L, 0L, 0L, 4_000L, 0L, 0L), history.map { it.totals.expenseCents })
         assertEquals(10_000L, history.last().totals.incomeCents)

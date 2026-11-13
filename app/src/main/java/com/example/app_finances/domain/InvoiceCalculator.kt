@@ -48,6 +48,10 @@ object InvoiceCalculator {
         return if (date < closingDate(month, closingDay)) month else month.plusMonths(1)
     }
 
+    /** Mês em que vence a fatura de uma compra feita em [date]: é nele que a compra pesa no bolso. */
+    fun dueMonthOf(date: LocalDate, card: CreditCardEntity): YearMonth =
+        YearMonth.from(dueDate(invoiceMonthOf(date, card.closingDay), card))
+
     fun invoice(
         card: CreditCardEntity,
         month: YearMonth,

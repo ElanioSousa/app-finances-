@@ -47,7 +47,7 @@ class DatabaseTest {
             .addCallback(SeedCallback)
             .build()
         accounts = AccountRepository(db.accountDao(), db.transactionDao())
-        transactions = TransactionRepository(db.transactionDao(), db.categoryDao())
+        transactions = TransactionRepository(db.transactionDao(), db.categoryDao(), db.creditCardDao())
     }
 
     @After

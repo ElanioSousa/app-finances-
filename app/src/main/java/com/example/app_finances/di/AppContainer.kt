@@ -29,7 +29,7 @@ class AppContainer(
 
     val accountRepository by lazy { AccountRepository(database.accountDao(), database.transactionDao()) }
     val categoryRepository by lazy { CategoryRepository(database.categoryDao()) }
-    val transactionRepository by lazy { TransactionRepository(database.transactionDao(), database.categoryDao()) }
+    val transactionRepository by lazy { TransactionRepository(database.transactionDao(), database.categoryDao(), database.creditCardDao()) }
     val cardRepository by lazy {
         CardRepository(database.creditCardDao(), database.transactionDao(), database.invoicePaymentDao())
     }

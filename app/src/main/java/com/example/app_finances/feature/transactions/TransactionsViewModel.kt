@@ -10,10 +10,8 @@ import com.example.app_finances.core.model.toItems
 import com.example.app_finances.core.ui.WhileUiSubscribed
 import com.example.app_finances.core.ui.runForUserMessage
 import com.example.app_finances.data.local.entity.TransactionEntity
-import com.example.app_finances.data.local.entity.RecurringEntity
 import com.example.app_finances.data.repository.RecurringRepository
 import com.example.app_finances.data.repository.TransactionRepository
-import com.example.app_finances.domain.RecurrenceScheduler
 import com.example.app_finances.domain.MonthTotals
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
@@ -62,11 +60,13 @@ class TransactionsViewModel(
      * Pagamentos de fatura entram na lista, mas não nos totais (as compras do cartão já contaram).
      */
     private val monthData: Flow<MonthData> = combine(
-        month.flatMapLatest(transactionRepository::observeMonth),
+        month.flatMapLatest { transactionRepository.observeLedger(it, it) },
         month.flatMapLatest(catalogSources.cards::observePaymentsIn),
-        combine(month, recurringRepository.observeAll(), ::projectedIn),
+        recurringRepository.observeAll(),
         observeCatalog(catalogSources),
-    ) { transactions, payments, projected, catalog ->
+    ) { ledger, payments, recurrings, catalog ->
+        val transactions = ledger.transactions
+        val projected = ledger.projected(recurrings)
         val paymentItems = payments.map { PaymentItem(it, catalog.cardById[it.cardId], catalog.accountNames[it.accountId].orEmpty()) }
         val items = transactions.toItems(catalog) + projected.toItems(catalog).map { it.copy(isProjected = true) }
         MonthData(items.sortedByDescending { it.transaction.date }, paymentItems, MonthTotals.of(transactions + projected), catalog)
@@ -108,9 +108,5 @@ class TransactionsViewModel(
         }
     }
 }
-
-/** O que as recorrências ainda vão lançar no mês (vazio para meses já gerados). */
-private fun projectedIn(month: YearMonth, recurrings: List<RecurringEntity>): List<TransactionEntity> =
-    RecurrenceScheduler.projected(recurrings, month.atDay(1), month.atEndOfMonth())
 
 private data class MonthData(val items: List<TransactionItem>, val payments: List<PaymentItem>, val totals: MonthTotals, val catalog: Catalog)

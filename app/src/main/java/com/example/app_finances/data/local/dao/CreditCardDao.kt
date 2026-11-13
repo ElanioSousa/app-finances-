@@ -12,6 +12,10 @@ interface CreditCardDao {
     @Query("SELECT * FROM credit_cards WHERE archived = 0 ORDER BY name")
     fun observeActive(): Flow<List<CreditCardEntity>>
 
+    /** Inclui os arquivados: suas compras antigas ainda seguem o fechamento e o vencimento deles. */
+    @Query("SELECT * FROM credit_cards")
+    fun observeAll(): Flow<List<CreditCardEntity>>
+
     @Query("SELECT * FROM credit_cards WHERE id = :id")
     suspend fun getById(id: Long): CreditCardEntity?
 

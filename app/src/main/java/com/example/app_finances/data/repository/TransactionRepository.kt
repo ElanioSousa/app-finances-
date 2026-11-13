@@ -1,22 +1,40 @@
 package com.example.app_finances.data.repository
 
 import com.example.app_finances.data.local.dao.CategoryDao
+import com.example.app_finances.data.local.dao.CreditCardDao
 import com.example.app_finances.data.local.dao.TransactionDao
 import com.example.app_finances.data.local.entity.TransactionEntity
+import com.example.app_finances.domain.Ledger
+import com.example.app_finances.domain.LedgerMonths
 import com.example.app_finances.domain.TransactionRules
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import java.time.LocalDate
 import java.time.YearMonth
 
 class TransactionRepository(
     private val transactionDao: TransactionDao,
     private val categoryDao: CategoryDao,
+    private val creditCardDao: CreditCardDao,
 ) {
     fun observeMonth(month: YearMonth): Flow<List<TransactionEntity>> = observeMonths(month, month)
 
-    /** Lançamentos de [from] até [to] (meses inteiros), numa consulta só. */
+    /**
+     * Lançamentos que contam de [from] até [to] (meses inteiros), numa consulta só.
+     * Compras no cartão contam no mês de vencimento da fatura (ver [LedgerMonths]).
+     */
     fun observeMonths(from: YearMonth, to: YearMonth): Flow<List<TransactionEntity>> =
-        transactionDao.observeBetween(from.atDay(1), to.atEndOfMonth())
+        observeLedger(from, to).map { it.transactions }
+
+    /** Como [observeMonths], com a regra de mês usada (para projeções e gráficos), lendo os cartões uma vez. */
+    fun observeLedger(from: YearMonth, to: YearMonth): Flow<Ledger> = combine(
+        transactionDao.observeBetween(LedgerMonths.firstDateFor(from), to.atEndOfMonth()),
+        creditCardDao.observeAll().map(::LedgerMonths),
+    ) { transactions, months -> Ledger(from, to, months.within(transactions, from, to), months) }
+        .flowOn(Dispatchers.Default)
 
     fun observePendingUntil(until: LocalDate): Flow<List<TransactionEntity>> = transactionDao.observePendingUntil(until)
 

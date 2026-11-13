@@ -17,6 +17,7 @@ import androidx.compose.ui.test.performTextReplacement
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.app_finances.core.format.Money
+import com.example.app_finances.domain.LedgerMonths
 import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -63,6 +64,7 @@ class CardFlowTest {
         buyInInstallments(digits = "30000", installmentsLabel = string(R.string.form_installment_option).format(3, Money.format(10_000)))
 
         compose.onAllNodesWithText(string(R.string.nav_transactions)).onFirst().performClick()
+        showMonthWith("Alimentação")
         compose.onNodeWithText("Alimentação").performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithContentDescription(string(R.string.action_delete)).fetchSemanticsNodes().isNotEmpty() }
         compose.onAllNodesWithContentDescription(string(R.string.action_delete)).onLast().performClick()
@@ -89,6 +91,16 @@ class CardFlowTest {
         compose.onAllNodesWithText(string(R.string.nav_home)).onFirst().performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithText(Money.format(-10_000)).fetchSemanticsNodes().isEmpty() }
         assertTrue(compose.onAllNodesWithText(Money.format(-10_000)).fetchSemanticsNodes().isEmpty())
+    }
+
+    /** A compra conta no mês em que a fatura vence, que pode ser até dois meses à frente. */
+    private fun showMonthWith(text: String) {
+        repeat(LedgerMonths.MAX_CARD_DELAY_MONTHS.toInt()) {
+            compose.waitForIdle()
+            if (compose.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()) return
+            compose.onNodeWithContentDescription(string(R.string.month_next)).performClick()
+        }
+        waitFor(text)
     }
 
     private fun createCard(name: String) {

@@ -1,6 +1,5 @@
 package com.example.app_finances.domain
 
-import com.example.app_finances.data.local.entity.CreditCardEntity
 import com.example.app_finances.data.local.entity.InvoicePaymentEntity
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -8,9 +7,6 @@ import java.time.LocalDate
 import java.time.YearMonth
 
 class InvoiceCalculatorTest {
-
-    private fun card(closing: Int, due: Int) =
-        CreditCardEntity(id = 1, name = "Cartão", limitCents = 500_000, closingDay = closing, dueDay = due, colorArgb = 0)
 
     private fun date(y: Int, m: Int, d: Int) = LocalDate.of(y, m, d)
 

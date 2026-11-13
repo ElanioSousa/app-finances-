@@ -24,9 +24,9 @@ import com.example.app_finances.domain.Budgets
 import com.example.app_finances.domain.CardSummary
 import com.example.app_finances.domain.CategorySpend
 import com.example.app_finances.domain.Insights
+import com.example.app_finances.domain.Ledger
 import com.example.app_finances.domain.MonthBar
 import com.example.app_finances.domain.MonthTotals
-import com.example.app_finances.domain.RecurrenceScheduler
 import com.example.app_finances.domain.UpcomingBill
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -126,7 +126,7 @@ class DashboardViewModel(
     private class Snapshot(
         val month: YearMonth,
         val balances: List<AccountBalance>,
-        val history: List<TransactionEntity>,
+        val ledger: Ledger,
         val pending: List<TransactionEntity>,
         val cards: CardData,
         val categories: List<CategoryEntity>,
@@ -138,12 +138,12 @@ class DashboardViewModel(
         val now = today()
         return combine(
             sources.accounts.observeBalances(),
-            sources.transactions.observeMonths(month.minusMonths(Insights.HISTORY_MONTHS - 1L), month),
+            sources.transactions.observeLedger(month.minusMonths(Insights.HISTORY_MONTHS - 1L), month),
             sources.transactions.observePendingUntil(Insights.upcomingLimit(now)),
             sources.cards.observeCardData(),
             combine(sources.categories.observeAll(), sources.recurrings.observeAll(), ::Pair),
-        ) { balances, history, pending, cards, (categories, recurrings) ->
-            Snapshot(month, balances, history, pending, cards, categories, recurrings)
+        ) { balances, ledger, pending, cards, (categories, recurrings) ->
+            Snapshot(month, balances, ledger, pending, cards, categories, recurrings)
         }
     }
 
@@ -151,11 +151,13 @@ class DashboardViewModel(
         val now = today()
         val catalog = Catalog(snapshot.categories, snapshot.balances.map { it.account }, snapshot.cards.cards)
         // Meses futuros somam o que as recorrências ainda vão lançar (salário, aluguel…).
-        val windowStart = snapshot.month.minusMonths(Insights.HISTORY_MONTHS - 1L).atDay(1)
-        val projected = RecurrenceScheduler.projected(snapshot.recurrings, windowStart, snapshot.month.atEndOfMonth())
-        val history = snapshot.history + projected
-        val thisMonth = history.filter { YearMonth.from(it.date) == snapshot.month }
-        val actualThisMonth = snapshot.history.filter { YearMonth.from(it.date) == snapshot.month }
+        // Compras no cartão contam no mês de vencimento da fatura.
+        val month = snapshot.month
+        val ledger = snapshot.ledger
+        val projected = ledger.projected(snapshot.recurrings)
+        val actualThisMonth = ledger.months.within(ledger.transactions, month, month)
+        val projectedThisMonth = ledger.months.within(projected, month, month)
+        val thisMonth = actualThisMonth + projectedThisMonth
         val cards = snapshot.cards.summaries(now)
         val pendingItems = snapshot.pending.toItems(catalog).associateBy { it.id }
         return DashboardData(
@@ -168,10 +170,10 @@ class DashboardViewModel(
             spending = Insights.spendingByCategory(thisMonth),
             categoryById = catalog.categoryById,
             budgets = Budgets.statuses(snapshot.categories, thisMonth),
-            history = Insights.monthlyHistory(history, snapshot.month),
+            history = Insights.monthlyHistory(ledger.transactions + projected, month, ledger.months::of),
             cards = cards,
             recent = actualThisMonth.take(RECENT_COUNT).toItems(catalog),
-            includesProjected = projected.any { YearMonth.from(it.date) == snapshot.month },
+            includesProjected = projectedThisMonth.isNotEmpty(),
         )
     }
 

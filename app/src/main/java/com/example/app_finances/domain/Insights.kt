@@ -61,9 +61,17 @@ object Insights {
             listOfNotNull(CategorySpend(null, otherCents, otherCents.toFloat() / total, isOther = true).takeIf { otherCents > 0 })
     }
 
-    /** Receitas × despesas de cada um dos [count] meses que terminam em [last]. */
-    fun monthlyHistory(transactions: List<TransactionEntity>, last: YearMonth, count: Int = HISTORY_MONTHS): List<MonthBar> {
-        val byMonth = transactions.groupBy { YearMonth.from(it.date) }
+    /**
+     * Receitas × despesas de cada um dos [count] meses que terminam em [last].
+     * [monthOf] diz em que mês cada lançamento conta (ver [LedgerMonths]).
+     */
+    fun monthlyHistory(
+        transactions: List<TransactionEntity>,
+        last: YearMonth,
+        monthOf: (TransactionEntity) -> YearMonth,
+        count: Int = HISTORY_MONTHS,
+    ): List<MonthBar> {
+        val byMonth = transactions.groupBy(monthOf)
         return (count - 1 downTo 0).map { back ->
             val month = last.minusMonths(back.toLong())
             MonthBar(month, MonthTotals.of(byMonth[month].orEmpty()))
