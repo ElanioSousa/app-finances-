@@ -79,6 +79,11 @@
     <string name="form_quick">Lançamento rápido</string>
     <string name="form_quick_hint">Ex.: mercado 45,90 nubank</string>
     <string name="form_quick_apply">Preencher</string>
+    <string name="form_voice">Falar o lançamento</string>
+    <string name="form_voice_prompt">Ex.: mercado 45 reais e 90 no Nubank</string>
+    <string name="form_voice_unavailable">Reconhecimento de voz indisponível neste aparelho.</string>
+    <string name="shortcut_voice_short">Por voz</string>
+    <string name="shortcut_voice_long">Lançamento por voz</string>
     <string name="form_payment">Pagamento</string>
     <string name="form_card_cash">À vista no cartão</string>
     <string name="form_card_installments">Compra parcelada</string>

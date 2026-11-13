@@ -12,12 +12,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.outlined.AutoFixHigh
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -39,7 +36,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -96,12 +92,13 @@ fun TransactionFormSheet(request: FormRequest, onDismiss: () -> Unit) {
         sheetGesturesEnabled = false,
         dragHandle = null,
     ) {
-        TransactionForm(state, FormActions(viewModel::update, viewModel::save, onDismiss, viewModel::delete, viewModel::applyQuickText))
+        val actions = FormActions(viewModel::update, viewModel::save, onDismiss, viewModel::delete, viewModel::applyQuickText)
+        TransactionForm(state, actions, startWithVoice = request is FormRequest.Voice)
     }
 }
 
 @Composable
-private fun TransactionForm(state: TransactionFormUiState, actions: FormActions) {
+private fun TransactionForm(state: TransactionFormUiState, actions: FormActions, startWithVoice: Boolean) {
     val draft = state.draft
     Column(
         modifier = Modifier
@@ -110,7 +107,7 @@ private fun TransactionForm(state: TransactionFormUiState, actions: FormActions)
             .navigationBarsPadding(),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        FormHeader(state, actions)
+        FormHeader(state, actions, startWithVoice)
         if (!draft.isTransfer) {
             CategoryPicker(state.categoriesForType, draft.categoryId) { id -> actions.onUpdate { it.copy(categoryId = id) } }
         }
@@ -125,7 +122,7 @@ private fun TransactionForm(state: TransactionFormUiState, actions: FormActions)
 }
 
 @Composable
-private fun FormHeader(state: TransactionFormUiState, actions: FormActions) {
+private fun FormHeader(state: TransactionFormUiState, actions: FormActions, startWithVoice: Boolean) {
     Row(Modifier.fillMaxWidth().padding(top = 16.dp), verticalAlignment = Alignment.CenterVertically) {
         Text(
             stringResource(if (state.status.isEditing) R.string.form_edit_title else R.string.form_new_title),
@@ -135,34 +132,12 @@ private fun FormHeader(state: TransactionFormUiState, actions: FormActions) {
         if (state.status.isEditing && !state.status.isLoading) DeleteButton(state.status.editedInstallment, actions.onDelete)
         IconButton(onClick = actions.onClose) { Icon(Icons.Filled.Close, stringResource(R.string.action_close)) }
     }
-    if (!state.status.isEditing) QuickEntryField(actions.onQuickText)
+    if (!state.status.isEditing) QuickEntryField(actions.onQuickText, startWithVoice)
     TypeSelector(state.draft.type) { type -> actions.onUpdate { it.withType(type) } }
     AmountInput(
         cents = state.draft.amountCents,
         onCentsChange = { cents -> actions.onUpdate { it.copy(amountCents = cents) } },
         label = stringResource(R.string.form_amount),
-        modifier = Modifier.fillMaxWidth(),
-    )
-}
-
-/** "mercado 45,90 nubank" + Preencher: completa valor, categoria, cartão, parcelas e data de uma vez. */
-@Composable
-private fun QuickEntryField(onApply: (String) -> Unit) {
-    var text by rememberSaveable { mutableStateOf("") }
-    val apply = { onApply(text) }
-    OutlinedTextField(
-        value = text,
-        onValueChange = { text = it },
-        label = { Text(stringResource(R.string.form_quick)) },
-        placeholder = { Text(stringResource(R.string.form_quick_hint)) },
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-        keyboardActions = KeyboardActions(onDone = { apply() }),
-        trailingIcon = {
-            IconButton(onClick = apply, enabled = text.isNotBlank()) {
-                Icon(Icons.Outlined.AutoFixHigh, stringResource(R.string.form_quick_apply))
-            }
-        },
         modifier = Modifier.fillMaxWidth(),
     )
 }

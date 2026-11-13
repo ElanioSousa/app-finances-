@@ -89,6 +89,16 @@ class QuickEntryParserTest {
     }
 
     @Test
+    fun `frase falada, depois de escrita, e texto digitado com número por extenso`() {
+        val spoken = parse(SpokenText.toWritten("geladeira três mil e seiscentos reais no Nubank em dez vezes"))
+        assertEquals(360_000L, spoken.amountCents)
+        assertEquals(7L, spoken.cardId)
+        assertEquals(10, spoken.installments)
+        assertEquals("Geladeira", spoken.description)
+        assertEquals("Coca zero", parse("coca zero 8").description)
+    }
+
+    @Test
     fun `valores em vários formatos`() {
         assertEquals(123_456L, parseCents("1.234,56"))
         assertEquals(4_590L, parseCents("45.90"))

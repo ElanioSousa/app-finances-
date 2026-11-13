@@ -60,10 +60,10 @@ import com.example.app_finances.feature.transactions.form.TransactionFormSheet
 /** Valor do editor de lançamento para "novo" (ids reais começam em 1). */
 /**
  * Esqueleto do app: barra inferior, botão "+", telas e o formulário de lançamento.
- * [sharedText] (vindo do "Compartilhar") abre o formulário já preenchido.
+ * [launchRequest] (do "Compartilhar" ou do atalho de voz) abre o formulário assim que o app aparece.
  */
 @Composable
-fun FinancesApp(sharedText: String? = null, onSharedTextUsed: () -> Unit = {}) {
+fun FinancesApp(launchRequest: FormRequest? = null, onLaunchRequestUsed: () -> Unit = {}) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val route = backStackEntry?.destination?.route
@@ -73,10 +73,10 @@ fun FinancesApp(sharedText: String? = null, onSharedTextUsed: () -> Unit = {}) {
     val snackbarHostState = remember { SnackbarHostState() }
     var formRequest by rememberSaveable(stateSaver = FormRequest.Saver) { mutableStateOf<FormRequest?>(null) }
 
-    LaunchedEffect(sharedText) {
-        sharedText?.let {
-            formRequest = FormRequest.Quick(it)
-            onSharedTextUsed()
+    LaunchedEffect(launchRequest) {
+        launchRequest?.let {
+            formRequest = it
+            onLaunchRequestUsed()
         }
     }
 

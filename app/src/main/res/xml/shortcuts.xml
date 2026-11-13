@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="voice_entry"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_voice"
+        android:shortcutShortLabel="@string/shortcut_voice_short"
+        android:shortcutLongLabel="@string/shortcut_voice_long">
+        <!-- A ação é MainActivity.ACTION_VOICE_ENTRY. -->
+        <intent
+            android:action="com.example.app_finances.action.VOICE_ENTRY"
+            android:targetPackage="com.example.app_finances"
+            android:targetClass="com.example.app_finances.MainActivity" />
+    </shortcut>
+</shortcuts>

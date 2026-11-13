@@ -23,6 +23,9 @@ object TestApp {
         return if (intent == null) ActivityScenario.launch(MainActivity::class.java) else ActivityScenario.launch(intent)
     }
 
+    /** Como o atalho "Lançamento por voz" do ícone abre o app. */
+    fun voiceShortcutIntent(): Intent = Intent(context, MainActivity::class.java).setAction(MainActivity.ACTION_VOICE_ENTRY)
+
     /** Como o WhatsApp faz ao "Compartilhar" um texto com o app. */
     fun shareIntent(text: String): Intent = Intent(context, MainActivity::class.java)
         .setAction(Intent.ACTION_SEND)

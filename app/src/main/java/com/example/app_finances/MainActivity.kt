@@ -28,6 +28,7 @@ import com.example.app_finances.core.designsystem.component.VisibleMoney
 import com.example.app_finances.core.designsystem.theme.AppfinancesTheme
 import com.example.app_finances.core.security.LockScreen
 import com.example.app_finances.data.settings.AppSettings
+import com.example.app_finances.feature.transactions.form.FormRequest
 import com.example.app_finances.navigation.FinancesApp
 import kotlinx.coroutines.launch
 
@@ -36,8 +37,8 @@ class MainActivity : FragmentActivity() {
 
     private val app get() = application as FinancesApplication
 
-    /** Texto recebido pelo "Compartilhar", esperando o formulário abrir (depois do desbloqueio). */
-    private var sharedText by mutableStateOf<String?>(null)
+    /** Formulário pedido de fora ("Compartilhar" ou atalho de voz), esperando abrir (depois do desbloqueio). */
+    private var launchRequest by mutableStateOf<FormRequest?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -50,7 +51,7 @@ class MainActivity : FragmentActivity() {
         // Uma vez por abertura (não a cada rotação de tela).
         if (savedInstanceState == null) {
             runStartupTasks()
-            sharedText = intent.sharedText()
+            launchRequest = intent.formRequest()
         }
         setContent {
             AppfinancesTheme {
@@ -72,14 +73,20 @@ class MainActivity : FragmentActivity() {
         }
         CompositionLocalProvider(LocalMoneyFormatter provides if (settings.hideValues) HiddenMoney else VisibleMoney) {
             Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-                FinancesApp(sharedText, onSharedTextUsed = { sharedText = null })
+                FinancesApp(launchRequest, onLaunchRequestUsed = { launchRequest = null })
             }
         }
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        intent.sharedText()?.let { sharedText = it }
+        intent.formRequest()?.let { launchRequest = it }
+    }
+
+    /** "Compartilhar" um texto preenche o formulário; o atalho de voz o abre ouvindo. */
+    private fun Intent.formRequest(): FormRequest? = when (action) {
+        ACTION_VOICE_ENTRY -> FormRequest.Voice
+        else -> sharedText()?.let(FormRequest::Quick)
     }
 
     /** Texto de um "Compartilhar" (limitado: é só para preencher um lançamento). */
@@ -98,8 +105,10 @@ class MainActivity : FragmentActivity() {
         }
     }
 
-    private companion object {
-        const val TAG = "MainActivity"
-        const val MAX_SHARED_TEXT = 300
+    companion object {
+        /** Atalho "Lançamento por voz" do ícone do app (o mesmo de res/xml/shortcuts.xml). */
+        const val ACTION_VOICE_ENTRY = "com.example.app_finances.action.VOICE_ENTRY"
+        private const val TAG = "MainActivity"
+        private const val MAX_SHARED_TEXT = 300
     }
 }

@@ -31,7 +31,7 @@ data class QuickEntryCatalog(
 
 /**
  * Lê um lançamento escrito como numa mensagem: "uber 23,50", "mercado 120 nubank 3x",
- * "recebi salário 2.760,14", "farmácia 35 ontem". Nada é gravado: o resultado só
+ * "recebi salário 2.760,14", "farmácia 35 ontem" (a voz chega aqui já escrita por [SpokenText]). Nada é gravado: o resultado só
  * preenche o formulário, que o usuário confere antes de salvar.
  */
 object QuickEntryParser {
@@ -66,6 +66,7 @@ object QuickEntryParser {
     private val FILLER_WORDS = setOf(
         "no", "na", "de", "do", "da", "em", "com", "pelo", "pela", "para", "pra", "r$",
         "gastei", "paguei", "comprei", "pix", "debito", "dinheiro", "a", "o",
+        "parcelado", "parcelada",
     )
 }
 
@@ -156,7 +157,9 @@ internal fun parseCents(text: String): Long? {
 
 /** Sem acentos e em minúsculas: "Farmácia" e "farmacia" são a mesma palavra. */
 internal fun normalize(text: String): String =
-    Normalizer.normalize(text.lowercase(), Normalizer.Form.NFD).replace(Regex("\\p{M}+"), "").trim(',', '.', '!', '?', ';', ':')
+    Normalizer.normalize(text.lowercase(), Normalizer.Form.NFD).replace(ACCENTS, "").trim(',', '.', '!', '?', ';', ':')
+
+private val ACCENTS = Regex("\\p{M}+")
 
 /**
  * Categoria pelo nome que aparece no texto ou por palavras comuns ("uber" → Transporte).

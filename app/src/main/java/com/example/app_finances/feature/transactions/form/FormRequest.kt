@@ -2,7 +2,7 @@ package com.example.app_finances.feature.transactions.form
 
 import androidx.compose.runtime.saveable.Saver
 
-/** O que o formulário de lançamento abre: um existente, um novo, ou uma compra nova no cartão. */
+/** O que o formulário de lançamento abre: um existente, um novo, uma compra no cartão, um texto ou a voz. */
 sealed interface FormRequest {
     data class Edit(val id: Long) : FormRequest
 
@@ -13,6 +13,9 @@ sealed interface FormRequest {
 
     /** Texto livre (compartilhado do WhatsApp, por exemplo) para preencher o formulário. */
     data class Quick(val text: String) : FormRequest
+
+    /** Atalho "Lançamento por voz": formulário novo que já começa ouvindo. */
+    data object Voice : FormRequest
 
     companion object {
         private const val NONE = -1L
@@ -25,6 +28,7 @@ sealed interface FormRequest {
                     New -> listOf("new", NONE)
                     is CardPurchase -> listOf("card", request.cardId ?: NONE)
                     is Quick -> listOf("quick", request.text)
+                    Voice -> listOf("voice", NONE)
                     null -> null
                 }
             },
@@ -33,6 +37,7 @@ sealed interface FormRequest {
                     "edit" -> Edit(value as Long)
                     "card" -> CardPurchase((value as Long).takeIf { it != NONE })
                     "quick" -> Quick(value as String)
+                    "voice" -> Voice
                     else -> New
                 }
             },
