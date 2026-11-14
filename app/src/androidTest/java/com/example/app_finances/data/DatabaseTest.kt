@@ -68,6 +68,18 @@ class DatabaseTest {
         assertEquals(5, db.categoryDao().observeActive().first().filter { it.kind == CategoryKind.INCOME }.size)
     }
 
+    /** O saldo é o dinheiro de hoje: algo com data futura não conta, mesmo marcado como recebido. */
+    @Test
+    fun saldoIgnoraMovimentosComDataFutura() = runTest {
+        val onNov10 = AccountRepository(db.accountDao(), db.transactionDao(), today = { nov10 })
+        transactions.add(TransactionEntity(type = TransactionType.INCOME, amountCents = 145_083, date = nov10.plusMonths(3), description = "Abono", accountId = WALLET, paid = true))
+        transactions.add(expense(1_000, date = nov10))
+        assertEquals(-1_000L, onNov10.observeBalances().first().single().balanceCents)
+        // No dia do abono, ele passa a contar.
+        val onAbono = AccountRepository(db.accountDao(), db.transactionDao(), today = { nov10.plusMonths(3) })
+        assertEquals(144_083L, onAbono.observeBalances().first().single().balanceCents)
+    }
+
     @Test
     fun saldoConsideraReceitasDespesasPendentesCartaoTransferenciaEFatura() = runTest {
         val bank = accounts.add(AccountEntity(name = "Banco", type = AccountType.CHECKING, initialBalanceCents = 100_000, colorArgb = 0))

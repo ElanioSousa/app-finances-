@@ -6,6 +6,7 @@ import com.example.app_finances.domain.transaction
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import java.time.LocalDate
 
 class TransactionDraftTest {
 
@@ -56,5 +57,15 @@ class TransactionDraftTest {
     fun `compra parcelada exige de 2 parcelas em diante`() {
         val draft = TransactionDraft(amountCents = 30_000, origin = PaymentOrigin.CARD, cardId = 3).withInstallments(true).copy(installments = 0)
         assertEquals("Informe de 2 a 24 parcelas.", runCatching { draft.toNewEntities(null) { "g" } }.exceptionOrNull()?.message)
+    }
+
+    @Test
+    fun dataFuturaDeixaPendenteEVoltarParaHojeMarcaPagoDeNovo() {
+        val today = LocalDate.of(2026, 11, 14)
+        val future = TransactionDraft(paid = true, date = today).withDate(LocalDate.of(2027, 2, 17), today)
+        assertEquals(false, future.paid)
+        assertEquals(true, future.withDate(today, today).paid)
+        // Entre datas passadas, a escolha do usuário fica como estava.
+        assertEquals(false, TransactionDraft(paid = false, date = today).withDate(today.minusDays(1), today).paid)
     }
 }

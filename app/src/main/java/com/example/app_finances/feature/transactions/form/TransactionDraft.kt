@@ -56,18 +56,32 @@ data class TransactionDraft(
     }
 
     /** Preenche com o que foi entendido de um texto ("mercado 45,90 nubank"); o resto fica como estava. */
-    fun withQuickEntry(entry: QuickEntry): TransactionDraft {
+    fun withQuickEntry(entry: QuickEntry, today: LocalDate = LocalDate.now()): TransactionDraft {
         val onCard = entry.type == TransactionType.EXPENSE && (entry.onCard || entry.cardId != null)
-        return withType(entry.type).copy(
+        val filled = withType(entry.type).copy(
             amountCents = entry.amountCents ?: amountCents,
             description = entry.description,
             categoryId = entry.categoryId,
-            date = entry.date ?: date,
             accountId = entry.accountId ?: accountId,
             origin = if (onCard) PaymentOrigin.CARD else PaymentOrigin.ACCOUNT,
             cardId = entry.cardId ?: cardId,
-        ).withInstallments(entry.installments > 1).let { if (entry.installments > 1) it.copy(installments = entry.installments) else it }
+        ).withDate(entry.date ?: date, today)
+        if (entry.installments <= 1) return filled.withInstallments(false)
+        return filled.withInstallments(true).copy(installments = entry.installments)
     }
+
+    /**
+     * Troca a data: no futuro ainda não foi pago/recebido, então a chave desliga sozinha
+     * (e volta a ligar se a data voltar para hoje ou antes). Dá para mudar a chave depois.
+     */
+    fun withDate(newDate: LocalDate, today: LocalDate): TransactionDraft = copy(
+        date = newDate,
+        paid = when {
+            newDate > today -> false
+            date > today -> true
+            else -> paid
+        },
+    )
 
     /** À vista no cartão ou parcelada: escolher parcelada já sugere 2 parcelas. */
     fun withInstallments(parcelled: Boolean): TransactionDraft =

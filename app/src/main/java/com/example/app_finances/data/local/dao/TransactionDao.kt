@@ -35,29 +35,31 @@ interface TransactionDao {
     suspend fun getInstallmentGroup(groupId: String): List<TransactionEntity>
 
     /**
-     * Movimentos pagos que mexem no saldo de cada conta, numa consulta só
-     * (uma atualização por gravação). Compras no cartão ficam de fora: só o
-     * pagamento da fatura sai da conta. O sinal de cada tipo fica em `MovementKind`.
+     * Movimentos pagos que mexem no saldo de cada conta, até [until] (hoje), numa consulta só
+     * (uma atualização por gravação). Compras no cartão ficam de fora: só o pagamento da
+     * fatura sai da conta. Datas futuras não contam, mesmo marcadas como pagas: o saldo é
+     * o dinheiro que existe agora. O sinal de cada tipo fica em `MovementKind`.
      */
     @Query(
         """
         SELECT accountId, type AS kind, SUM(amountCents) AS totalCents FROM transactions
-        WHERE paid = 1 AND accountId IS NOT NULL AND type IN ('INCOME', 'EXPENSE')
+        WHERE paid = 1 AND date <= :until AND accountId IS NOT NULL AND type IN ('INCOME', 'EXPENSE')
         GROUP BY accountId, type
         UNION ALL
         SELECT accountId, 'TRANSFER_OUT' AS kind, SUM(amountCents) AS totalCents FROM transactions
-        WHERE paid = 1 AND type = 'TRANSFER'
+        WHERE paid = 1 AND date <= :until AND type = 'TRANSFER'
         GROUP BY accountId
         UNION ALL
         SELECT destinationAccountId AS accountId, 'TRANSFER_IN' AS kind, SUM(amountCents) AS totalCents FROM transactions
-        WHERE paid = 1 AND type = 'TRANSFER'
+        WHERE paid = 1 AND date <= :until AND type = 'TRANSFER'
         GROUP BY destinationAccountId
         UNION ALL
         SELECT accountId, 'INVOICE_PAYMENT' AS kind, SUM(amountCents) AS totalCents FROM invoice_payments
+        WHERE date <= :until
         GROUP BY accountId
         """,
     )
-    fun observePaidMovements(): Flow<List<AccountMovement>>
+    fun observePaidMovements(until: LocalDate): Flow<List<AccountMovement>>
 
     @Insert
     suspend fun insert(transaction: TransactionEntity): Long

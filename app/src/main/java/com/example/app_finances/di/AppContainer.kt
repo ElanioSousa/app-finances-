@@ -28,7 +28,7 @@ class AppContainer(
     private val appContext: Context = context.applicationContext
     private val database: AppDatabase by lazy { createDatabase(appContext) }
 
-    val accountRepository by lazy { AccountRepository(database.accountDao(), database.transactionDao()) }
+    val accountRepository by lazy { AccountRepository(database.accountDao(), database.transactionDao(), today) }
     val categoryRepository by lazy { CategoryRepository(database.categoryDao()) }
     val transactionRepository by lazy { TransactionRepository(database.transactionDao(), database.categoryDao(), database.creditCardDao()) }
     val cardRepository by lazy {

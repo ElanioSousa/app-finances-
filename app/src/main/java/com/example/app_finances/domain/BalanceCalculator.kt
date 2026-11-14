@@ -10,7 +10,8 @@ data class AccountBalance(
 
 /**
  * Saldo atual = saldo inicial + receitas − despesas − transferências enviadas
- * + transferências recebidas − faturas de cartão pagas. Só entra o que está pago.
+ * + transferências recebidas − faturas de cartão pagas. Só entra o que está pago
+ * e com data até hoje (a consulta já filtra).
  */
 object BalanceCalculator {
 

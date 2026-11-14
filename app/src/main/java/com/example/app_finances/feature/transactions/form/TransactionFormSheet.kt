@@ -62,6 +62,7 @@ import com.example.app_finances.core.ui.paymentOriginOptions
 import com.example.app_finances.data.local.entity.CategoryEntity
 import com.example.app_finances.data.local.entity.TransactionType
 import com.example.app_finances.domain.Installments
+import java.time.LocalDate
 
 private data class FormActions(
     val onUpdate: ((TransactionDraft) -> TransactionDraft) -> Unit,
@@ -69,6 +70,7 @@ private data class FormActions(
     val onClose: () -> Unit,
     val onDelete: () -> Unit,
     val onQuickText: (String) -> Unit,
+    val onDate: (LocalDate) -> Unit,
     /** "Recorrência" no tipo: troca este formulário pelo cadastro de recorrência/assinatura. */
     val onNewRecurring: () -> Unit,
 )
@@ -83,7 +85,7 @@ fun TransactionFormSheet(request: FormRequest, onDismiss: () -> Unit, onNewRecur
     // Dono próprio: o ViewModel nasce com a folha e é descartado quando ela fecha.
     val owner = rememberViewModelStoreOwner()
     val viewModel = containerViewModel(owner) {
-        TransactionFormViewModel(request, it.transactionRepository, it.catalogSources)
+        TransactionFormViewModel(request, it.transactionRepository, it.catalogSources, it.today)
     }
     val state by viewModel.state.collectAsStateWithLifecycle()
     LaunchedEffect(viewModel) { viewModel.saved.collect { onDismiss() } }
@@ -97,7 +99,7 @@ fun TransactionFormSheet(request: FormRequest, onDismiss: () -> Unit, onNewRecur
         sheetGesturesEnabled = false,
         dragHandle = null,
     ) {
-        val actions = FormActions(viewModel::update, viewModel::save, onDismiss, viewModel::delete, viewModel::applyQuickText, onNewRecurring)
+        val actions = FormActions(viewModel::update, viewModel::save, onDismiss, viewModel::delete, viewModel::applyQuickText, viewModel::setDate, onNewRecurring)
         TransactionForm(state, actions, startWithVoice = request is FormRequest.Voice)
     }
 }
@@ -118,7 +120,7 @@ private fun TransactionForm(state: TransactionFormUiState, actions: FormActions,
         }
         DescriptionField(draft.description) { text -> actions.onUpdate { it.copy(description = text) } }
         OriginSection(state, actions)
-        DateField(draft.date, { date -> actions.onUpdate { it.copy(date = date) } })
+        DateField(draft.date, actions.onDate)
         if (!draft.isCardPurchase) PaidSwitch(draft, actions)
         NotesField(draft.notes) { text -> actions.onUpdate { it.copy(notes = text) } }
         state.status.error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }

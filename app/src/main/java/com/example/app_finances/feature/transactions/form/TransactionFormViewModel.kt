@@ -83,6 +83,7 @@ class TransactionFormViewModel(
     private val request: FormRequest,
     private val transactionRepository: TransactionRepository,
     private val catalogSources: CatalogSources,
+    private val today: () -> LocalDate = LocalDate::now,
 ) : ViewModel() {
 
     private val draft = MutableStateFlow(TransactionDraft())
@@ -109,6 +110,9 @@ class TransactionFormViewModel(
         draft.update(transform)
         status.update { it.copy(error = null) }
     }
+
+    /** Data escolhida: no futuro, o lançamento fica pendente (ver [TransactionDraft.withDate]). */
+    fun setDate(date: LocalDate) = update { it.withDate(date, today()) }
 
     fun save() {
         if (!status.value.isLoading) submit { persist() }
@@ -138,8 +142,8 @@ class TransactionFormViewModel(
 
     private suspend fun fillFromText(text: String) {
         val current = catalog.first()
-        val entry = QuickEntryParser.parse(text, QuickEntryCatalog(current.categories, current.accounts, current.cards), LocalDate.now())
-        update { it.withQuickEntry(entry) }
+        val entry = QuickEntryParser.parse(text, QuickEntryCatalog(current.categories, current.accounts, current.cards), today())
+        update { it.withQuickEntry(entry, today()) }
     }
 
     private suspend fun load() {
