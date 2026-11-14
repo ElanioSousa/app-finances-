@@ -67,8 +67,9 @@ fun QuickEntryField(onApply: (String) -> Unit, startWithVoice: Boolean) {
 }
 
 /**
- * Abre o reconhecimento de voz do Android em português (offline quando o aparelho permitir)
- * e entrega a frase reconhecida. Quem ouve é o serviço de voz do sistema: o app não pede o microfone.
+ * Abre o reconhecimento de voz do Android em português e entrega a frase reconhecida.
+ * (Sem pedir "offline": sem o pacote de voz baixado, o Google responde "Voice search isn't available".)
+ * Quem ouve é o serviço de voz do sistema: o app não pede o microfone.
  * Com [listenOnOpen], já abre uma vez assim que aparece (não de novo ao girar a tela).
  */
 @Composable
@@ -101,5 +102,4 @@ private fun speechIntent(prompt: String): Intent = Intent(RecognizerIntent.ACTIO
     .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
     .putExtra(RecognizerIntent.EXTRA_LANGUAGE, "pt-BR")
     .putExtra(RecognizerIntent.EXTRA_PROMPT, prompt)
-    .putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
     .putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
