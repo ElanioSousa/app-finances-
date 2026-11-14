@@ -17,6 +17,8 @@ data class AppSettings(
     val billReminders: Boolean = false,
     /** Pede biometria (ou o bloqueio de tela) ao abrir o app. */
     val appLock: Boolean = false,
+    /** Tema escuro (padrão) ou claro. */
+    val darkTheme: Boolean = true,
 )
 
 private val Context.settingsStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
@@ -29,6 +31,7 @@ class SettingsRepository(context: Context) {
             hideValues = prefs[HIDE_VALUES] ?: false,
             billReminders = prefs[BILL_REMINDERS] ?: false,
             appLock = prefs[APP_LOCK] ?: false,
+            darkTheme = prefs[DARK_THEME] ?: true,
         )
     }
 
@@ -38,6 +41,8 @@ class SettingsRepository(context: Context) {
 
     suspend fun setAppLock(value: Boolean) = set(APP_LOCK, value)
 
+    suspend fun setDarkTheme(value: Boolean) = set(DARK_THEME, value)
+
     private suspend fun set(key: Preferences.Key<Boolean>, value: Boolean) {
         store.edit { it[key] = value }
     }
@@ -46,5 +51,6 @@ class SettingsRepository(context: Context) {
         val HIDE_VALUES = booleanPreferencesKey("hide_values")
         val BILL_REMINDERS = booleanPreferencesKey("bill_reminders")
         val APP_LOCK = booleanPreferencesKey("app_lock")
+        val DARK_THEME = booleanPreferencesKey("dark_theme")
     }
 }

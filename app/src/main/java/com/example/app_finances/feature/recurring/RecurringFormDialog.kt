@@ -4,7 +4,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.rememberViewModelStoreOwner
+import com.example.app_finances.core.ui.ShowMessages
+import com.example.app_finances.core.ui.containerViewModel
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.example.app_finances.R
@@ -31,6 +38,31 @@ data class RecurringFormActions(
     val onEdit: ((RecurringEditor) -> RecurringEditor) -> Unit,
     val dialog: DialogActions,
 )
+
+/** O diálogo do rascunho aberto no [viewModel], se houver. */
+@Composable
+fun RecurringEditorDialog(state: RecurringUiState, viewModel: RecurringViewModel) {
+    state.editor?.let { editing ->
+        RecurringFormDialog(editing, state.lists.catalog, RecurringFormActions(viewModel::edit, DialogActions(viewModel::save, viewModel::close)))
+    }
+}
+
+/**
+ * Cadastro de recorrência ou assinatura aberto direto do "Novo lançamento" (sem passar pela tela delas).
+ * [onDismiss] quando o diálogo fecha (salvo ou cancelado) ou se não der para abri-lo.
+ */
+@Composable
+fun NewRecurringDialog(onDismiss: () -> Unit) {
+    val owner = rememberViewModelStoreOwner()
+    val viewModel = containerViewModel(owner) {
+        RecurringViewModel(it.recurringRepository, it.catalogSources, it.today, openNewOnStart = true)
+    }
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val dismiss by rememberUpdatedState(onDismiss)
+    ShowMessages(viewModel.errorFlow, afterEach = onDismiss)
+    LaunchedEffect(viewModel) { viewModel.editorClosed.collect { dismiss() } }
+    RecurringEditorDialog(state, viewModel)
+}
 
 @Composable
 fun RecurringFormDialog(editing: Editing<RecurringEditor>, catalog: Catalog, actions: RecurringFormActions) {

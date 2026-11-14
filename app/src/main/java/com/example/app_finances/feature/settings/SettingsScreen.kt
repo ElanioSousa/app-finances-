@@ -44,6 +44,7 @@ fun SettingsScreen(scaffoldPadding: PaddingValues, onBack: () -> Unit) {
     SettingsEvents(viewModel)
 
     ScreenColumn(title = stringResource(R.string.settings_title), scaffoldPadding = scaffoldPadding, onBack = onBack) {
+        item { AppearanceSection(state.settings.darkTheme, viewModel::setDarkTheme) }
         item { PrivacySection(state, viewModel) }
         item { RemindersSection(state.settings.billReminders, viewModel::setBillReminders) }
         item { DataSection(state.isWorking, viewModel) }
@@ -75,6 +76,14 @@ private fun SettingsEvents(viewModel: SettingsViewModel) {
             }
             snackbar.showSnackbar(message)
         }
+    }
+}
+
+/** Interruptor entre o tema escuro e o claro (vale na hora, para o app todo). */
+@Composable
+private fun AppearanceSection(darkTheme: Boolean, onChange: (Boolean) -> Unit) {
+    SectionCard(title = stringResource(R.string.settings_appearance)) {
+        LabeledSwitch(stringResource(R.string.settings_dark_theme), darkTheme, stringResource(R.string.settings_dark_theme_hint), onChange)
     }
 }
 

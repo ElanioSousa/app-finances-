@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import java.time.LocalDate
@@ -55,8 +56,10 @@ data class RecurringUiState(
 
 class RecurringViewModel(
     private val repository: RecurringRepository,
-    catalogSources: CatalogSources,
+    private val catalogSources: CatalogSources,
     private val today: () -> LocalDate,
+    /** Aberto pelo "Novo lançamento": já começa no cadastro de uma recorrência nova. */
+    openNewOnStart: Boolean = false,
 ) : ViewModel() {
 
     private val editor = EditorController<RecurringEditor>(viewModelScope)
@@ -77,7 +80,15 @@ class RecurringViewModel(
         RecurringUiState(lists, editing, deleting, isLoading = false)
     }.stateIn(viewModelScope, WhileUiSubscribed, RecurringUiState())
 
-    fun openNew() = editor.open(RecurringEditor.new(state.value.lists.catalog, today()))
+    init {
+        if (openNewOnStart) openNew()
+    }
+
+    /** Fechou o diálogo (gravado ou cancelado). */
+    val editorClosed: Flow<Unit> = editor.closed
+
+    /** Espera o catálogo carregar, para já sugerir a conta e o cartão. */
+    fun openNew() = messages.launch { editor.open(RecurringEditor.new(observeCatalog(catalogSources).first(), today())) }
 
     fun openEdit(recurring: RecurringEntity) = editor.open(RecurringEditor.from(recurring))
 

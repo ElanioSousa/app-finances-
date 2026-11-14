@@ -12,7 +12,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -21,6 +20,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.app_finances.R
+import com.example.app_finances.core.ui.ShowMessages
 import com.example.app_finances.core.ui.CategoryBadge
 import com.example.app_finances.core.designsystem.categoryIcon
 import com.example.app_finances.core.designsystem.component.CategoryIcon
@@ -33,7 +33,6 @@ import com.example.app_finances.core.designsystem.component.OptionSegmentedRow
 import com.example.app_finances.core.designsystem.component.RowText
 import com.example.app_finances.core.designsystem.component.ScreenColumn
 import com.example.app_finances.core.ui.BudgetRow
-import com.example.app_finances.core.ui.LocalSnackbarHostState
 import com.example.app_finances.core.ui.containerViewModel
 import com.example.app_finances.data.local.entity.CategoryKind
 
@@ -41,8 +40,7 @@ import com.example.app_finances.data.local.entity.CategoryKind
 fun CategoriesScreen(scaffoldPadding: PaddingValues, onBack: () -> Unit) {
     val viewModel = containerViewModel { CategoriesViewModel(it.categoryRepository, it.transactionRepository, it.today) }
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val snackbar = LocalSnackbarHostState.current
-    LaunchedEffect(viewModel) { viewModel.errorFlow.collect { snackbar.showSnackbar(it) } }
+    ShowMessages(viewModel.errorFlow)
 
     ScreenColumn(title = stringResource(R.string.categories_title), scaffoldPadding = scaffoldPadding, onBack = onBack) {
         item { OptionSegmentedRow(kindOptions(), state.kind, viewModel::setKind) }

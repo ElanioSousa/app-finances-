@@ -1,5 +1,6 @@
 package com.example.app_finances.feature.transactions.form
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -54,7 +55,6 @@ import com.example.app_finances.core.designsystem.component.OptionDropdown
 import com.example.app_finances.core.designsystem.component.OptionSegmentedRow
 import com.example.app_finances.core.format.Money
 import com.example.app_finances.core.model.PaymentOrigin
-import com.example.app_finances.core.ui.TransactionTypesInDisplayOrder
 import com.example.app_finances.core.ui.containerViewModel
 import com.example.app_finances.core.ui.labelRes
 import com.example.app_finances.core.ui.paidLabelRes
@@ -69,12 +69,17 @@ private data class FormActions(
     val onClose: () -> Unit,
     val onDelete: () -> Unit,
     val onQuickText: (String) -> Unit,
+    /** "Recorrência" no tipo: troca este formulário pelo cadastro de recorrência/assinatura. */
+    val onNewRecurring: () -> Unit,
 )
 
-/** Folha inferior para criar, lançar compra no cartão ou editar um lançamento (conforme o [request]). */
+/**
+ * Folha inferior para criar, lançar compra no cartão, transferir ou editar um lançamento (conforme o [request]).
+ * Escolher "Recorrência" no tipo fecha a folha e chama [onNewRecurring].
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TransactionFormSheet(request: FormRequest, onDismiss: () -> Unit) {
+fun TransactionFormSheet(request: FormRequest, onDismiss: () -> Unit, onNewRecurring: () -> Unit) {
     // Dono próprio: o ViewModel nasce com a folha e é descartado quando ela fecha.
     val owner = rememberViewModelStoreOwner()
     val viewModel = containerViewModel(owner) {
@@ -92,7 +97,7 @@ fun TransactionFormSheet(request: FormRequest, onDismiss: () -> Unit) {
         sheetGesturesEnabled = false,
         dragHandle = null,
     ) {
-        val actions = FormActions(viewModel::update, viewModel::save, onDismiss, viewModel::delete, viewModel::applyQuickText)
+        val actions = FormActions(viewModel::update, viewModel::save, onDismiss, viewModel::delete, viewModel::applyQuickText, onNewRecurring)
         TransactionForm(state, actions, startWithVoice = request is FormRequest.Voice)
     }
 }
@@ -125,15 +130,19 @@ private fun TransactionForm(state: TransactionFormUiState, actions: FormActions,
 private fun FormHeader(state: TransactionFormUiState, actions: FormActions, startWithVoice: Boolean) {
     Row(Modifier.fillMaxWidth().padding(top = 16.dp), verticalAlignment = Alignment.CenterVertically) {
         Text(
-            stringResource(if (state.status.isEditing) R.string.form_edit_title else R.string.form_new_title),
+            stringResource(formTitle(state)),
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.weight(1f),
         )
         if (state.status.isEditing && !state.status.isLoading) DeleteButton(state.status.editedInstallment, actions.onDelete)
         IconButton(onClick = actions.onClose) { Icon(Icons.Filled.Close, stringResource(R.string.action_close)) }
     }
-    if (!state.status.isEditing) QuickEntryField(actions.onQuickText, startWithVoice)
-    TypeSelector(state.draft.type) { type -> actions.onUpdate { it.withType(type) } }
+    val isNew = !state.status.isEditing
+    // Transferência fica como está (aberta pela tela "Mais"): o texto rápido e o tipo não se aplicam a ela.
+    if (!state.draft.isTransfer) {
+        if (isNew) QuickEntryField(actions.onQuickText, startWithVoice)
+        TypeSelector(state.draft.type, withRecurring = isNew, actions)
+    }
     AmountInput(
         cents = state.draft.amountCents,
         onCentsChange = { cents -> actions.onUpdate { it.copy(amountCents = cents) } },
@@ -205,10 +214,28 @@ private fun InstallmentFields(state: TransactionFormUiState, actions: FormAction
     }
 }
 
+private fun formTitle(state: TransactionFormUiState): Int = when {
+    state.status.isEditing -> R.string.form_edit_title
+    state.draft.isTransfer -> R.string.form_new_transfer_title
+    else -> R.string.form_new_title
+}
+
+/** Opções do topo do formulário: Recorrência não é um tipo de lançamento, abre o cadastro dela. */
+private enum class EntryKind(val type: TransactionType?, @param:StringRes val labelRes: Int) {
+    EXPENSE(TransactionType.EXPENSE, R.string.type_expense),
+    INCOME(TransactionType.INCOME, R.string.type_income),
+    RECURRING(null, R.string.type_recurring),
+}
+
+/** Despesa | Receita | Recorrência (esta só num lançamento novo). */
 @Composable
-private fun TypeSelector(selected: TransactionType, onSelect: (TransactionType) -> Unit) {
-    val options = TransactionTypesInDisplayOrder.map { Option(it, stringResource(it.labelRes)) }
-    OptionSegmentedRow(options, selected, onSelect)
+private fun TypeSelector(selected: TransactionType, withRecurring: Boolean, actions: FormActions) {
+    val kinds = if (withRecurring) EntryKind.entries else EntryKind.entries - EntryKind.RECURRING
+    val options = kinds.map { Option(it, stringResource(it.labelRes)) }
+    OptionSegmentedRow(options, kinds.firstOrNull { it.type == selected } ?: EntryKind.EXPENSE) { kind ->
+        val type = kind.type
+        if (type == null) actions.onNewRecurring() else actions.onUpdate { it.withType(type) }
+    }
 }
 
 @Composable

@@ -17,7 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
+import com.example.app_finances.core.designsystem.theme.rememberGradient
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -25,7 +25,6 @@ import com.example.app_finances.R
 import com.example.app_finances.core.designsystem.component.formatMoney
 import com.example.app_finances.core.designsystem.component.MoneyText
 import com.example.app_finances.core.designsystem.theme.FinanceTheme
-import com.example.app_finances.core.designsystem.theme.Ink850
 import com.example.app_finances.core.format.Dates
 import com.example.app_finances.domain.CardSummary
 
@@ -39,7 +38,7 @@ fun CardTile(summary: CardSummary, actions: CardTileActions) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(MaterialTheme.shapes.extraLarge)
-            .background(Brush.linearGradient(listOf(cardColor.copy(alpha = 0.55f), Ink850)))
+            .background(rememberGradient(cardColor.copy(alpha = 0.55f), MaterialTheme.colorScheme.surfaceContainerHigh))
             .clickable(onClick = actions.onOpen)
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),

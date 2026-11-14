@@ -51,6 +51,8 @@ class SettingsViewModel(
 
     fun setAppLock(value: Boolean) = launchSetting { settingsRepository.setAppLock(value) }
 
+    fun setDarkTheme(value: Boolean) = launchSetting { settingsRepository.setDarkTheme(value) }
+
     /** O agendamento acompanha a preferência sozinho (ver `FinancesApplication`). */
     fun setBillReminders(value: Boolean) = launchSetting { settingsRepository.setBillReminders(value) }
 

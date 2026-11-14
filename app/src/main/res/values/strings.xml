@@ -19,11 +19,11 @@
     <string name="cards_empty_title">Nenhum cartão</string>
     <string name="cards_empty_body">Cadastre seus cartões para acompanhar faturas, limite e parcelas.</string>
     <string name="more_recurring">Recorrentes e assinaturas</string>
+    <string name="more_transfer">Transferir entre contas</string>
     <string name="more_categories">Categorias</string>
     <string name="more_accounts">Contas</string>
     <string name="more_reports">Relatórios</string>
     <string name="more_settings">Configurações</string>
-    <string name="coming_soon">Em breve</string>
 
     <string name="month_previous">Mês anterior</string>
     <string name="month_next">Próximo mês</string>
@@ -38,6 +38,7 @@
     <string name="type_expense">Despesa</string>
     <string name="type_income">Receita</string>
     <string name="type_transfer">Transferência</string>
+    <string name="type_recurring">Recorrência</string>
     <string name="filter_all">Todos</string>
     <string name="filter_incomes">Receitas</string>
     <string name="filter_expenses">Despesas</string>
@@ -57,6 +58,7 @@
     <string name="month_result">Resultado</string>
 
     <string name="form_new_title">Novo lançamento</string>
+    <string name="form_new_transfer_title">Nova transferência</string>
     <string name="form_edit_title">Editar lançamento</string>
     <string name="form_amount">Valor</string>
     <string name="form_description">Descrição</string>
@@ -217,6 +219,9 @@
     <string name="reports_origin_line">Entrou %1$s · saiu %2$s</string>
 
     <string name="settings_title">Configurações</string>
+    <string name="settings_appearance">Aparência</string>
+    <string name="settings_dark_theme">Tema escuro</string>
+    <string name="settings_dark_theme_hint">Desligue para usar o tema claro.</string>
     <string name="settings_privacy">Privacidade e segurança</string>
     <string name="settings_hide_values">Ocultar valores</string>
     <string name="settings_hide_values_hint">Mostra R$ •••• no lugar dos valores.</string>

@@ -14,7 +14,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -29,15 +28,14 @@ import com.example.app_finances.core.designsystem.component.EmptyState
 import com.example.app_finances.core.designsystem.component.MoneyText
 import com.example.app_finances.core.designsystem.component.ScreenColumn
 import com.example.app_finances.core.designsystem.component.SectionCard
-import com.example.app_finances.core.ui.LocalSnackbarHostState
+import com.example.app_finances.core.ui.ShowMessages
 import com.example.app_finances.core.ui.containerViewModel
 
 @Composable
 fun RecurringScreen(scaffoldPadding: PaddingValues, onBack: () -> Unit) {
     val viewModel = containerViewModel { RecurringViewModel(it.recurringRepository, it.catalogSources, it.today) }
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val snackbar = LocalSnackbarHostState.current
-    LaunchedEffect(viewModel) { viewModel.errorFlow.collect { snackbar.showSnackbar(it) } }
+    ShowMessages(viewModel.errorFlow)
     val rowActions = RecurringRowActions(viewModel::openEdit, viewModel::setActive, viewModel::askDelete)
 
     ScreenColumn(title = stringResource(R.string.recurring_title), scaffoldPadding = scaffoldPadding, onBack = onBack) {
@@ -64,9 +62,7 @@ fun RecurringScreen(scaffoldPadding: PaddingValues, onBack: () -> Unit) {
 
 @Composable
 private fun RecurringDialogs(state: RecurringUiState, viewModel: RecurringViewModel) {
-    state.editor?.let { editing ->
-        RecurringFormDialog(editing, state.lists.catalog, RecurringFormActions(viewModel::edit, DialogActions(viewModel::save, viewModel::close)))
-    }
+    RecurringEditorDialog(state, viewModel)
     if (state.confirmDelete != null) {
         val texts = ConfirmTexts(
             title = stringResource(R.string.recurring_delete_title),

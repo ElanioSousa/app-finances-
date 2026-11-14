@@ -16,7 +16,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,12 +33,12 @@ import com.example.app_finances.core.designsystem.component.ScreenColumn
 import com.example.app_finances.core.designsystem.component.SectionCard
 import com.example.app_finances.core.format.Dates
 import com.example.app_finances.core.format.Money
+import com.example.app_finances.core.ui.ShowMessages
 import com.example.app_finances.core.ui.TransactionRow
 import com.example.app_finances.core.ui.containerViewModel
 import com.example.app_finances.core.designsystem.component.ConfirmDialog
 import com.example.app_finances.core.designsystem.component.ConfirmTexts
 import com.example.app_finances.core.designsystem.component.DialogActions
-import com.example.app_finances.core.ui.LocalSnackbarHostState
 import com.example.app_finances.data.local.entity.InvoicePaymentEntity
 import com.example.app_finances.core.model.TransactionItem
 import com.example.app_finances.domain.InvoiceStatus
@@ -54,8 +53,7 @@ fun CardDetailScreen(cardId: Long, scaffoldPadding: PaddingValues, actions: Card
     val viewModel = containerViewModel { CardDetailViewModel(cardId, it.cardRepository, it.catalogSources, it.today) }
     val state by viewModel.state.collectAsStateWithLifecycle()
     val detail = state.detail
-    val snackbar = LocalSnackbarHostState.current
-    LaunchedEffect(viewModel) { viewModel.errorFlow.collect { snackbar.showSnackbar(it) } }
+    ShowMessages(viewModel.errorFlow)
     var paymentToDelete by remember { mutableStateOf<InvoicePaymentEntity?>(null) }
 
     ScreenColumn(title = detail?.summary?.card?.name.orEmpty(), scaffoldPadding = scaffoldPadding, onBack = actions.onBack) {

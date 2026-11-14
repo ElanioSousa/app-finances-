@@ -15,10 +15,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.app_finances.core.ui.LocalSnackbarHostState
+import com.example.app_finances.core.ui.ShowMessages
 import com.example.app_finances.core.ui.containerViewModel
 import com.example.app_finances.core.model.TransactionItem
 import com.example.app_finances.core.ui.TransactionRow
@@ -26,7 +25,7 @@ import com.example.app_finances.domain.MonthTotals
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
+import com.example.app_finances.core.designsystem.theme.rememberGradient
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -39,8 +38,7 @@ import com.example.app_finances.core.designsystem.component.ScreenColumn
 import com.example.app_finances.core.designsystem.component.SectionCard
 import com.example.app_finances.core.designsystem.component.MonthSelector
 import com.example.app_finances.core.designsystem.component.color
-import com.example.app_finances.core.designsystem.theme.EmeraldDeep
-import com.example.app_finances.core.designsystem.theme.Ink850
+import com.example.app_finances.core.designsystem.theme.FinanceTheme
 
 /** Ações do Início, agrupadas. */
 data class DashboardActions(
@@ -55,8 +53,7 @@ fun DashboardScreen(scaffoldPadding: PaddingValues, actions: DashboardActions) {
         DashboardViewModel(DashboardSources(it.accountRepository, it.transactionRepository, it.cardRepository, it.categoryRepository, it.recurringRepository), it.today)
     }
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val snackbar = LocalSnackbarHostState.current
-    LaunchedEffect(viewModel) { viewModel.errorFlow.collect { snackbar.showSnackbar(it) } }
+    ShowMessages(viewModel.errorFlow)
     val data = state.data
 
     ScreenColumn(title = stringResource(R.string.home_greeting), scaffoldPadding = scaffoldPadding) {
@@ -95,16 +92,13 @@ private fun RecentCard(recent: List<TransactionItem>, onOpenTransaction: (Long) 
     }
 }
 
-/** O tema é fixo, então o degradê do cartão de saldo pode ser criado uma vez só. */
-private val BalanceGradient = Brush.linearGradient(listOf(EmeraldDeep, Ink850))
-
 @Composable
 private fun BalanceCard(balanceCents: Long, month: MonthTotals, includesProjected: Boolean) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(MaterialTheme.shapes.extraLarge)
-            .background(BalanceGradient)
+            .background(rememberGradient(FinanceTheme.colors.incomeContainer, MaterialTheme.colorScheme.surfaceContainerHigh))
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp),
     ) {

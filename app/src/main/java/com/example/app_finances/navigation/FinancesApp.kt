@@ -49,18 +49,20 @@ import com.example.app_finances.feature.cards.detail.CardDetailScreen
 import com.example.app_finances.feature.dashboard.DashboardActions
 import com.example.app_finances.feature.dashboard.DashboardScreen
 import com.example.app_finances.feature.categories.CategoriesScreen
+import com.example.app_finances.feature.more.MoreActions
 import com.example.app_finances.feature.more.MoreScreen
 import com.example.app_finances.feature.reports.ReportsScreen
 import com.example.app_finances.feature.settings.SettingsScreen
+import com.example.app_finances.feature.recurring.NewRecurringDialog
 import com.example.app_finances.feature.recurring.RecurringScreen
 import com.example.app_finances.feature.transactions.TransactionsScreen
 import com.example.app_finances.feature.transactions.form.FormRequest
 import com.example.app_finances.feature.transactions.form.TransactionFormSheet
 
-/** Valor do editor de lançamento para "novo" (ids reais começam em 1). */
 /**
  * Esqueleto do app: barra inferior, botão "+", telas e o formulário de lançamento.
  * [launchRequest] (do "Compartilhar" ou do atalho de voz) abre o formulário assim que o app aparece.
+ * "Recorrência" no formulário troca a folha pelo cadastro de recorrência.
  */
 @Composable
 fun FinancesApp(launchRequest: FormRequest? = null, onLaunchRequestUsed: () -> Unit = {}) {
@@ -86,9 +88,13 @@ fun FinancesApp(launchRequest: FormRequest? = null, onLaunchRequestUsed: () -> U
             floatingActionButton = { if (showFab) AddButton(current) { formRequest = addRequest(current, backStackEntry) } },
             snackbarHost = { SnackbarHost(snackbarHostState) },
         ) { padding ->
-            AppNavHost(navController, padding.withFabClearance(showFab)) { formRequest = FormRequest.Edit(it) }
+            AppNavHost(navController, padding.withFabClearance(showFab)) { formRequest = it }
         }
-        formRequest?.let { request -> TransactionFormSheet(request, onDismiss = { formRequest = null }) }
+        when (val request = formRequest) {
+            null -> Unit
+            FormRequest.Recurring -> NewRecurringDialog(onDismiss = { formRequest = null })
+            else -> TransactionFormSheet(request, onDismiss = { formRequest = null }, onNewRecurring = { formRequest = FormRequest.Recurring })
+        }
     }
 }
 
@@ -118,12 +124,14 @@ private fun addRequest(current: TopLevelDestination, entry: NavBackStackEntry?):
 private class AppNavContext(
     val navController: NavHostController,
     val padding: PaddingValues,
-    val onOpenTransaction: (Long) -> Unit,
-)
+    val openForm: (FormRequest) -> Unit,
+) {
+    val onOpenTransaction: (Long) -> Unit = { openForm(FormRequest.Edit(it)) }
+}
 
 @Composable
-private fun AppNavHost(navController: NavHostController, padding: PaddingValues, onOpenTransaction: (Long) -> Unit) {
-    val nav = AppNavContext(navController, padding, onOpenTransaction)
+private fun AppNavHost(navController: NavHostController, padding: PaddingValues, openForm: (FormRequest) -> Unit) {
+    val nav = AppNavContext(navController, padding, openForm)
     // Troca de tela imediata, sem animação.
     NavHost(
         navController = navController,
@@ -133,7 +141,7 @@ private fun AppNavHost(navController: NavHostController, padding: PaddingValues,
     ) {
         homeGraph(nav)
         tabGraph(TopLevelDestination.Transactions) {
-            composable(it) { TransactionsScreen(padding, onOpenTransaction, onOpenCard = { id -> navController.navigateToCard(id) }) }
+            composable(it) { TransactionsScreen(padding, nav.onOpenTransaction, onOpenCard = { id -> navController.navigateToCard(id) }) }
         }
         cardsGraph(nav)
         moreGraph(nav)
@@ -166,7 +174,7 @@ private fun NavGraphBuilder.cardsGraph(nav: AppNavContext) = tabGraph(TopLevelDe
 }
 
 private fun NavGraphBuilder.moreGraph(nav: AppNavContext) = tabGraph(TopLevelDestination.More) { route ->
-    composable(route) { MoreScreen(nav.padding, onOpen = nav.navController::navigate) }
+    composable(route) { MoreScreen(nav.padding, MoreActions(onOpen = nav.navController::navigate, onNewTransfer = { nav.openForm(FormRequest.Transfer) })) }
     composable(Routes.ACCOUNTS) { AccountsScreen(nav.padding, onBack = nav.navController::popBackStack) }
     composable(Routes.RECURRING) { RecurringScreen(nav.padding, onBack = nav.navController::popBackStack) }
     composable(Routes.CATEGORIES) { CategoriesScreen(nav.padding, onBack = nav.navController::popBackStack) }

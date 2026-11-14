@@ -12,6 +12,7 @@ import com.example.app_finances.core.ui.WhileUiSubscribed
 import com.example.app_finances.core.ui.runForUserMessage
 import com.example.app_finances.data.local.entity.CategoryEntity
 import com.example.app_finances.data.local.entity.TransactionEntity
+import com.example.app_finances.data.local.entity.TransactionType
 import com.example.app_finances.data.repository.TransactionRepository
 import com.example.app_finances.domain.Installments
 import com.example.app_finances.domain.QuickEntryCatalog
@@ -153,6 +154,7 @@ class TransactionFormViewModel(
             val cardPurchase = request as? FormRequest.CardPurchase
             draft.update {
                 it.copy(
+                    type = if (request == FormRequest.Transfer) TransactionType.TRANSFER else it.type,
                     accountId = it.accountId ?: defaults.accounts.firstOrNull()?.id,
                     cardId = cardPurchase?.cardId ?: it.cardId ?: defaults.cards.firstOrNull()?.id,
                     origin = if (cardPurchase != null) PaymentOrigin.CARD else it.origin,

@@ -1,9 +1,12 @@
 package com.example.app_finances.core.ui
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -21,6 +24,10 @@ data class Editing<T>(
 class EditorController<T>(private val scope: CoroutineScope) {
     private val editing = MutableStateFlow<Editing<T>?>(null)
     val state: StateFlow<Editing<T>?> = editing.asStateFlow()
+    private val closedEvents = Channel<Unit>(Channel.CONFLATED)
+
+    /** Uma vez a cada fechamento do diálogo (gravado ou cancelado). */
+    val closed: Flow<Unit> = closedEvents.receiveAsFlow()
 
     fun open(value: T) {
         editing.value = Editing(value)
@@ -28,6 +35,7 @@ class EditorController<T>(private val scope: CoroutineScope) {
 
     fun close() {
         editing.value = null
+        closedEvents.trySend(Unit)
     }
 
     fun edit(transform: (T) -> T) = editing.update { it?.copy(value = transform(it.value), error = null) }
@@ -39,6 +47,7 @@ class EditorController<T>(private val scope: CoroutineScope) {
         scope.launch {
             val error = runForUserMessage { persist(current.value) }
             editing.update { if (error == null) null else it?.copy(isSaving = false, error = error) }
+            if (error == null) closedEvents.trySend(Unit)
         }
     }
 }

@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -43,24 +44,28 @@ class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
-        // Ícones claros nas barras do sistema, já que o app é sempre escuro.
-        enableEdgeToEdge(
-            statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
-            navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
-        )
+        // Começa como o fundo da janela (escuro); ao carregar as preferências, segue o tema escolhido.
+        applySystemBars(darkTheme = true)
         // Uma vez por abertura (não a cada rotação de tela).
         if (savedInstanceState == null) {
             runStartupTasks()
             launchRequest = intent.formRequest()
         }
         setContent {
-            AppfinancesTheme {
-                // Até as preferências carregarem não desenha nada (só o fundo escuro da janela):
-                // assim nenhum dado aparece antes do bloqueio por biometria.
-                val settings by app.container.settingsRepository.settings.collectAsStateWithLifecycle(initialValue = null)
-                settings?.let { AppRoot(it) }
+            // Até as preferências carregarem não desenha nada (só o fundo escuro da janela):
+            // assim nenhum dado aparece antes do bloqueio por biometria.
+            val settings by app.container.settingsRepository.settings.collectAsStateWithLifecycle(initialValue = null)
+            settings?.let { current ->
+                LaunchedEffect(current.darkTheme) { applySystemBars(current.darkTheme) }
+                AppfinancesTheme(darkTheme = current.darkTheme) { AppRoot(current) }
             }
         }
+    }
+
+    /** Ícones das barras do sistema claros no tema escuro e escuros no tema claro. */
+    private fun applySystemBars(darkTheme: Boolean) {
+        val style = if (darkTheme) SystemBarStyle.dark(Color.TRANSPARENT) else SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
+        enableEdgeToEdge(statusBarStyle = style, navigationBarStyle = style)
     }
 
     @Composable

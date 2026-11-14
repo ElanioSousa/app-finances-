@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.CompareArrows
 import androidx.compose.material.icons.automirrored.outlined.ShowChart
 import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material.icons.outlined.Category
@@ -22,55 +23,50 @@ import androidx.compose.ui.res.stringResource
 import com.example.app_finances.R
 import com.example.app_finances.core.designsystem.component.CategoryIcon
 import com.example.app_finances.core.designsystem.component.ScreenColumn
-import com.example.app_finances.core.designsystem.theme.Amber
-import com.example.app_finances.core.designsystem.theme.Emerald
-import com.example.app_finances.core.designsystem.theme.Sky
-import com.example.app_finances.core.designsystem.theme.TextSecondary
-import com.example.app_finances.core.designsystem.theme.Violet
+import com.example.app_finances.core.designsystem.theme.FinanceTheme
+import com.example.app_finances.core.designsystem.theme.Purple
+import com.example.app_finances.core.designsystem.theme.Teal
 import com.example.app_finances.navigation.Routes
 
-/** [route] nulo = função ainda não disponível. */
-private data class MoreEntry(
+/** O que os itens da tela "Mais" abrem: uma tela interna ou o formulário de transferência. */
+data class MoreActions(val onOpen: (String) -> Unit, val onNewTransfer: () -> Unit)
+
+private class MoreEntry(
     @param:StringRes val labelRes: Int,
     val icon: ImageVector,
-    val color: Color,
-    val route: String? = null,
+    val color: @Composable () -> Color,
+    val open: (MoreActions) -> Unit,
 )
 
+private fun screen(@StringRes labelRes: Int, icon: ImageVector, color: @Composable () -> Color, route: String) =
+    MoreEntry(labelRes, icon, color) { it.onOpen(route) }
+
 private val entries = listOf(
-    MoreEntry(R.string.more_recurring, Icons.Outlined.EventRepeat, Amber, Routes.RECURRING),
-    MoreEntry(R.string.more_accounts, Icons.Outlined.AccountBalanceWallet, Emerald, Routes.ACCOUNTS),
-    MoreEntry(R.string.more_categories, Icons.Outlined.Category, Violet, Routes.CATEGORIES),
-    MoreEntry(R.string.more_reports, Icons.AutoMirrored.Outlined.ShowChart, Sky, Routes.REPORTS),
-    MoreEntry(R.string.more_settings, Icons.Outlined.Settings, TextSecondary, Routes.SETTINGS),
+    screen(R.string.more_recurring, Icons.Outlined.EventRepeat, { FinanceTheme.colors.warning }, Routes.RECURRING),
+    MoreEntry(R.string.more_transfer, Icons.AutoMirrored.Outlined.CompareArrows, { FinanceTheme.colors.transfer }) { it.onNewTransfer() },
+    screen(R.string.more_accounts, Icons.Outlined.AccountBalanceWallet, { MaterialTheme.colorScheme.primary }, Routes.ACCOUNTS),
+    screen(R.string.more_categories, Icons.Outlined.Category, { Purple }, Routes.CATEGORIES),
+    screen(R.string.more_reports, Icons.AutoMirrored.Outlined.ShowChart, { Teal }, Routes.REPORTS),
+    screen(R.string.more_settings, Icons.Outlined.Settings, { MaterialTheme.colorScheme.onSurfaceVariant }, Routes.SETTINGS),
 )
 
 @Composable
-fun MoreScreen(scaffoldPadding: PaddingValues, onOpen: (String) -> Unit) {
+fun MoreScreen(scaffoldPadding: PaddingValues, actions: MoreActions) {
     ScreenColumn(title = stringResource(R.string.nav_more), scaffoldPadding = scaffoldPadding) {
         entries.forEach { entry ->
-            item(key = entry.labelRes) { MoreItem(entry, onOpen) }
+            item(key = entry.labelRes) { MoreItem(entry, actions) }
         }
     }
 }
 
 @Composable
-private fun MoreItem(entry: MoreEntry, onOpen: (String) -> Unit) {
-    val comingSoon: (@Composable () -> Unit)? = if (entry.route == null) {
-        { Text(stringResource(R.string.coming_soon)) }
-    } else {
-        null
-    }
+private fun MoreItem(entry: MoreEntry, actions: MoreActions) {
     ListItem(
         headlineContent = { Text(stringResource(entry.labelRes)) },
-        supportingContent = comingSoon,
-        leadingContent = { CategoryIcon(icon = entry.icon, color = entry.color) },
-        colors = ListItemDefaults.colors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer,
-            supportingColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        ),
+        leadingContent = { CategoryIcon(icon = entry.icon, color = entry.color()) },
+        colors = ListItemDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
         modifier = Modifier
             .clip(MaterialTheme.shapes.large)
-            .clickable(enabled = entry.route != null) { entry.route?.let(onOpen) },
+            .clickable { entry.open(actions) },
     )
 }
