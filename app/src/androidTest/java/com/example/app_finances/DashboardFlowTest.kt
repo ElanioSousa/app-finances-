@@ -18,8 +18,12 @@ import com.example.app_finances.core.format.Money
 import com.example.app_finances.domain.Insights
 import com.example.app_finances.core.format.Dates
 import java.time.YearMonth
+import androidx.compose.ui.test.assertTextEquals
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.onNodeWithTag
+import com.example.app_finances.feature.dashboard.TAG_BALANCE
+import com.example.app_finances.feature.dashboard.TAG_FORECAST
 import org.junit.After
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -50,13 +54,15 @@ class DashboardFlowTest {
         compose.waitUntil(5_000) { exists(string(R.string.home_due_today)) }
         compose.onNodeWithText(string(R.string.home_spending)).performScrollTo()
         compose.onAllNodesWithText("Alimentação", substring = true).onFirst().assertExists()
-        // Pendente ainda não sai do saldo.
+        // Pendente ainda não sai do saldo, mas já entra no "previsto no fim do mês".
         compose.onNodeWithText(string(R.string.home_total_balance)).performScrollTo()
-        assertTrue(compose.onAllNodesWithText(Money.format(-11_990)).fetchSemanticsNodes().isEmpty())
+        compose.onNodeWithTag(TAG_BALANCE).assertTextEquals(Money.format(0))
+        compose.onNodeWithTag(TAG_FORECAST).assertTextEquals(Money.format(-11_990))
 
         compose.onAllNodesWithContentDescription(string(R.string.home_mark_paid)).onFirst().performClick()
         compose.waitUntil(5_000) { exists(TestApp.context.getString(R.string.home_upcoming_empty, Insights.UPCOMING_DAYS)) }
-        compose.waitUntil(5_000) { exists(Money.format(-11_990)) }
+        // Pago, sai do saldo também.
+        compose.waitUntil(5_000) { compose.onAllNodes(hasTestTag(TAG_BALANCE) and hasText(Money.format(-11_990))).fetchSemanticsNodes().isNotEmpty() }
     }
 
     @Test

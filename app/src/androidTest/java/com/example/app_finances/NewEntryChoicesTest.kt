@@ -2,8 +2,6 @@ package com.example.app_finances
 
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
-import androidx.compose.ui.test.isOff
-import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
@@ -15,8 +13,10 @@ import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import com.example.app_finances.core.designsystem.theme.SystemNightMode
+import com.example.app_finances.data.settings.ThemeMode
 import org.junit.After
-import org.junit.Assert.assertFalse
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -47,7 +47,10 @@ class NewEntryChoicesTest {
     }
 
     /** A preferência fica num arquivo de verdade: começa e termina no padrão (escuro). */
-    private fun resetTheme() = runBlocking { TestApp.context.container.settingsRepository.setDarkTheme(true) }
+    private fun resetTheme() {
+        runBlocking { TestApp.context.container.settingsRepository.setThemeMode(ThemeMode.DARK) }
+        SystemNightMode.apply(TestApp.context, ThemeMode.DARK)
+    }
 
     @Test
     fun recorrenciaNoNovoLancamentoAbreOCadastroDela() {
@@ -76,13 +79,12 @@ class NewEntryChoicesTest {
     }
 
     @Test
-    fun interruptorTrocaParaOTemaClaro() {
+    fun aparenciaTrocaParaOTemaClaro() {
         openMore()
         compose.onNodeWithText(string(R.string.more_settings)).performClick()
-        compose.onNodeWithText(string(R.string.settings_dark_theme)).performClick()
-        // A gravação é assíncrona: espera o interruptor acompanhar e confere a preferência gravada.
-        val darkSwitch = hasText(string(R.string.settings_dark_theme)) and isToggleable() and isOff()
-        compose.waitUntil(5_000) { compose.onAllNodes(darkSwitch).fetchSemanticsNodes().isNotEmpty() }
-        assertFalse(runBlocking { TestApp.context.container.settingsRepository.settings.first().darkTheme })
+        compose.onNodeWithText(string(R.string.settings_theme_light)).performClick()
+        // A gravação é assíncrona (e o sistema pode recriar a tela): espera a preferência mudar.
+        compose.waitUntil(10_000) { runBlocking { TestApp.context.container.settingsRepository.settings.first().themeMode == ThemeMode.LIGHT } }
+        assertEquals(ThemeMode.LIGHT, runBlocking { TestApp.context.container.settingsRepository.settings.first().themeMode })
     }
 }

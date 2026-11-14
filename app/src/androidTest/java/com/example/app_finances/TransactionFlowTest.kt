@@ -17,6 +17,9 @@ import androidx.compose.ui.test.swipeLeft
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.app_finances.core.format.Money
+import androidx.compose.ui.test.assertTextEquals
+import androidx.compose.ui.test.onNodeWithTag
+import com.example.app_finances.feature.dashboard.TAG_BALANCE
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -45,7 +48,7 @@ class TransactionFlowTest {
         // Duas seguidas: o formulário precisa abrir limpo depois de um salvamento.
         addExpense(digits = "12345", category = "Alimentação")
         addExpense(digits = "5000", category = "Compras")
-        compose.onNodeWithText(Money.format(-17_345)).assertIsDisplayed()
+        compose.onNodeWithTag(TAG_BALANCE).assertTextEquals(Money.format(-17_345))
 
         compose.onAllNodesWithText(string(R.string.nav_transactions)).onFirst().performClick()
         compose.onAllNodesWithText("Alimentação · Carteira").onFirst().performTouchInput { swipeLeft() }

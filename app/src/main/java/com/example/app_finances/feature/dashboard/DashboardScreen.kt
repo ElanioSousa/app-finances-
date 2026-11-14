@@ -21,8 +21,8 @@ import com.example.app_finances.core.ui.ShowMessages
 import com.example.app_finances.core.ui.containerViewModel
 import com.example.app_finances.core.model.TransactionItem
 import com.example.app_finances.core.ui.TransactionRow
-import com.example.app_finances.domain.MonthTotals
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import com.example.app_finances.core.designsystem.theme.rememberGradient
@@ -60,7 +60,7 @@ fun DashboardScreen(scaffoldPadding: PaddingValues, actions: DashboardActions) {
         // Só mostra números depois de carregar: "R$ 0,00" provisório engana.
         if (data == null) return@ScreenColumn
         item { MonthSelector(state.month, viewModel::setMonth) }
-        item { BalanceCard(data.balanceCents, data.monthTotals, data.includesProjected) }
+        item { BalanceCard(data) }
         item { UpcomingCard(data.upcoming, data.today, UpcomingActions(actions.onOpenTransaction, actions.onOpenCard, viewModel::markPaid)) }
         if (data.budgets.isNotEmpty()) item { BudgetsCard(data.budgets) }
         if (data.cards.isNotEmpty()) item { CardsCard(data.cards, data.today, actions.onOpenCard) }
@@ -93,7 +93,8 @@ private fun RecentCard(recent: List<TransactionItem>, onOpenTransaction: (Long) 
 }
 
 @Composable
-private fun BalanceCard(balanceCents: Long, month: MonthTotals, includesProjected: Boolean) {
+private fun BalanceCard(data: DashboardData) {
+    val month = data.monthTotals
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -108,15 +109,29 @@ private fun BalanceCard(balanceCents: Long, month: MonthTotals, includesProjecte
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            MoneyText(cents = balanceCents, style = MaterialTheme.typography.displaySmall)
+            MoneyText(cents = data.balanceCents, style = MaterialTheme.typography.displaySmall, modifier = Modifier.testTag(TAG_BALANCE))
+            data.forecastCents?.let { ForecastLine(it) }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             FlowTile(FlowTileData(R.string.home_income, month.incomeCents, Icons.AutoMirrored.Filled.TrendingUp, AmountTone.Income), Modifier.weight(1f))
             FlowTile(FlowTileData(R.string.home_expenses, month.expenseCents, Icons.AutoMirrored.Filled.TrendingDown, AmountTone.Expense), Modifier.weight(1f))
         }
-        if (includesProjected) {
+        if (data.includesProjected) {
             Text(stringResource(R.string.home_includes_projected), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
+    }
+}
+
+/** Marcas do saldo e da previsão (para os testes acharem cada um, mesmo com o mesmo valor). */
+const val TAG_BALANCE = "home_balance"
+const val TAG_FORECAST = "home_forecast"
+
+/** "Previsto no fim do mês: R$ X" (vermelho se a conta fechar negativa). */
+@Composable
+private fun ForecastLine(cents: Long) {
+    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(stringResource(R.string.home_forecast), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        MoneyText(cents = cents, tone = AmountTone.BySign, style = MaterialTheme.typography.titleSmall, modifier = Modifier.testTag(TAG_FORECAST))
     }
 }
 

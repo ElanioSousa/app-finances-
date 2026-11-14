@@ -5,7 +5,7 @@ import android.util.Log
 import androidx.core.net.toUri
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.example.app_finances.FinancesApplication
+import com.example.app_finances.appContainer
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
 
@@ -24,7 +24,7 @@ class AutoBackupWorker(context: Context, params: WorkerParameters) : CoroutineWo
     }
 
     private suspend fun backUp() {
-        val container = (applicationContext as FinancesApplication).container
+        val container = applicationContext.appContainer
         val setting = container.settingsRepository.settings.first().autoBackup ?: return
         val today = container.today()
         container.backupRepository.exportToFolder(setting.folderUri.toUri(), today)

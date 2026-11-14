@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="background">#FF0F1115</color>
+    <!-- Fundo da janela e da abertura no tema claro (o escuro fica em values-night). -->
+    <color name="background">#FFF4F6F8</color>
+    <!-- Widget da tela inicial (segue o tema do celular). -->
+    <color name="widget_background">#FFFFFFFF</color>
+    <color name="widget_text">#FF111827</color>
+    <color name="widget_text_secondary">#FF4B5563</color>
 </resources>

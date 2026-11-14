@@ -50,6 +50,7 @@ import com.example.app_finances.feature.cards.detail.CardDetailScreen
 import com.example.app_finances.feature.dashboard.DashboardActions
 import com.example.app_finances.feature.dashboard.DashboardScreen
 import com.example.app_finances.feature.categories.CategoriesScreen
+import com.example.app_finances.feature.goals.GoalsScreen
 import com.example.app_finances.feature.more.MoreActions
 import com.example.app_finances.feature.more.MoreScreen
 import com.example.app_finances.feature.reports.ReportsScreen
@@ -181,6 +182,7 @@ private fun NavGraphBuilder.moreGraph(nav: AppNavContext) = tabGraph(TopLevelDes
     composable(route) { MoreScreen(nav.padding, MoreActions(onOpen = nav.navController::navigate, onNewTransfer = { nav.openForm(FormRequest.Transfer) })) }
     composable(Routes.ACCOUNTS) { AccountsScreen(nav.padding, onBack = nav.navController::popBackStack) }
     composable(Routes.RECURRING) { RecurringScreen(nav.padding, onBack = nav.navController::popBackStack) }
+    composable(Routes.GOALS) { GoalsScreen(nav.padding, onBack = nav.navController::popBackStack) }
     composable(Routes.CATEGORIES) { CategoriesScreen(nav.padding, onBack = nav.navController::popBackStack) }
     composable(Routes.REPORTS) { ReportsScreen(nav.padding, onBack = nav.navController::popBackStack) }
     composable(Routes.SETTINGS) { SettingsScreen(nav.padding, onBack = nav.navController::popBackStack) }

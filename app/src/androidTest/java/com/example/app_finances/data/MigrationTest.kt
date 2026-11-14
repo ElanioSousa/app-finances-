@@ -49,6 +49,24 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun v3ParaV4MantemOsDadosECriaAsMetas() {
+        helper.createDatabase(DB, 3).use { db ->
+            db.execSQL("INSERT INTO accounts (id, name, type, initialBalanceCents, colorArgb, archived) VALUES (1, 'Carteira', 'CASH', 1000, 0, 0)")
+        }
+        helper.runMigrationsAndValidate(DB, 4, true).use { db ->
+            db.query("SELECT name FROM accounts").use { cursor ->
+                assertTrue(cursor.moveToFirst())
+                assertEquals("Carteira", cursor.getString(0))
+            }
+            db.execSQL("INSERT INTO goals (name, targetCents, savedCents, colorArgb) VALUES ('Viagem', 500000, 0, 0)")
+            db.query("SELECT COUNT(*) FROM goals").use { cursor ->
+                assertTrue(cursor.moveToFirst())
+                assertEquals(1, cursor.getInt(0))
+            }
+        }
+    }
+
     private companion object {
         const val DB = "migracao-teste.db"
     }

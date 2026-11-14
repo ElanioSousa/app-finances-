@@ -9,6 +9,7 @@ import com.example.app_finances.core.ui.runForUserMessage
 import com.example.app_finances.data.backup.BackupRepository
 import com.example.app_finances.data.settings.AppSettings
 import com.example.app_finances.data.settings.SettingsRepository
+import com.example.app_finances.data.settings.ThemeMode
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -52,7 +53,7 @@ class SettingsViewModel(
 
     fun setAppLock(value: Boolean) = launchSetting { settingsRepository.setAppLock(value) }
 
-    fun setDarkTheme(value: Boolean) = launchSetting { settingsRepository.setDarkTheme(value) }
+    fun setThemeMode(mode: ThemeMode) = launchSetting { settingsRepository.setThemeMode(mode) }
 
     /** Liga o backup automático na pasta escolhida (guardando o acesso a ela). */
     fun enableAutoBackup(folder: Uri) = launchSetting {

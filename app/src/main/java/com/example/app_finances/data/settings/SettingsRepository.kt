@@ -19,11 +19,22 @@ data class AppSettings(
     val billReminders: Boolean = false,
     /** Pede biometria (ou o bloqueio de tela) ao abrir o app. */
     val appLock: Boolean = false,
-    /** Tema escuro (padrão) ou claro. */
-    val darkTheme: Boolean = true,
+    /** Escuro (padrão), claro ou o mesmo do celular. */
+    val themeMode: ThemeMode = ThemeMode.DARK,
     /** Backup semanal numa pasta escolhida; nulo = desligado. */
     val autoBackup: AutoBackupSetting? = null,
 )
+
+enum class ThemeMode {
+    DARK, LIGHT, SYSTEM;
+
+    /** Se o app fica escuro, dado o modo do celular ([systemDark]) para o "Automático". */
+    fun isDark(systemDark: Boolean): Boolean = when (this) {
+        DARK -> true
+        LIGHT -> false
+        SYSTEM -> systemDark
+    }
+}
 
 /** Pasta do backup automático (com permissão guardada) e quando ele rodou pela última vez. */
 data class AutoBackupSetting(
@@ -42,7 +53,8 @@ class SettingsRepository(context: Context) {
             hideValues = prefs[HIDE_VALUES] ?: false,
             billReminders = prefs[BILL_REMINDERS] ?: false,
             appLock = prefs[APP_LOCK] ?: false,
-            darkTheme = prefs[DARK_THEME] ?: true,
+            themeMode = prefs[THEME_MODE]?.let { runCatching { ThemeMode.valueOf(it) }.getOrNull() }
+                ?: if (prefs[DARK_THEME] == false) ThemeMode.LIGHT else ThemeMode.DARK,
             autoBackup = prefs[AUTO_BACKUP_FOLDER]?.let { folder ->
                 AutoBackupSetting(folder, prefs[AUTO_BACKUP_FOLDER_NAME].orEmpty(), prefs[AUTO_BACKUP_LAST]?.let(LocalDate::parse))
             },
@@ -55,7 +67,12 @@ class SettingsRepository(context: Context) {
 
     suspend fun setAppLock(value: Boolean) = set(APP_LOCK, value)
 
-    suspend fun setDarkTheme(value: Boolean) = set(DARK_THEME, value)
+    suspend fun setThemeMode(mode: ThemeMode) {
+        store.edit {
+            it[THEME_MODE] = mode.name
+            it.remove(DARK_THEME)
+        }
+    }
 
     /** Liga o backup automático nesta pasta (ainda sem nenhum feito). */
     suspend fun enableAutoBackup(folderUri: String, folderName: String) {
@@ -88,7 +105,9 @@ class SettingsRepository(context: Context) {
         val HIDE_VALUES = booleanPreferencesKey("hide_values")
         val BILL_REMINDERS = booleanPreferencesKey("bill_reminders")
         val APP_LOCK = booleanPreferencesKey("app_lock")
+        /** Preferência antiga (só escuro/claro), lida enquanto o tema novo não for escolhido. */
         val DARK_THEME = booleanPreferencesKey("dark_theme")
+        val THEME_MODE = stringPreferencesKey("theme_mode")
         val AUTO_BACKUP_FOLDER = stringPreferencesKey("auto_backup_folder")
         val AUTO_BACKUP_FOLDER_NAME = stringPreferencesKey("auto_backup_folder_name")
         val AUTO_BACKUP_LAST = stringPreferencesKey("auto_backup_last")

@@ -49,6 +49,7 @@ enum class TopLevelDestination(
 object Routes {
     const val ACCOUNTS = "accounts"
     const val RECURRING = "recurring"
+    const val GOALS = "goals"
     const val CATEGORIES = "categories"
     const val REPORTS = "reports"
     const val SETTINGS = "settings"

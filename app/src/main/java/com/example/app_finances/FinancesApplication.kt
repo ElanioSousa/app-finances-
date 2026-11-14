@@ -14,6 +14,9 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
+/** O [AppContainer] do app a partir de qualquer Context (tela, worker, widget). */
+val Context.appContainer: AppContainer get() = (applicationContext as FinancesApplication).container
+
 class FinancesApplication : Application() {
     /** Trocável só nos testes, para cada teste começar com um banco limpo. */
     lateinit var container: AppContainer

@@ -20,6 +20,25 @@
     <string name="cards_empty_body">Cadastre seus cartões para acompanhar faturas, limite e parcelas.</string>
     <string name="more_recurring">Recorrentes e assinaturas</string>
     <string name="more_transfer">Transferir entre contas</string>
+    <string name="more_goals">Metas de economia</string>
+    <string name="goals_title">Metas de economia</string>
+    <string name="goals_new">Nova meta</string>
+    <string name="goals_edit">Editar meta</string>
+    <string name="goals_name">Nome (ex.: Reserva de emergência)</string>
+    <string name="goals_target">Quanto quer juntar</string>
+    <string name="goals_has_deadline">Com prazo</string>
+    <string name="goals_deposit">Guardar</string>
+    <string name="goals_withdraw">Retirar</string>
+    <string name="goals_saved_total">Guardado nas metas</string>
+    <string name="goals_progress">%1$s de %2$s</string>
+    <string name="goals_reached">Meta alcançada!</string>
+    <string name="goals_remaining">Faltam %1$s</string>
+    <string name="goals_monthly">Guarde %1$s por mês até %2$s</string>
+    <string name="goals_late">O prazo (%1$s) passou: faltam %2$s</string>
+    <string name="goals_empty_title">Nenhuma meta ainda</string>
+    <string name="goals_empty_body">Crie uma meta (viagem, reserva, um celular novo) e acompanhe quanto já guardou.</string>
+    <string name="goals_delete_title">Excluir meta?</string>
+    <string name="goals_delete_body">A meta "%1$s" e o valor anotado nela serão apagados. O dinheiro nas suas contas não muda.</string>
     <string name="more_categories">Categorias</string>
     <string name="more_accounts">Contas</string>
     <string name="more_reports">Relatórios</string>
@@ -54,6 +73,14 @@
     <string name="transaction_deleted">\"%1$s\" excluído</string>
     <string name="transaction_pending">Pendente</string>
     <string name="transaction_projected">Prevista</string>
+    <string name="widget_name">Resumo das finanças</string>
+    <string name="widget_description">Saldo, previsto no fim do mês e atalhos para lançar.</string>
+    <string name="settings_widget_add">Adicionar à tela inicial</string>
+    <!-- Prévia do widget (antes de ler os dados): sem valores reais. -->
+    <string name="widget_preview_value">R$ ••••</string>
+    <string name="widget_preview_forecast">Fim do mês: R$ ••••</string>
+    <string name="widget_forecast">Fim do mês: %1$s</string>
+    <string name="home_forecast">Previsto no fim do mês:</string>
     <string name="home_includes_projected">Inclui o previsto das recorrências</string>
     <string name="month_result">Resultado</string>
 
@@ -133,6 +160,14 @@
     <string name="card_purchases">Compras da fatura</string>
     <string name="card_no_purchases">Nenhuma compra nesta fatura.</string>
     <string name="card_payments">Pagamentos</string>
+    <string name="card_check_action">Conferir com a fatura do banco</string>
+    <string name="card_check_title">Conferir fatura</string>
+    <string name="card_check_app_total">No app: %1$s</string>
+    <string name="card_check_bank_total">Total na fatura do banco</string>
+    <string name="card_check_match">Confere com o banco.</string>
+    <string name="card_check_missing">Faltam %1$s no app: alguma compra não foi lançada ou está em outra fatura.</string>
+    <string name="card_check_extra">O app tem %1$s a mais: alguma compra pode estar duplicada ou em outra fatura.</string>
+    <string name="card_check_suspects">Compras com esse valor: %1$s</string>
     <string name="card_pay_invoice">Pagar fatura</string>
     <string name="card_pay_title">Pagar fatura de %1$s</string>
     <string name="card_pay_amount">Valor a pagar</string>
@@ -220,8 +255,9 @@
 
     <string name="settings_title">Configurações</string>
     <string name="settings_appearance">Aparência</string>
-    <string name="settings_dark_theme">Tema escuro</string>
-    <string name="settings_dark_theme_hint">Desligue para usar o tema claro.</string>
+    <string name="settings_theme_dark">Escuro</string>
+    <string name="settings_theme_light">Claro</string>
+    <string name="settings_theme_system">Automático</string>
     <string name="settings_privacy">Privacidade e segurança</string>
     <string name="settings_hide_values">Ocultar valores</string>
     <string name="settings_hide_values_hint">Mostra R$ •••• no lugar dos valores.</string>

@@ -1,6 +1,7 @@
 package com.example.app_finances
 
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
@@ -8,6 +9,7 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -27,10 +29,12 @@ import com.example.app_finances.core.designsystem.component.HiddenMoney
 import com.example.app_finances.core.designsystem.component.LocalMoneyFormatter
 import com.example.app_finances.core.designsystem.component.VisibleMoney
 import com.example.app_finances.core.designsystem.theme.AppfinancesTheme
+import com.example.app_finances.core.designsystem.theme.SystemNightMode
 import com.example.app_finances.core.security.LockScreen
 import com.example.app_finances.data.settings.AppSettings
 import com.example.app_finances.feature.transactions.form.FormRequest
 import com.example.app_finances.navigation.FinancesApp
+import com.example.app_finances.widget.SummaryWidget
 import kotlinx.coroutines.launch
 
 /** FragmentActivity (e não só ComponentActivity) porque o pedido de biometria precisa dela. */
@@ -44,8 +48,8 @@ class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
-        // Começa como o fundo da janela (escuro); ao carregar as preferências, segue o tema escolhido.
-        applySystemBars(darkTheme = true)
+        // Começa como o fundo da janela (que já segue o tema escolhido, ver SystemNightMode).
+        applySystemBars(darkTheme = isNightConfiguration())
         // Uma vez por abertura (não a cada rotação de tela).
         if (savedInstanceState == null) {
             runStartupTasks()
@@ -56,11 +60,16 @@ class MainActivity : FragmentActivity() {
             // assim nenhum dado aparece antes do bloqueio por biometria.
             val settings by app.container.settingsRepository.settings.collectAsStateWithLifecycle(initialValue = null)
             settings?.let { current ->
-                LaunchedEffect(current.darkTheme) { applySystemBars(current.darkTheme) }
-                AppfinancesTheme(darkTheme = current.darkTheme) { AppRoot(current) }
+                val dark = current.themeMode.isDark(isSystemInDarkTheme())
+                LaunchedEffect(current.themeMode) { SystemNightMode.apply(this@MainActivity, current.themeMode) }
+                LaunchedEffect(dark) { applySystemBars(dark) }
+                AppfinancesTheme(darkTheme = dark) { AppRoot(current) }
             }
         }
     }
+
+    private fun isNightConfiguration(): Boolean =
+        resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
 
     /** Ícones das barras do sistema claros no tema escuro e escuros no tema claro. */
     private fun applySystemBars(darkTheme: Boolean) {
@@ -83,6 +92,12 @@ class MainActivity : FragmentActivity() {
         }
     }
 
+    /** Ao sair do app, o widget mostra o saldo já com o que mudou. */
+    override fun onStop() {
+        super.onStop()
+        if (!isChangingConfigurations) SummaryWidget.refresh(this)
+    }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         intent.formRequest()?.let { launchRequest = it }
@@ -91,6 +106,7 @@ class MainActivity : FragmentActivity() {
     /** "Compartilhar" um texto preenche o formulário; o atalho de voz o abre ouvindo. */
     private fun Intent.formRequest(): FormRequest? = when (action) {
         ACTION_VOICE_ENTRY -> FormRequest.Voice
+        ACTION_NEW_ENTRY -> FormRequest.New
         else -> sharedText()?.let(FormRequest::Quick)
     }
 
@@ -113,6 +129,9 @@ class MainActivity : FragmentActivity() {
     companion object {
         /** Atalho "Lançamento por voz" do ícone do app (o mesmo de res/xml/shortcuts.xml). */
         const val ACTION_VOICE_ENTRY = "com.example.app_finances.action.VOICE_ENTRY"
+
+        /** "+" do widget: abre o formulário de novo lançamento. */
+        const val ACTION_NEW_ENTRY = "com.example.app_finances.action.NEW_ENTRY"
         private const val TAG = "MainActivity"
         private const val MAX_SHARED_TEXT = 300
     }

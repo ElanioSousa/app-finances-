@@ -3,6 +3,7 @@ package com.example.app_finances.data.backup
 import com.example.app_finances.data.local.entity.AccountEntity
 import com.example.app_finances.data.local.entity.CategoryEntity
 import com.example.app_finances.data.local.entity.CreditCardEntity
+import com.example.app_finances.data.local.entity.GoalEntity
 import com.example.app_finances.data.local.entity.InvoicePaymentEntity
 import com.example.app_finances.data.local.entity.RecurringEntity
 import com.example.app_finances.data.local.entity.TransactionEntity
@@ -18,6 +19,8 @@ data class BackupContent(
     val recurrings: List<RecurringEntity> = emptyList(),
     val transactions: List<TransactionEntity> = emptyList(),
     val invoicePayments: List<InvoicePaymentEntity> = emptyList(),
+    /** Backups de antes das metas não têm a lista: lê como vazia. */
+    val goals: List<GoalEntity> = emptyList(),
 )
 
 /** Arquivo de backup: formato versionado para poder evoluir sem quebrar backups antigos. */

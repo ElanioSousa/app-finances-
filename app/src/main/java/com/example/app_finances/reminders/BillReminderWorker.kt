@@ -8,7 +8,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.example.app_finances.FinancesApplication
+import com.example.app_finances.appContainer
 import com.example.app_finances.MainActivity
 import com.example.app_finances.R
 import com.example.app_finances.core.format.Dates
@@ -34,7 +34,7 @@ class BillReminderWorker(context: Context, params: WorkerParameters) : Coroutine
     }
 
     private suspend fun remind() {
-        val container = (applicationContext as FinancesApplication).container
+        val container = applicationContext.appContainer
         val today = container.today()
         val pending = container.transactionRepository.observePendingUntil(today.plusDays(1)).first()
         val summaries = container.cardRepository.observeCardData().first().summaries(today)

@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Restore
 import androidx.compose.material.icons.outlined.SaveAlt
 import androidx.compose.material.icons.outlined.TableView
+import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,6 +29,8 @@ import com.example.app_finances.core.designsystem.component.ConfirmTexts
 import com.example.app_finances.core.designsystem.component.DialogActions
 import com.example.app_finances.core.designsystem.component.LabeledSwitch
 import com.example.app_finances.core.designsystem.component.ListRow
+import com.example.app_finances.core.designsystem.component.Option
+import com.example.app_finances.core.designsystem.component.OptionSegmentedRow
 import com.example.app_finances.core.designsystem.component.RowText
 import com.example.app_finances.core.designsystem.component.ScreenColumn
 import com.example.app_finances.core.designsystem.component.SectionCard
@@ -36,9 +39,11 @@ import com.example.app_finances.core.format.Dates
 import com.example.app_finances.core.security.AppLock
 import com.example.app_finances.data.backup.AutoBackupFiles
 import com.example.app_finances.data.settings.AutoBackupSetting
+import com.example.app_finances.data.settings.ThemeMode
 import com.example.app_finances.core.ui.LocalSnackbarHostState
 import com.example.app_finances.core.ui.containerViewModel
 import com.example.app_finances.reminders.BillReminders
+import com.example.app_finances.widget.SummaryWidget
 import java.time.LocalDate
 
 @Composable
@@ -48,7 +53,8 @@ fun SettingsScreen(scaffoldPadding: PaddingValues, onBack: () -> Unit) {
     SettingsEvents(viewModel)
 
     ScreenColumn(title = stringResource(R.string.settings_title), scaffoldPadding = scaffoldPadding, onBack = onBack) {
-        item { AppearanceSection(state.settings.darkTheme, viewModel::setDarkTheme) }
+        item { AppearanceSection(state.settings.themeMode, viewModel::setThemeMode) }
+        item { WidgetSection() }
         item { PrivacySection(state, viewModel) }
         item { RemindersSection(state.settings.billReminders, viewModel::setBillReminders) }
         item { DataSection(state.isWorking, viewModel) }
@@ -84,11 +90,28 @@ private fun SettingsEvents(viewModel: SettingsViewModel) {
     }
 }
 
-/** Interruptor entre o tema escuro e o claro (vale na hora, para o app todo). */
+/** Atalho para pôr o widget na tela inicial (só se o launcher aceitar o pedido). */
 @Composable
-private fun AppearanceSection(darkTheme: Boolean, onChange: (Boolean) -> Unit) {
+private fun WidgetSection() {
+    val context = LocalContext.current
+    if (!SummaryWidget.canPin(context)) return
+    SectionCard(title = stringResource(R.string.widget_name)) {
+        ActionRow(Icons.Outlined.Widgets, RowText(stringResource(R.string.settings_widget_add), stringResource(R.string.widget_description)), enabled = true) {
+            SummaryWidget.requestPin(context)
+        }
+    }
+}
+
+/** Escuro | Claro | Automático (o mesmo do celular); vale na hora, para o app todo. */
+@Composable
+private fun AppearanceSection(mode: ThemeMode, onChange: (ThemeMode) -> Unit) {
+    val options = listOf(
+        Option(ThemeMode.DARK, stringResource(R.string.settings_theme_dark)),
+        Option(ThemeMode.LIGHT, stringResource(R.string.settings_theme_light)),
+        Option(ThemeMode.SYSTEM, stringResource(R.string.settings_theme_system)),
+    )
     SectionCard(title = stringResource(R.string.settings_appearance)) {
-        LabeledSwitch(stringResource(R.string.settings_dark_theme), darkTheme, stringResource(R.string.settings_dark_theme_hint), onChange)
+        OptionSegmentedRow(options, mode, onChange)
     }
 }
 

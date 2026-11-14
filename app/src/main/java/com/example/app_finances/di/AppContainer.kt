@@ -9,6 +9,7 @@ import com.example.app_finances.data.settings.SettingsRepository
 import com.example.app_finances.data.repository.AccountRepository
 import com.example.app_finances.data.repository.CardRepository
 import com.example.app_finances.data.repository.CategoryRepository
+import com.example.app_finances.data.repository.GoalRepository
 import com.example.app_finances.data.repository.RecurringRepository
 import com.example.app_finances.data.repository.TransactionRepository
 
@@ -36,6 +37,7 @@ class AppContainer(
 
     val recurringRepository by lazy { RecurringRepository(database.recurringDao(), database.categoryDao(), today) }
 
+    val goalRepository by lazy { GoalRepository(database.goalDao()) }
     val backupRepository by lazy { BackupRepository(database.backupDao(), appContext.contentResolver) }
     val settingsRepository by lazy { SettingsRepository(appContext) }
 

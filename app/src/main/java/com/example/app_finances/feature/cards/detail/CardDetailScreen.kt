@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -19,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,12 +57,13 @@ fun CardDetailScreen(cardId: Long, scaffoldPadding: PaddingValues, actions: Card
     val detail = state.detail
     ShowMessages(viewModel.errorFlow)
     var paymentToDelete by remember { mutableStateOf<InvoicePaymentEntity?>(null) }
+    var checking by rememberSaveable { mutableStateOf(false) }
 
     ScreenColumn(title = detail?.summary?.card?.name.orEmpty(), scaffoldPadding = scaffoldPadding, onBack = actions.onBack) {
         if (detail == null) return@ScreenColumn
         item { LimitSummary(detail.summary) }
         item { MonthSelector(detail.invoice.month, viewModel::setMonth) }
-        item { InvoiceCard(detail.invoice, detail.invoiceStatus, onPay = viewModel::openPay) }
+        item { InvoiceCard(detail.invoice, detail.invoiceStatus, InvoiceActions(onPay = viewModel::openPay, onCheck = { checking = true })) }
         purchases(detail.purchases, actions.onOpenTransaction)
         payments(detail.payments) { paymentToDelete = it }
     }
@@ -68,6 +71,7 @@ fun CardDetailScreen(cardId: Long, scaffoldPadding: PaddingValues, actions: Card
     if (detail != null && pay != null) {
         PayInvoiceDialog(pay, detail.invoice.month, detail.accountOptions, PayActions(viewModel::editPay, DialogActions(viewModel::confirmPay, viewModel::closePay)))
     }
+    if (detail != null && checking) CheckInvoiceDialog(detail.invoice, onDismiss = { checking = false })
     paymentToDelete?.let { payment ->
         DeletePaymentDialog(payment, onConfirm = { viewModel.deletePayment(payment); paymentToDelete = null }, onDismiss = { paymentToDelete = null })
     }
@@ -84,8 +88,10 @@ private fun DeletePaymentDialog(payment: InvoicePaymentEntity, onConfirm: () -> 
     ConfirmDialog(texts, DialogActions(onConfirm, onDismiss))
 }
 
+private data class InvoiceActions(val onPay: () -> Unit, val onCheck: () -> Unit)
+
 @Composable
-private fun InvoiceCard(invoice: Invoice, status: InvoiceStatus, onPay: () -> Unit) {
+private fun InvoiceCard(invoice: Invoice, status: InvoiceStatus, actions: InvoiceActions) {
     SectionCard {
         Row(verticalAlignment = Alignment.CenterVertically) {
             MoneyText(invoice.totalCents, style = MaterialTheme.typography.headlineMedium, modifier = Modifier.weight(1f))
@@ -101,7 +107,10 @@ private fun InvoiceCard(invoice: Invoice, status: InvoiceStatus, onPay: () -> Un
             AmountLine(stringResource(R.string.card_remaining), invoice.remainingCents)
         }
         if (invoice.remainingCents > 0) {
-            Button(onClick = onPay, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.card_pay_invoice)) }
+            Button(onClick = actions.onPay, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.card_pay_invoice)) }
+        }
+        if (invoice.totalCents > 0) {
+            OutlinedButton(onClick = actions.onCheck, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.card_check_action)) }
         }
     }
 }

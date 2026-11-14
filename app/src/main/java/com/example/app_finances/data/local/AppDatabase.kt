@@ -10,12 +10,14 @@ import com.example.app_finances.data.backup.BackupDao
 import com.example.app_finances.data.local.dao.AccountDao
 import com.example.app_finances.data.local.dao.CategoryDao
 import com.example.app_finances.data.local.dao.CreditCardDao
+import com.example.app_finances.data.local.dao.GoalDao
 import com.example.app_finances.data.local.dao.InvoicePaymentDao
 import com.example.app_finances.data.local.dao.RecurringDao
 import com.example.app_finances.data.local.dao.TransactionDao
 import com.example.app_finances.data.local.entity.AccountEntity
 import com.example.app_finances.data.local.entity.CategoryEntity
 import com.example.app_finances.data.local.entity.CreditCardEntity
+import com.example.app_finances.data.local.entity.GoalEntity
 import com.example.app_finances.data.local.entity.InvoicePaymentEntity
 import com.example.app_finances.data.local.entity.RecurringEntity
 import com.example.app_finances.data.local.entity.TransactionEntity
@@ -36,14 +38,17 @@ import com.example.app_finances.data.local.entity.TransactionEntity
         RecurringEntity::class,
         TransactionEntity::class,
         InvoicePaymentEntity::class,
+        GoalEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = true,
     autoMigrations = [
         // v2: recorrências guardam até onde já geraram lançamentos.
         AutoMigration(from = 1, to = 2),
         // v3: categorias de despesa podem ter orçamento mensal.
         AutoMigration(from = 2, to = 3),
+        // v4: metas de economia.
+        AutoMigration(from = 3, to = 4),
     ],
 )
 @TypeConverters(Converters::class)
@@ -54,6 +59,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun recurringDao(): RecurringDao
     abstract fun transactionDao(): TransactionDao
     abstract fun invoicePaymentDao(): InvoicePaymentDao
+    abstract fun goalDao(): GoalDao
     abstract fun backupDao(): BackupDao
 
     companion object {

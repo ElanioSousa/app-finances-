@@ -8,7 +8,7 @@ import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import com.example.app_finances.FinancesApplication
+import com.example.app_finances.appContainer
 import com.example.app_finances.di.AppContainer
 
 /**
@@ -21,6 +21,6 @@ inline fun <reified VM : ViewModel> containerViewModel(
     owner: ViewModelStoreOwner = checkNotNull(LocalViewModelStoreOwner.current),
     crossinline create: (AppContainer) -> VM,
 ): VM {
-    val container = (LocalContext.current.applicationContext as FinancesApplication).container
+    val container = LocalContext.current.appContainer
     return viewModel(viewModelStoreOwner = owner, factory = viewModelFactory { initializer { create(container) } })
 }

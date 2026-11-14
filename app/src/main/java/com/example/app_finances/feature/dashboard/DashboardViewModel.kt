@@ -26,6 +26,7 @@ import com.example.app_finances.domain.CategorySpend
 import com.example.app_finances.domain.Insights
 import com.example.app_finances.domain.Ledger
 import com.example.app_finances.domain.MonthBar
+import com.example.app_finances.domain.MonthForecast
 import com.example.app_finances.domain.MonthTotals
 import com.example.app_finances.domain.UpcomingBill
 import kotlinx.coroutines.Dispatchers
@@ -62,6 +63,8 @@ data class DashboardData(
     val recent: List<TransactionItem> = emptyList(),
     /** Mês futuro com valores previstos das recorrências somados aos totais. */
     val includesProjected: Boolean = false,
+    /** Saldo previsto no fim do mês atual (nulo vendo outro mês). */
+    val forecastCents: Long? = null,
 )
 
 data class DashboardUiState(
@@ -139,12 +142,18 @@ class DashboardViewModel(
         return combine(
             sources.accounts.observeBalances(),
             sources.transactions.observeLedger(month.minusMonths(Insights.HISTORY_MONTHS - 1L), month),
-            sources.transactions.observePendingUntil(Insights.upcomingLimit(now)),
+            sources.transactions.observePendingUntil(pendingLimit(month, now)),
             sources.cards.observeCardData(),
             combine(sources.categories.observeAll(), sources.recurrings.observeAll(), ::Pair),
         ) { balances, ledger, pending, cards, (categories, recurrings) ->
             Snapshot(month, balances, ledger, pending, cards, categories, recurrings)
         }
+    }
+
+    /** Contas a vencer; vendo o mês atual, até o fim dele também (para a previsão). */
+    private fun pendingLimit(month: YearMonth, now: LocalDate): LocalDate {
+        val upcoming = Insights.upcomingLimit(now)
+        return if (month == YearMonth.from(now)) maxOf(upcoming, month.atEndOfMonth()) else upcoming
     }
 
     private fun buildData(snapshot: Snapshot): DashboardData {
@@ -160,9 +169,10 @@ class DashboardViewModel(
         val thisMonth = actualThisMonth + projectedThisMonth
         val cards = snapshot.cards.summaries(now)
         val pendingItems = snapshot.pending.toItems(catalog).associateBy { it.id }
+        val balance = BalanceCalculator.total(snapshot.balances)
         return DashboardData(
             today = now,
-            balanceCents = BalanceCalculator.total(snapshot.balances),
+            balanceCents = balance,
             monthTotals = MonthTotals.of(thisMonth),
             upcoming = Insights.upcomingBills(snapshot.pending, cards, now).map { bill ->
                 UpcomingEntry(bill, (bill as? UpcomingBill.Pending)?.let { pendingItems[it.transaction.id] })
@@ -174,6 +184,8 @@ class DashboardViewModel(
             cards = cards,
             recent = actualThisMonth.take(RECENT_COUNT).toItems(catalog),
             includesProjected = projectedThisMonth.isNotEmpty(),
+            forecastCents = MonthForecast.endOfMonth(balance, snapshot.pending, snapshot.recurrings, cards, now)
+                .takeIf { month == YearMonth.from(now) },
         )
     }
 

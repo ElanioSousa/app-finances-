@@ -7,6 +7,7 @@ import androidx.room.Transaction
 import com.example.app_finances.data.local.entity.AccountEntity
 import com.example.app_finances.data.local.entity.CategoryEntity
 import com.example.app_finances.data.local.entity.CreditCardEntity
+import com.example.app_finances.data.local.entity.GoalEntity
 import com.example.app_finances.data.local.entity.InvoicePaymentEntity
 import com.example.app_finances.data.local.entity.RecurringEntity
 import com.example.app_finances.data.local.entity.TransactionEntity
@@ -32,9 +33,12 @@ abstract class BackupDao {
     @Query("SELECT * FROM invoice_payments")
     abstract suspend fun invoicePayments(): List<InvoicePaymentEntity>
 
+    @Query("SELECT * FROM goals")
+    abstract suspend fun goals(): List<GoalEntity>
+
     /** Uma leitura consistente de tudo (nada muda no meio). */
     @Transaction
-    open suspend fun snapshot() = BackupContent(accounts(), categories(), cards(), recurrings(), transactions(), invoicePayments())
+    open suspend fun snapshot() = BackupContent(accounts(), categories(), cards(), recurrings(), transactions(), invoicePayments(), goals())
 
     /**
      * Troca todos os dados pelos do backup numa transação só: se qualquer linha
@@ -43,6 +47,7 @@ abstract class BackupDao {
     @Transaction
     open suspend fun replaceAll(content: BackupContent) {
         // Apaga dos dependentes para os principais (as chaves estrangeiras exigem essa ordem).
+        deleteGoals()
         deleteInvoicePayments()
         deleteTransactions()
         deleteRecurrings()
@@ -55,7 +60,14 @@ abstract class BackupDao {
         insertRecurrings(content.recurrings)
         insertTransactions(content.transactions)
         insertInvoicePayments(content.invoicePayments)
+        insertGoals(content.goals)
     }
+
+    @Query("DELETE FROM goals")
+    protected abstract suspend fun deleteGoals()
+
+    @Insert
+    protected abstract suspend fun insertGoals(list: List<GoalEntity>)
 
     @Query("DELETE FROM invoice_payments")
     protected abstract suspend fun deleteInvoicePayments()
