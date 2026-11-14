@@ -1,8 +1,11 @@
 package com.example.app_finances
 
 import android.app.Application
+import android.content.Context
 import android.util.Log
+import com.example.app_finances.autobackup.AutoBackup
 import com.example.app_finances.core.security.AppLock
+import com.example.app_finances.data.settings.AppSettings
 import com.example.app_finances.di.AppContainer
 import com.example.app_finances.reminders.BillReminders
 import kotlinx.coroutines.MainScope
@@ -24,17 +27,18 @@ class FinancesApplication : Application() {
         container = AppContainer(this)
         BillReminders.createChannel(this)
         appLock.watchAppBackground(this)
-        keepRemindersInSync()
+        keepScheduled({ it.billReminders }, BillReminders::apply)
+        keepScheduled({ it.autoBackup != null }, AutoBackup::apply)
     }
 
-    /** O lembrete diário segue a preferência: ligar agenda, desligar cancela (de qualquer tela). */
-    private fun keepRemindersInSync() {
+    /** Uma tarefa agendada segue a preferência: ligar agenda, desligar cancela (de qualquer tela). */
+    private fun keepScheduled(enabledIn: (AppSettings) -> Boolean, apply: (Context, Boolean) -> Unit) {
         MainScope().launch {
             container.settingsRepository.settings
-                .map { it.billReminders }
+                .map(enabledIn)
                 .distinctUntilChanged()
-                .catch { Log.e(TAG, "Falha ao ler a preferência de lembretes", it) }
-                .collect { enabled -> BillReminders.apply(this@FinancesApplication, enabled) }
+                .catch { Log.e(TAG, "Falha ao ler as preferências", it) }
+                .collect { enabled -> apply(this@FinancesApplication, enabled) }
         }
     }
 

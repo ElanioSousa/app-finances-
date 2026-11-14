@@ -19,6 +19,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
+            android:launchMode="singleTask"
             android:theme="@style/Theme.Appfinances.Starting"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
@@ -26,7 +27,9 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <!-- "Compartilhar" um texto (do WhatsApp, por exemplo) abre o formulário já preenchido. -->
+            <!-- "Compartilhar" um texto (do WhatsApp, por exemplo) abre o formulário já preenchido.
+                 singleTask: o app abre sempre na mesma tela (a já aberta recebe o texto em onNewIntent),
+                 em vez de criar uma segunda cópia dentro do app que compartilhou. -->
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
 

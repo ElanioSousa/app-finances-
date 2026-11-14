@@ -238,6 +238,12 @@
     <string name="settings_restore_backup_hint">Substitui os dados atuais pelos do arquivo.</string>
     <string name="settings_export_csv">Exportar lançamentos (CSV)</string>
     <string name="settings_export_csv_hint">Para abrir no Excel ou Google Planilhas.</string>
+    <string name="settings_auto_backup_title">Backup automático</string>
+    <string name="settings_auto_backup">Backup semanal</string>
+    <string name="settings_auto_backup_hint">Salva um backup por semana numa pasta que você escolher (ficam os %1$d mais recentes).</string>
+    <string name="settings_auto_backup_status">Pasta: %1$s · Último: %2$s</string>
+    <string name="settings_auto_backup_never">ainda não feito</string>
+    <string name="settings_auto_backup_late">O último backup automático tem mais de %1$d dias. Confira se a pasta ainda existe.</string>
     <string name="settings_restore_title">Restaurar backup?</string>
     <string name="settings_restore_body">Todos os dados atuais serão substituídos pelos do arquivo. Faça um backup antes, se quiser guardar os atuais.</string>
     <string name="settings_restore_confirm">Restaurar</string>

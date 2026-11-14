@@ -31,7 +31,11 @@ import com.example.app_finances.core.designsystem.component.ListRow
 import com.example.app_finances.core.designsystem.component.RowText
 import com.example.app_finances.core.designsystem.component.ScreenColumn
 import com.example.app_finances.core.designsystem.component.SectionCard
+import com.example.app_finances.core.designsystem.theme.FinanceTheme
+import com.example.app_finances.core.format.Dates
 import com.example.app_finances.core.security.AppLock
+import com.example.app_finances.data.backup.AutoBackupFiles
+import com.example.app_finances.data.settings.AutoBackupSetting
 import com.example.app_finances.core.ui.LocalSnackbarHostState
 import com.example.app_finances.core.ui.containerViewModel
 import com.example.app_finances.reminders.BillReminders
@@ -48,6 +52,7 @@ fun SettingsScreen(scaffoldPadding: PaddingValues, onBack: () -> Unit) {
         item { PrivacySection(state, viewModel) }
         item { RemindersSection(state.settings.billReminders, viewModel::setBillReminders) }
         item { DataSection(state.isWorking, viewModel) }
+        item { AutoBackupSection(state.settings.autoBackup, viewModel) }
         item {
             Text(stringResource(R.string.settings_version, BuildConfig.VERSION_NAME), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
@@ -125,6 +130,27 @@ private fun DataSection(isWorking: Boolean, viewModel: SettingsViewModel) {
         ActionRow(Icons.Outlined.Restore, RowText(stringResource(R.string.settings_restore_backup), stringResource(R.string.settings_restore_backup_hint)), enabled) { restore.launch(arrayOf("application/json", "application/octet-stream", "text/plain")) }
         ActionRow(Icons.Outlined.TableView, RowText(stringResource(R.string.settings_export_csv), stringResource(R.string.settings_export_csv_hint)), enabled) { csv.launch("lancamentos-$today.csv") }
     }
+}
+
+/** Backup semanal numa pasta escolhida: ligar pede a pasta; desligado, nada é agendado. */
+@Composable
+private fun AutoBackupSection(setting: AutoBackupSetting?, viewModel: SettingsViewModel) {
+    val pickFolder = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri -> uri?.let(viewModel::enableAutoBackup) }
+    SectionCard(title = stringResource(R.string.settings_auto_backup_title)) {
+        LabeledSwitch(stringResource(R.string.settings_auto_backup), setting != null, autoBackupHint(setting)) { on ->
+            if (on) pickFolder.launch(null) else viewModel.disableAutoBackup()
+        }
+        if (setting?.lastDone != null && AutoBackupFiles.isLate(setting.lastDone, LocalDate.now())) {
+            Text(stringResource(R.string.settings_auto_backup_late, AutoBackupFiles.LATE_AFTER_DAYS), style = MaterialTheme.typography.bodySmall, color = FinanceTheme.colors.warning)
+        }
+    }
+}
+
+@Composable
+private fun autoBackupHint(setting: AutoBackupSetting?): String {
+    if (setting == null) return stringResource(R.string.settings_auto_backup_hint, AutoBackupFiles.KEEP)
+    val last = setting.lastDone?.let { Dates.short(it) } ?: stringResource(R.string.settings_auto_backup_never)
+    return stringResource(R.string.settings_auto_backup_status, setting.folderName, last)
 }
 
 @Composable

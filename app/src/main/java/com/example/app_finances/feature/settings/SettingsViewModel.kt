@@ -1,6 +1,7 @@
 package com.example.app_finances.feature.settings
 
 import android.net.Uri
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.app_finances.core.ui.WhileUiSubscribed
@@ -52,6 +53,16 @@ class SettingsViewModel(
     fun setAppLock(value: Boolean) = launchSetting { settingsRepository.setAppLock(value) }
 
     fun setDarkTheme(value: Boolean) = launchSetting { settingsRepository.setDarkTheme(value) }
+
+    /** Liga o backup automático na pasta escolhida (guardando o acesso a ela). */
+    fun enableAutoBackup(folder: Uri) = launchSetting {
+        settingsRepository.enableAutoBackup(folder.toString(), backup.keepFolderAccess(folder))
+    }
+
+    /** Desliga o backup automático e devolve o acesso à pasta (os arquivos já salvos ficam lá). */
+    fun disableAutoBackup() = launchSetting {
+        settingsRepository.disableAutoBackup()?.let { backup.releaseFolderAccess(it.toUri()) }
+    }
 
     /** O agendamento acompanha a preferência sozinho (ver `FinancesApplication`). */
     fun setBillReminders(value: Boolean) = launchSetting { settingsRepository.setBillReminders(value) }

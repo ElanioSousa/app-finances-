@@ -24,6 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -93,7 +94,10 @@ fun FinancesApp(launchRequest: FormRequest? = null, onLaunchRequestUsed: () -> U
         when (val request = formRequest) {
             null -> Unit
             FormRequest.Recurring -> NewRecurringDialog(onDismiss = { formRequest = null })
-            else -> TransactionFormSheet(request, onDismiss = { formRequest = null }, onNewRecurring = { formRequest = FormRequest.Recurring })
+            // Um pedido novo (outro "Compartilhar" com a folha aberta) recria a folha e o formulário dela.
+            else -> key(request) {
+                TransactionFormSheet(request, onDismiss = { formRequest = null }, onNewRecurring = { formRequest = FormRequest.Recurring })
+            }
         }
     }
 }

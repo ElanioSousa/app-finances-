@@ -1,5 +1,6 @@
 package com.example.app_finances
 
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isEnabled
@@ -21,7 +22,11 @@ import androidx.test.espresso.intent.Intents.intending
 import androidx.test.espresso.intent.matcher.IntentMatchers.hasAction
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.app_finances.core.format.Money
+import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
+import androidx.test.runner.lifecycle.Stage
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -79,6 +84,36 @@ class QuickEntryFlowTest {
         compose.onAllNodesWithText(string(R.string.nav_transactions)).onFirst().performClick()
         waitFor("Mercado")
     }
+
+    /** Com o app já aberto (e até com um formulário aberto), cada "Compartilhar" abre o formulário com o seu texto. */
+    @Test
+    fun compartilharComOAppAbertoUsaATelaJaAberta() {
+        scenario = TestApp.launchWithFreshDatabase()
+        waitFor(string(R.string.nav_home))
+        share("mercado 45,90")
+        waitFor(string(R.string.form_new_title))
+        waitFor(Money.format(4_590))
+
+        share("uber 12,00")
+        waitFor(Money.format(1_200))
+        compose.onAllNodesWithText(Money.format(4_590)).assertCountEquals(0)
+        assertEquals("uma tela só, sem cópias empilhadas", 1, openMainActivities())
+    }
+
+    /** Quantas telas principais estão vivas (cada "Compartilhar" não pode criar outra). */
+    private fun openMainActivities(): Int {
+        var count = 0
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            val monitor = ActivityLifecycleMonitorRegistry.getInstance()
+            count = Stage.entries.filter { it != Stage.DESTROYED && it != Stage.PRE_ON_CREATE }
+                .sumOf { stage -> monitor.getActivitiesInStage(stage).count { it is MainActivity } }
+        }
+        return count
+    }
+
+    /** Como o Android entrega um "Compartilhar" vindo de outro app ao app que já está aberto. */
+    private fun share(text: String) =
+        TestApp.context.startActivity(TestApp.shareIntent(text).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
 
     @Test
     fun atalhoDeVozAbreOFormularioOuvindoEPreenche() {
