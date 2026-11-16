@@ -21,7 +21,12 @@ data class CardSummary(
     /** Fração do limite em uso, de 0 a 1 (passa de 1 se estourou). */
     val usedFraction: Float get() = if (card.limitCents <= 0) 0f else usedCents.toFloat() / card.limitCents
 
+    /** Perto do limite: a barra fica vermelha e o alerta avisa. */
+    val isNearLimit: Boolean get() = usedFraction >= NEAR_LIMIT_FRACTION
+
     companion object {
+        const val NEAR_LIMIT_FRACTION = 0.9f
+
         fun of(
             card: CreditCardEntity,
             purchases: List<TransactionEntity>,

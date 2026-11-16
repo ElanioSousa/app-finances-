@@ -43,7 +43,7 @@ fun InvoiceStatusChip(status: InvoiceStatus, modifier: Modifier = Modifier) {
 /** Barra fina do limite usado; fica vermelha acima de 90%. */
 @Composable
 fun LimitBar(fraction: Float, modifier: Modifier = Modifier) {
-    val color: Color = if (fraction > 0.9f) FinanceTheme.colors.expense else MaterialTheme.colorScheme.primary
+    val color: Color = if (fraction >= CardSummary.NEAR_LIMIT_FRACTION) FinanceTheme.colors.expense else MaterialTheme.colorScheme.primary
     ThinBar(fraction, color, modifier)
 }
 

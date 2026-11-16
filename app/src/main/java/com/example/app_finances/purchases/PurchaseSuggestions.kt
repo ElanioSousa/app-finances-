@@ -1,19 +1,18 @@
 package com.example.app_finances.purchases
 
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.provider.Settings
-import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.getSystemService
 import com.example.app_finances.MainActivity
 import com.example.app_finances.R
-import com.example.app_finances.core.notifications.canPostNotifications
+import com.example.app_finances.core.notifications.AppNotification
 import com.example.app_finances.core.notifications.createNotificationChannel
+import com.example.app_finances.core.notifications.postNotification
 import com.example.app_finances.core.format.Money
 import com.example.app_finances.domain.CardPurchaseNotice
 
@@ -46,29 +45,14 @@ object PurchaseSuggestions {
 
     /** A mesma compra (Nubank e Google Carteira avisam juntos) substitui a mesma sugestão. */
     fun suggest(context: Context, notice: CardPurchaseNotice, quickText: String) {
-        if (!context.canPostNotifications()) return
-        val id = notice.key.hashCode()
-        val title = context.getString(R.string.purchases_title, Money.format(notice.amountCents))
-        val open = PendingIntent.getActivity(context, id, formIntent(context, quickText), PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle(title)
-            .setContentText(context.getString(R.string.purchases_text, notice.merchant))
-            // Na tela de bloqueio, sem valor nem loja.
-            .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
-            .setPublicVersion(publicVersion(context))
-            .setContentIntent(open)
-            .setAutoCancel(true)
-            .build()
-        @Suppress("MissingPermission") // conferida em canPostNotifications()
-        NotificationManagerCompat.from(context).notify(id, notification)
+        val content = AppNotification(
+            title = context.getString(R.string.purchases_title, Money.format(notice.amountCents)),
+            text = context.getString(R.string.purchases_text, notice.merchant),
+            publicTitle = context.getString(R.string.purchases_public),
+            intent = formIntent(context, quickText),
+        )
+        context.postNotification(CHANNEL_ID, notice.key.hashCode(), content)
     }
-
-    /** O que aparece na tela de bloqueio: sem valor nem loja. */
-    private fun publicVersion(context: Context) = NotificationCompat.Builder(context, CHANNEL_ID)
-        .setSmallIcon(R.drawable.ic_notification)
-        .setContentTitle(context.getString(R.string.purchases_public))
-        .build()
 
     /** Como um "Compartilhar": o app abre o formulário com o texto já interpretado. */
     private fun formIntent(context: Context, quickText: String) = Intent(context, MainActivity::class.java)

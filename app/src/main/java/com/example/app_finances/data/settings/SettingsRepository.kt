@@ -6,10 +6,12 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
+import java.time.YearMonth
 
 /** Preferências do app (não são dados financeiros: ficam fora do banco e do backup). */
 data class AppSettings(
@@ -23,7 +25,12 @@ data class AppSettings(
     val themeMode: ThemeMode = ThemeMode.DARK,
     /** Backup semanal numa pasta escolhida; nulo = desligado. */
     val autoBackup: AutoBackupSetting? = null,
+    /** Resumo no início do mês e alertas de orçamento e de limite do cartão. */
+    val monthAlerts: Boolean = false,
 )
+
+/** O que os alertas já avisaram: o mês do último resumo e as chaves dos alertas enviados. */
+data class AlertsState(val lastSummaryMonth: YearMonth? = null, val sent: Set<String> = emptySet())
 
 enum class ThemeMode {
     DARK, LIGHT, SYSTEM;
@@ -55,6 +62,7 @@ class SettingsRepository(context: Context) {
             appLock = prefs[APP_LOCK] ?: false,
             themeMode = prefs[THEME_MODE]?.let { runCatching { ThemeMode.valueOf(it) }.getOrNull() }
                 ?: if (prefs[DARK_THEME] == false) ThemeMode.LIGHT else ThemeMode.DARK,
+            monthAlerts = prefs[MONTH_ALERTS] ?: false,
             autoBackup = prefs[AUTO_BACKUP_FOLDER]?.let { folder ->
                 AutoBackupSetting(folder, prefs[AUTO_BACKUP_FOLDER_NAME].orEmpty(), prefs[AUTO_BACKUP_LAST]?.let(LocalDate::parse))
             },
@@ -66,6 +74,20 @@ class SettingsRepository(context: Context) {
     suspend fun setBillReminders(value: Boolean) = set(BILL_REMINDERS, value)
 
     suspend fun setAppLock(value: Boolean) = set(APP_LOCK, value)
+
+    suspend fun setMonthAlerts(value: Boolean) = set(MONTH_ALERTS, value)
+
+    val alertsState: Flow<AlertsState> = store.data.map { prefs ->
+        AlertsState(prefs[ALERTS_LAST_SUMMARY]?.let(YearMonth::parse), prefs[ALERTS_SENT].orEmpty())
+    }
+
+    /** Grava de uma vez o que os alertas já avisaram. */
+    suspend fun setAlertsState(state: AlertsState) {
+        store.edit { prefs ->
+            state.lastSummaryMonth?.let { prefs[ALERTS_LAST_SUMMARY] = it.toString() } ?: prefs.remove(ALERTS_LAST_SUMMARY)
+            prefs[ALERTS_SENT] = state.sent
+        }
+    }
 
     suspend fun setThemeMode(mode: ThemeMode) {
         store.edit {
@@ -108,6 +130,9 @@ class SettingsRepository(context: Context) {
         /** Preferência antiga (só escuro/claro), lida enquanto o tema novo não for escolhido. */
         val DARK_THEME = booleanPreferencesKey("dark_theme")
         val THEME_MODE = stringPreferencesKey("theme_mode")
+        val MONTH_ALERTS = booleanPreferencesKey("month_alerts")
+        val ALERTS_LAST_SUMMARY = stringPreferencesKey("alerts_last_summary")
+        val ALERTS_SENT = stringSetPreferencesKey("alerts_sent")
         val AUTO_BACKUP_FOLDER = stringPreferencesKey("auto_backup_folder")
         val AUTO_BACKUP_FOLDER_NAME = stringPreferencesKey("auto_backup_folder_name")
         val AUTO_BACKUP_LAST = stringPreferencesKey("auto_backup_last")

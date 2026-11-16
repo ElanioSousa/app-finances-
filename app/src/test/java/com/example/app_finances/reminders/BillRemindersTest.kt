@@ -6,6 +6,7 @@ import com.example.app_finances.domain.UpcomingBill
 import com.example.app_finances.domain.transaction
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import com.example.app_finances.core.work.delayUntilNext
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -16,9 +17,9 @@ class BillRemindersTest {
     @Test
     fun `agenda para hoje às 9h ou, se já passou, para amanhã`() {
         val nine = LocalTime.of(9, 0)
-        assertEquals(Duration.ofHours(2), BillReminders.delayUntilNext(nine, LocalDateTime.of(2026, 11, 10, 7, 0)))
-        assertEquals(Duration.ofHours(23), BillReminders.delayUntilNext(nine, LocalDateTime.of(2026, 11, 10, 10, 0)))
-        assertEquals(Duration.ofDays(1), BillReminders.delayUntilNext(nine, LocalDateTime.of(2026, 11, 10, 9, 0)))
+        assertEquals(Duration.ofHours(2), delayUntilNext(nine, LocalDateTime.of(2026, 11, 10, 7, 0)))
+        assertEquals(Duration.ofHours(23), delayUntilNext(nine, LocalDateTime.of(2026, 11, 10, 10, 0)))
+        assertEquals(Duration.ofDays(1), delayUntilNext(nine, LocalDateTime.of(2026, 11, 10, 9, 0)))
     }
 
     @Test

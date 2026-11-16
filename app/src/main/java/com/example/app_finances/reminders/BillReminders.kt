@@ -5,8 +5,8 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.app_finances.R
+import com.example.app_finances.core.work.delayUntilNext
 import com.example.app_finances.core.notifications.createNotificationChannel
-import java.time.Duration
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.concurrent.TimeUnit
@@ -35,12 +35,5 @@ object BillReminders {
     /** Canal de notificação (Android 8+); criar de novo não faz nada. */
     fun createChannel(context: Context) {
         context.createNotificationChannel(CHANNEL_ID, R.string.reminder_channel)
-    }
-
-    /** Tempo até o próximo [time] (hoje, se ainda não passou; senão amanhã). */
-    internal fun delayUntilNext(time: LocalTime, now: LocalDateTime): Duration {
-        val todayAt = now.toLocalDate().atTime(time)
-        val next = if (todayAt.isAfter(now)) todayAt else todayAt.plusDays(1)
-        return Duration.between(now, next)
     }
 }

@@ -42,6 +42,7 @@ import com.example.app_finances.core.designsystem.theme.FinanceTheme
 import com.example.app_finances.core.format.Dates
 import com.example.app_finances.core.security.AppLock
 import com.example.app_finances.data.backup.AutoBackupFiles
+import com.example.app_finances.data.settings.AppSettings
 import com.example.app_finances.data.settings.AutoBackupSetting
 import com.example.app_finances.data.settings.ThemeMode
 import com.example.app_finances.core.ui.LocalSnackbarHostState
@@ -61,7 +62,7 @@ fun SettingsScreen(scaffoldPadding: PaddingValues, onBack: () -> Unit) {
         item { AppearanceSection(state.settings.themeMode, viewModel::setThemeMode) }
         item { WidgetSection() }
         item { PrivacySection(state, viewModel) }
-        item { RemindersSection(state.settings.billReminders, viewModel::setBillReminders) }
+        item { RemindersSection(state.settings, viewModel) }
         item { PurchasesSection() }
         item { DataSection(state.isWorking, viewModel) }
         item { AutoBackupSection(state.settings.autoBackup, viewModel) }
@@ -134,15 +135,22 @@ private fun PrivacySection(state: SettingsUiState, viewModel: SettingsViewModel)
     }
 }
 
-/** Pede a permissão de notificação (Android 13+) antes de ligar os lembretes. */
+/** Lembretes de contas e o resumo do mês com alertas (os dois pedem a permissão de notificação ao ligar). */
 @Composable
-private fun RemindersSection(enabled: Boolean, onChange: (Boolean) -> Unit) {
+private fun RemindersSection(settings: AppSettings, viewModel: SettingsViewModel) {
+    SectionCard(title = stringResource(R.string.settings_notifications)) {
+        NotificationSwitch(RowText(stringResource(R.string.settings_bill_reminders), stringResource(R.string.settings_bill_reminders_hint)), settings.billReminders, viewModel::setBillReminders)
+        NotificationSwitch(RowText(stringResource(R.string.settings_month_alerts), stringResource(R.string.settings_month_alerts_hint)), settings.monthAlerts, viewModel::setMonthAlerts)
+    }
+}
+
+/** Interruptor que, ao ligar, pede antes a permissão de notificação (Android 13+); negada, fica desligado. */
+@Composable
+private fun NotificationSwitch(text: RowText, checked: Boolean, onChange: (Boolean) -> Unit) {
     val context = LocalContext.current
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted -> onChange(granted) }
-    SectionCard(title = stringResource(R.string.settings_notifications)) {
-        LabeledSwitch(stringResource(R.string.settings_bill_reminders), enabled, stringResource(R.string.settings_bill_reminders_hint)) { on ->
-            if (on && !context.canPostNotifications()) permission.launch(Manifest.permission.POST_NOTIFICATIONS) else onChange(on)
-        }
+    LabeledSwitch(text.title, checked, text.subtitle) { on ->
+        if (on && !context.canPostNotifications()) permission.launch(Manifest.permission.POST_NOTIFICATIONS) else onChange(on)
     }
 }
 

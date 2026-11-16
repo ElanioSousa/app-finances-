@@ -68,6 +68,9 @@ class SettingsViewModel(
     /** O agendamento acompanha a preferência sozinho (ver `FinancesApplication`). */
     fun setBillReminders(value: Boolean) = launchSetting { settingsRepository.setBillReminders(value) }
 
+    /** Também agendado sozinho pela preferência (ver `FinancesApplication`). */
+    fun setMonthAlerts(value: Boolean) = launchSetting { settingsRepository.setMonthAlerts(value) }
+
     /** Aviso pronto vindo da tela (ex.: aparelho sem bloqueio de tela). */
     fun warn(message: String) {
         events.trySend(SettingsEvent.Failed(message))

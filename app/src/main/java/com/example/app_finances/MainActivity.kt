@@ -33,8 +33,10 @@ import com.example.app_finances.core.designsystem.theme.SystemNightMode
 import com.example.app_finances.core.security.LockScreen
 import com.example.app_finances.data.settings.AppSettings
 import com.example.app_finances.feature.transactions.form.FormRequest
+import com.example.app_finances.alerts.MonthAlerts
 import com.example.app_finances.navigation.FinancesApp
 import com.example.app_finances.widget.SummaryWidget
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /** FragmentActivity (e não só ComponentActivity) porque o pedido de biometria precisa dela. */
@@ -95,7 +97,12 @@ class MainActivity : FragmentActivity() {
     /** Ao sair do app, o widget mostra o saldo já com o que mudou. */
     override fun onStop() {
         super.onStop()
-        if (!isChangingConfigurations) SummaryWidget.refresh(this)
+        if (isChangingConfigurations) return
+        SummaryWidget.refresh(this)
+        // Um gasto lançado agora pode ter passado de 80% do orçamento: confere já, se os alertas estiverem ligados.
+        lifecycleScope.launch {
+            if (app.container.settingsRepository.settings.first().monthAlerts) MonthAlerts.checkNow(this@MainActivity)
+        }
     }
 
     override fun onNewIntent(intent: Intent) {

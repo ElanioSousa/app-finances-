@@ -3,6 +3,7 @@ package com.example.app_finances
 import android.app.Application
 import android.content.Context
 import android.util.Log
+import com.example.app_finances.alerts.MonthAlerts
 import com.example.app_finances.autobackup.AutoBackup
 import com.example.app_finances.core.security.AppLock
 import com.example.app_finances.data.settings.AppSettings
@@ -31,9 +32,11 @@ class FinancesApplication : Application() {
         container = AppContainer(this)
         BillReminders.createChannel(this)
         PurchaseSuggestions.createChannel(this)
+        MonthAlerts.createChannel(this)
         appLock.watchAppBackground(this)
         keepScheduled({ it.billReminders }, BillReminders::apply)
         keepScheduled({ it.autoBackup != null }, AutoBackup::apply)
+        keepScheduled({ it.monthAlerts }, MonthAlerts::apply)
     }
 
     /** Uma tarefa agendada segue a preferência: ligar agenda, desligar cancela (de qualquer tela). */
