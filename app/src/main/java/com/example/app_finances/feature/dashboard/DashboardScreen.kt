@@ -50,7 +50,7 @@ data class DashboardActions(
 @Composable
 fun DashboardScreen(scaffoldPadding: PaddingValues, actions: DashboardActions) {
     val viewModel = containerViewModel {
-        DashboardViewModel(DashboardSources(it.accountRepository, it.transactionRepository, it.cardRepository, it.categoryRepository, it.recurringRepository), it.today)
+        DashboardViewModel(DashboardSources(it.accountRepository, it.transactionRepository, it.cardRepository, it.categoryRepository, it.recurringRepository, it.goalRepository), it.today)
     }
     val state by viewModel.state.collectAsStateWithLifecycle()
     ShowMessages(viewModel.errorFlow)
@@ -64,6 +64,7 @@ fun DashboardScreen(scaffoldPadding: PaddingValues, actions: DashboardActions) {
         item { UpcomingCard(data.upcoming, data.today, UpcomingActions(actions.onOpenTransaction, actions.onOpenCard, viewModel::markPaid)) }
         if (data.budgets.isNotEmpty()) item { BudgetsCard(data.budgets) }
         if (data.cards.isNotEmpty()) item { CardsCard(data.cards, data.today, actions.onOpenCard) }
+        data.outlook?.let { item { NextMonthsCard(it.months) } }
         item { SpendingCard(data.spending, data.categoryById) }
         item { HistoryCard(data.history, state.selectedMonth, viewModel::selectMonth) }
         item { RecentCard(data.recent, actions.onOpenTransaction, actions.onSeeAll) }
@@ -92,6 +93,9 @@ private fun RecentCard(recent: List<TransactionItem>, onOpenTransaction: (Long) 
     }
 }
 
+/** Marca do saldo total (para os testes o acharem mesmo com a previsão de mesmo valor). */
+const val TAG_BALANCE = "home_balance"
+
 @Composable
 private fun BalanceCard(data: DashboardData) {
     val month = data.monthTotals
@@ -110,7 +114,7 @@ private fun BalanceCard(data: DashboardData) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             MoneyText(cents = data.balanceCents, style = MaterialTheme.typography.displaySmall, modifier = Modifier.testTag(TAG_BALANCE))
-            data.forecastCents?.let { ForecastLine(it) }
+            data.outlook?.let { OutlookLines(it) }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
             FlowTile(FlowTileData(R.string.home_income, month.incomeCents, Icons.AutoMirrored.Filled.TrendingUp, AmountTone.Income), Modifier.weight(1f))
@@ -119,19 +123,6 @@ private fun BalanceCard(data: DashboardData) {
         if (data.includesProjected) {
             Text(stringResource(R.string.home_includes_projected), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-    }
-}
-
-/** Marcas do saldo e da previsão (para os testes acharem cada um, mesmo com o mesmo valor). */
-const val TAG_BALANCE = "home_balance"
-const val TAG_FORECAST = "home_forecast"
-
-/** "Previsto no fim do mês: R$ X" (vermelho se a conta fechar negativa). */
-@Composable
-private fun ForecastLine(cents: Long) {
-    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text(stringResource(R.string.home_forecast), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        MoneyText(cents = cents, tone = AmountTone.BySign, style = MaterialTheme.typography.titleSmall, modifier = Modifier.testTag(TAG_FORECAST))
     }
 }
 

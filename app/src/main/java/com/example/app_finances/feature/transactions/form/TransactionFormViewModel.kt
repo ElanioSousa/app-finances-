@@ -14,6 +14,7 @@ import com.example.app_finances.data.local.entity.CategoryEntity
 import com.example.app_finances.data.local.entity.TransactionEntity
 import com.example.app_finances.data.local.entity.TransactionType
 import com.example.app_finances.data.repository.TransactionRepository
+import com.example.app_finances.domain.CategoryMemory
 import com.example.app_finances.domain.Installments
 import com.example.app_finances.domain.QuickEntryCatalog
 import com.example.app_finances.domain.QuickEntryParser
@@ -93,6 +94,9 @@ class TransactionFormViewModel(
     private val savedEvents = Channel<Unit>(Channel.CONFLATED)
     private var original: TransactionEntity? = null
 
+    /** Categorias que o usuário já deu a cada descrição (carregada ao abrir um lançamento novo). */
+    private var memory = CategoryMemory.EMPTY
+
     val state: StateFlow<TransactionFormUiState> = combine(draft, status, catalog, ::TransactionFormUiState)
         .stateIn(viewModelScope, WhileUiSubscribed, TransactionFormUiState(status = status.value))
 
@@ -109,6 +113,15 @@ class TransactionFormViewModel(
     fun update(transform: (TransactionDraft) -> TransactionDraft) {
         draft.update(transform)
         status.update { it.copy(error = null) }
+    }
+
+    /**
+     * Descrição digitada: sem categoria escolhida, usa a que o usuário costuma dar a essa
+     * descrição ("Lifestyleacai" → Alimentação), se ela servir para o tipo do lançamento.
+     */
+    fun setDescription(text: String) = update { draft ->
+        if (draft.categoryId != null) return@update draft.copy(description = text)
+        draft.copy(description = text, categoryId = memory.categoryFor(text, state.value.categoriesForType)?.id)
     }
 
     /** Data escolhida: no futuro, o lançamento fica pendente (ver [TransactionDraft.withDate]). */
@@ -142,7 +155,7 @@ class TransactionFormViewModel(
 
     private suspend fun fillFromText(text: String) {
         val current = catalog.first()
-        val entry = QuickEntryParser.parse(text, QuickEntryCatalog(current.categories, current.accounts, current.cards), today())
+        val entry = QuickEntryParser.parse(text, QuickEntryCatalog(current.categories, current.accounts, current.cards, memory), today())
         update { it.withQuickEntry(entry, today()) }
     }
 
@@ -154,6 +167,7 @@ class TransactionFormViewModel(
             val installment = existing.installmentNumber?.let { InstallmentInfo(it, existing.installmentCount ?: it) }
             status.update { it.copy(editedInstallment = installment) }
         } else {
+            memory = transactionRepository.categoryMemory()
             val defaults = catalog.first()
             val cardPurchase = request as? FormRequest.CardPurchase
             draft.update {

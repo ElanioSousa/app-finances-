@@ -71,6 +71,7 @@ private data class FormActions(
     val onDelete: () -> Unit,
     val onQuickText: (String) -> Unit,
     val onDate: (LocalDate) -> Unit,
+    val onDescription: (String) -> Unit,
     /** "Recorrência" no tipo: troca este formulário pelo cadastro de recorrência/assinatura. */
     val onNewRecurring: () -> Unit,
 )
@@ -99,7 +100,7 @@ fun TransactionFormSheet(request: FormRequest, onDismiss: () -> Unit, onNewRecur
         sheetGesturesEnabled = false,
         dragHandle = null,
     ) {
-        val actions = FormActions(viewModel::update, viewModel::save, onDismiss, viewModel::delete, viewModel::applyQuickText, viewModel::setDate, onNewRecurring)
+        val actions = FormActions(viewModel::update, viewModel::save, onDismiss, viewModel::delete, viewModel::applyQuickText, viewModel::setDate, viewModel::setDescription, onNewRecurring)
         TransactionForm(state, actions, startWithVoice = request is FormRequest.Voice)
     }
 }
@@ -118,7 +119,7 @@ private fun TransactionForm(state: TransactionFormUiState, actions: FormActions,
         if (!draft.isTransfer) {
             CategoryPicker(state.categoriesForType, draft.categoryId) { id -> actions.onUpdate { it.copy(categoryId = id) } }
         }
-        DescriptionField(draft.description) { text -> actions.onUpdate { it.copy(description = text) } }
+        DescriptionField(draft.description, actions.onDescription)
         OriginSection(state, actions)
         DateField(draft.date, actions.onDate)
         if (!draft.isCardPurchase) PaidSwitch(draft, actions)

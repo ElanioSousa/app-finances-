@@ -18,8 +18,11 @@ import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.app_finances.core.format.Money
 import com.example.app_finances.domain.LedgerMonths
+import androidx.compose.ui.test.assertTextEquals
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.onNodeWithTag
+import com.example.app_finances.feature.dashboard.TAG_BALANCE
 import org.junit.After
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -51,11 +54,11 @@ class CardFlowTest {
         // Compra no cartão não mexe no saldo da conta; só a parcela do mês entra nas despesas.
         compose.onAllNodesWithText(string(R.string.nav_home)).onFirst().performClick()
         waitFor(Money.format(10_000))
-        assertTrue(compose.onAllNodesWithText(Money.format(-10_000)).fetchSemanticsNodes().isEmpty())
+        compose.onNodeWithTag(TAG_BALANCE).assertTextEquals(Money.format(0))
 
         payCurrentInvoice("Nubank")
         compose.onAllNodesWithText(string(R.string.nav_home)).onFirst().performClick()
-        waitFor(Money.format(-10_000))
+        waitForBalance(-10_000)
     }
 
     @Test
@@ -89,9 +92,12 @@ class CardFlowTest {
         compose.onAllNodesWithText(string(R.string.action_delete)).onLast().performClick()
         compose.waitUntil(5_000) { compose.onAllNodesWithText(string(R.string.card_payments)).fetchSemanticsNodes().isEmpty() }
         compose.onAllNodesWithText(string(R.string.nav_home)).onFirst().performClick()
-        compose.waitUntil(5_000) { compose.onAllNodesWithText(Money.format(-10_000)).fetchSemanticsNodes().isEmpty() }
-        assertTrue(compose.onAllNodesWithText(Money.format(-10_000)).fetchSemanticsNodes().isEmpty())
+        waitForBalance(0)
     }
+
+    /** Espera o saldo total do Início mostrar [cents] (a previsão dos meses pode ter outros valores iguais). */
+    private fun waitForBalance(cents: Long) =
+        compose.waitUntil(5_000) { compose.onAllNodes(hasTestTag(TAG_BALANCE) and hasText(Money.format(cents))).fetchSemanticsNodes().isNotEmpty() }
 
     /** A compra conta no mês em que a fatura vence, que pode ser até dois meses à frente. */
     private fun showMonthWith(text: String) {

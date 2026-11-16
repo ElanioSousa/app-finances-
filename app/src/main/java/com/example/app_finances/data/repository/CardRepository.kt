@@ -8,6 +8,8 @@ import com.example.app_finances.data.local.entity.InvoicePaymentEntity
 import com.example.app_finances.data.local.entity.TransactionEntity
 import com.example.app_finances.domain.CardRules
 import com.example.app_finances.domain.CardSummary
+import com.example.app_finances.data.local.entity.RecurringEntity
+import com.example.app_finances.domain.ForecastInputs
 import com.example.app_finances.domain.InvoiceCalculator
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -22,6 +24,10 @@ data class CardData(
 ) {
     /** Fatura atual, limite e status de cada cartão em [today]. */
     fun summaries(today: LocalDate): List<CardSummary> = CardSummary.ofAll(cards, purchases, payments, today)
+
+    /** O que a previsão de saldo precisa, com o saldo de hoje e as pendências. */
+    fun forecastInputs(balanceCents: Long, pending: List<TransactionEntity>, recurrings: List<RecurringEntity>) =
+        ForecastInputs(balanceCents, pending, recurrings, cards, purchases, payments)
 }
 
 class CardRepository(

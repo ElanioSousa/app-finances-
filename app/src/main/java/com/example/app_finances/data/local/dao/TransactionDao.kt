@@ -7,6 +7,7 @@ import androidx.room.Query
 import androidx.room.Update
 import com.example.app_finances.data.local.entity.TransactionEntity
 import com.example.app_finances.domain.AccountMovement
+import com.example.app_finances.domain.CategoryUse
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 
@@ -60,6 +61,20 @@ interface TransactionDao {
         """,
     )
     fun observePaidMovements(until: LocalDate): Flow<List<AccountMovement>>
+
+    /** Pendências das contas (não do cartão), de qualquer data: o que ainda vai entrar ou sair. */
+    @Query("SELECT * FROM transactions WHERE paid = 0 AND cardId IS NULL")
+    fun observeOpenPending(): Flow<List<TransactionEntity>>
+
+    /** Quantas vezes cada descrição foi lançada com cada categoria (para lembrar a categoria). */
+    @Query(
+        """
+        SELECT description, categoryId, COUNT(*) AS uses, MAX(date) AS lastDate FROM transactions
+        WHERE categoryId IS NOT NULL AND description != ''
+        GROUP BY description, categoryId
+        """,
+    )
+    suspend fun categoryUses(): List<CategoryUse>
 
     @Insert
     suspend fun insert(transaction: TransactionEntity): Long

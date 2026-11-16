@@ -5,6 +5,7 @@ import com.example.app_finances.data.local.dao.CreditCardDao
 import com.example.app_finances.data.local.dao.TransactionDao
 import com.example.app_finances.data.local.entity.TransactionEntity
 import com.example.app_finances.domain.Ledger
+import com.example.app_finances.domain.CategoryMemory
 import com.example.app_finances.domain.LedgerMonths
 import com.example.app_finances.domain.TransactionRules
 import kotlinx.coroutines.Dispatchers
@@ -36,12 +37,17 @@ class TransactionRepository(
     ) { transactions, months -> Ledger(from, to, months.within(transactions, from, to), months) }
         .flowOn(Dispatchers.Default)
 
+    fun observeOpenPending(): Flow<List<TransactionEntity>> = transactionDao.observeOpenPending()
+
     fun observePendingUntil(until: LocalDate): Flow<List<TransactionEntity>> = transactionDao.observePendingUntil(until)
 
     /** Confirma que foi pago/recebido. */
     suspend fun markPaid(transaction: TransactionEntity) = update(transaction.copy(paid = true))
 
     suspend fun getById(id: Long): TransactionEntity? = transactionDao.getById(id)
+
+    /** A categoria que o usuário costuma dar a cada descrição. */
+    suspend fun categoryMemory(): CategoryMemory = CategoryMemory(transactionDao.categoryUses())
 
     /** Grava um lançamento válido; lança [IllegalArgumentException] com o motivo se não for. */
     suspend fun add(transaction: TransactionEntity): Long {

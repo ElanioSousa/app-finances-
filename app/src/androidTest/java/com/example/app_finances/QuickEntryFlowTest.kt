@@ -1,9 +1,11 @@
 package com.example.app_finances
 
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.hasSetTextAction
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.isEnabled
+import androidx.compose.ui.test.isSelectable
 import androidx.compose.ui.test.junit4.v2.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
@@ -83,6 +85,25 @@ class QuickEntryFlowTest {
 
         compose.onAllNodesWithText(string(R.string.nav_transactions)).onFirst().performClick()
         waitFor("Mercado")
+    }
+
+    /** A categoria escolhida uma vez para uma descrição volta sozinha no próximo lançamento igual. */
+    @Test
+    fun categoriaLembradaPelaDescricao() {
+        scenario = TestApp.launchWithFreshDatabase()
+        compose.onNodeWithContentDescription(string(R.string.action_new_transaction)).performClick()
+        waitUntilReady()
+        compose.onNode(hasSetTextAction() and hasText(string(R.string.form_amount))).performTextInput("2700")
+        compose.onNodeWithText("Compras").performClick()
+        compose.onNode(hasSetTextAction() and hasText(string(R.string.form_description))).performTextInput("Lifestyleacai")
+        compose.onNodeWithText(string(R.string.action_save)).performScrollTo().performClick()
+        compose.waitUntil(5_000) { compose.onAllNodesWithText(string(R.string.action_save)).fetchSemanticsNodes().isEmpty() }
+
+        compose.onNodeWithContentDescription(string(R.string.action_new_transaction)).performClick()
+        waitUntilReady()
+        compose.onNode(hasSetTextAction() and hasText(string(R.string.form_description))).performTextInput("lifestyleacai")
+        // O chip da categoria (o Início, atrás da folha, também mostra "Compras").
+        compose.onNode(hasText("Compras") and isSelectable()).assertIsSelected()
     }
 
     /** Com o app já aberto (e até com um formulário aberto), cada "Compartilhar" abre o formulário com o seu texto. */

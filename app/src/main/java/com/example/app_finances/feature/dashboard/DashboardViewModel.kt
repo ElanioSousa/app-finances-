@@ -9,12 +9,14 @@ import com.example.app_finances.core.model.toItems
 import com.example.app_finances.core.ui.UserMessages
 import com.example.app_finances.core.ui.WhileUiSubscribed
 import com.example.app_finances.data.local.entity.CategoryEntity
+import com.example.app_finances.data.local.entity.GoalEntity
 import com.example.app_finances.data.local.entity.RecurringEntity
 import com.example.app_finances.data.local.entity.TransactionEntity
 import com.example.app_finances.data.repository.AccountRepository
 import com.example.app_finances.data.repository.CardData
 import com.example.app_finances.data.repository.CardRepository
 import com.example.app_finances.data.repository.CategoryRepository
+import com.example.app_finances.data.repository.GoalRepository
 import com.example.app_finances.data.repository.RecurringRepository
 import com.example.app_finances.data.repository.TransactionRepository
 import com.example.app_finances.domain.AccountBalance
@@ -26,7 +28,9 @@ import com.example.app_finances.domain.CategorySpend
 import com.example.app_finances.domain.Insights
 import com.example.app_finances.domain.Ledger
 import com.example.app_finances.domain.MonthBar
+import com.example.app_finances.domain.MonthBalance
 import com.example.app_finances.domain.MonthForecast
+import com.example.app_finances.domain.SpendingRoom
 import com.example.app_finances.domain.MonthTotals
 import com.example.app_finances.domain.UpcomingBill
 import kotlinx.coroutines.Dispatchers
@@ -63,9 +67,14 @@ data class DashboardData(
     val recent: List<TransactionItem> = emptyList(),
     /** Mês futuro com valores previstos das recorrências somados aos totais. */
     val includesProjected: Boolean = false,
-    /** Saldo previsto no fim do mês atual (nulo vendo outro mês). */
-    val forecastCents: Long? = null,
+    /** Previsão do mês atual (nula vendo outro mês). */
+    val outlook: Outlook? = null,
 )
+
+/** O que o Início mostra do futuro: fim do mês, quanto ainda dá para gastar e os próximos meses. */
+data class Outlook(val room: SpendingRoom, val months: List<MonthBalance>) {
+    val endOfMonthCents: Long get() = months.first().endCents
+}
 
 data class DashboardUiState(
     /** Nulo enquanto carrega: o Início não mostra "R$ 0,00" provisório. */
@@ -83,6 +92,7 @@ data class DashboardSources(
     val cards: CardRepository,
     val categories: CategoryRepository,
     val recurrings: RecurringRepository,
+    val goals: GoalRepository,
 )
 
 class DashboardViewModel(
@@ -134,6 +144,7 @@ class DashboardViewModel(
         val cards: CardData,
         val categories: List<CategoryEntity>,
         val recurrings: List<RecurringEntity>,
+        val goals: List<GoalEntity>,
     )
 
     /** Contas a vencer e cartões seguem o dia de hoje; o resto, o [month] escolhido. */
@@ -144,16 +155,24 @@ class DashboardViewModel(
             sources.transactions.observeLedger(month.minusMonths(Insights.HISTORY_MONTHS - 1L), month),
             sources.transactions.observePendingUntil(pendingLimit(month, now)),
             sources.cards.observeCardData(),
-            combine(sources.categories.observeAll(), sources.recurrings.observeAll(), ::Pair),
-        ) { balances, ledger, pending, cards, (categories, recurrings) ->
-            Snapshot(month, balances, ledger, pending, cards, categories, recurrings)
+            combine(sources.categories.observeAll(), sources.recurrings.observeAll(), sources.goals.observeAll(), ::Triple),
+        ) { balances, ledger, pending, cards, (categories, recurrings, goals) ->
+            Snapshot(month, balances, ledger, pending, cards, categories, recurrings, goals)
         }
     }
 
-    /** Contas a vencer; vendo o mês atual, até o fim dele também (para a previsão). */
+    /** Contas a vencer; vendo o mês atual, também os meses da previsão. */
     private fun pendingLimit(month: YearMonth, now: LocalDate): LocalDate {
         val upcoming = Insights.upcomingLimit(now)
-        return if (month == YearMonth.from(now)) maxOf(upcoming, month.atEndOfMonth()) else upcoming
+        val horizon = month.plusMonths(MonthForecast.HORIZON_MONTHS - 1L).atEndOfMonth()
+        return if (month == YearMonth.from(now)) maxOf(upcoming, horizon) else upcoming
+    }
+
+    /** Fim do mês, quanto ainda dá para gastar e os próximos meses (só vendo o mês atual). */
+    private fun outlookOf(snapshot: Snapshot, balance: Long, now: LocalDate): Outlook? {
+        if (snapshot.month != YearMonth.from(now)) return null
+        val months = MonthForecast.months(snapshot.cards.forecastInputs(balance, snapshot.pending, snapshot.recurrings), now)
+        return Outlook(SpendingRoom.of(months.first().endCents, snapshot.goals, now), months)
     }
 
     private fun buildData(snapshot: Snapshot): DashboardData {
@@ -184,8 +203,7 @@ class DashboardViewModel(
             cards = cards,
             recent = actualThisMonth.take(RECENT_COUNT).toItems(catalog),
             includesProjected = projectedThisMonth.isNotEmpty(),
-            forecastCents = MonthForecast.endOfMonth(balance, snapshot.pending, snapshot.recurrings, cards, now)
-                .takeIf { month == YearMonth.from(now) },
+            outlook = outlookOf(snapshot, balance, now),
         )
     }
 

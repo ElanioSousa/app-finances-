@@ -27,6 +27,8 @@ data class QuickEntryCatalog(
     val categories: List<CategoryEntity>,
     val accounts: List<AccountEntity>,
     val cards: List<CreditCardEntity>,
+    /** Categorias que o usuário já deu a cada descrição: valem antes das palavras-chave. */
+    val memory: CategoryMemory = CategoryMemory.EMPTY,
 )
 
 /**
@@ -45,13 +47,16 @@ object QuickEntryParser {
         val account = tokens.takeNamed(catalog.accounts) { it.name }
         val onCard = card != null || tokens.takeAny(CARD_WORDS)
         val income = tokens.takeAny(INCOME_WORDS)
-        val category = CategoryGuess.find(tokens.normalizedText(), catalog.categories, if (income) TransactionType.INCOME else null)
-        val type = if (income || category?.kind == CategoryKind.INCOME) TransactionType.INCOME else TransactionType.EXPENSE
+        val guessed = CategoryGuess.find(tokens.normalizedText(), catalog.categories, if (income) TransactionType.INCOME else null)
         tokens.takeAny(FILLER_WORDS)
+        val description = tokens.remaining()
+        val eligible = if (income) catalog.categories.filter { it.kind == CategoryKind.INCOME } else catalog.categories
+        val category = catalog.memory.categoryFor(description, eligible) ?: guessed
+        val type = if (income || category?.kind == CategoryKind.INCOME) TransactionType.INCOME else TransactionType.EXPENSE
         return QuickEntry(
             type = type,
             amountCents = amount,
-            description = tokens.remaining(),
+            description = description,
             categoryId = category?.id,
             accountId = account?.id,
             cardId = card?.id.takeIf { type == TransactionType.EXPENSE },

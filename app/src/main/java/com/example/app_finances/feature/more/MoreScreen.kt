@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.CompareArrows
 import androidx.compose.material.icons.automirrored.outlined.ShowChart
+import androidx.compose.material.icons.outlined.AccountBalance
 import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.EventRepeat
@@ -46,6 +47,7 @@ private val entries = listOf(
     screen(R.string.more_recurring, Icons.Outlined.EventRepeat, { FinanceTheme.colors.warning }, Routes.RECURRING),
     MoreEntry(R.string.more_transfer, Icons.AutoMirrored.Outlined.CompareArrows, { FinanceTheme.colors.transfer }) { it.onNewTransfer() },
     screen(R.string.more_goals, Icons.Outlined.Savings, { FinanceTheme.colors.income }, Routes.GOALS),
+    screen(R.string.more_networth, Icons.Outlined.AccountBalance, { Teal }, Routes.NET_WORTH),
     screen(R.string.more_accounts, Icons.Outlined.AccountBalanceWallet, { MaterialTheme.colorScheme.primary }, Routes.ACCOUNTS),
     screen(R.string.more_categories, Icons.Outlined.Category, { Purple }, Routes.CATEGORIES),
     screen(R.string.more_reports, Icons.AutoMirrored.Outlined.ShowChart, { Teal }, Routes.REPORTS),

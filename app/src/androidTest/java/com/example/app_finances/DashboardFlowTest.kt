@@ -23,6 +23,8 @@ import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.onNodeWithTag
 import com.example.app_finances.feature.dashboard.TAG_BALANCE
 import com.example.app_finances.feature.dashboard.TAG_FORECAST
+import androidx.compose.ui.test.hasScrollToNodeAction
+import androidx.compose.ui.test.performScrollToNode
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -52,10 +54,11 @@ class DashboardFlowTest {
     fun contaPendenteAparecePertoDoVencimentoESomeAoPagar() {
         addPendingExpense(digits = "11990", category = "Alimentação")
         compose.waitUntil(5_000) { exists(string(R.string.home_due_today)) }
-        compose.onNodeWithText(string(R.string.home_spending)).performScrollTo()
+        // O Início é uma lista preguiçosa: rola até o cartão (fora da tela ele ainda não existe).
+        compose.onAllNodes(hasScrollToNodeAction()).onFirst().performScrollToNode(hasText(string(R.string.home_spending)))
         compose.onAllNodesWithText("Alimentação", substring = true).onFirst().assertExists()
         // Pendente ainda não sai do saldo, mas já entra no "previsto no fim do mês".
-        compose.onNodeWithText(string(R.string.home_total_balance)).performScrollTo()
+        compose.onAllNodes(hasScrollToNodeAction()).onFirst().performScrollToNode(hasText(string(R.string.home_total_balance)))
         compose.onNodeWithTag(TAG_BALANCE).assertTextEquals(Money.format(0))
         compose.onNodeWithTag(TAG_FORECAST).assertTextEquals(Money.format(-11_990))
 

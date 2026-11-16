@@ -39,6 +39,7 @@ import com.example.app_finances.core.ui.ShowMessages
 import com.example.app_finances.core.ui.TransactionRow
 import com.example.app_finances.core.ui.containerViewModel
 import com.example.app_finances.core.designsystem.component.ConfirmDialog
+import com.example.app_finances.core.designsystem.component.AmountLine
 import com.example.app_finances.core.designsystem.component.ConfirmTexts
 import com.example.app_finances.core.designsystem.component.DialogActions
 import com.example.app_finances.data.local.entity.InvoicePaymentEntity
@@ -112,14 +113,6 @@ private fun InvoiceCard(invoice: Invoice, status: InvoiceStatus, actions: Invoic
         if (invoice.totalCents > 0) {
             OutlinedButton(onClick = actions.onCheck, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.card_check_action)) }
         }
-    }
-}
-
-@Composable
-private fun AmountLine(label: String, cents: Long) {
-    Row(Modifier.fillMaxWidth()) {
-        Text(label, Modifier.weight(1f), color = MaterialTheme.colorScheme.onSurfaceVariant)
-        MoneyText(cents)
     }
 }
 

@@ -50,6 +50,7 @@ object Routes {
     const val ACCOUNTS = "accounts"
     const val RECURRING = "recurring"
     const val GOALS = "goals"
+    const val NET_WORTH = "net_worth"
     const val CATEGORIES = "categories"
     const val REPORTS = "reports"
     const val SETTINGS = "settings"

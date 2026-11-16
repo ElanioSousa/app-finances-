@@ -106,4 +106,16 @@ class QuickEntryParserTest {
         assertEquals(100_000L, parseCents("1.000"))
         assertNull(parseCents("0"))
     }
+
+    @Test
+    fun `categoria lembrada vale antes da palavra-chave`() {
+        // "Mercado" seria Alimentação pela palavra; o usuário sempre lançou como Compras.
+        val memory = CategoryMemory(listOf(CategoryUse("Mercado", 3, 4, today), CategoryUse("Lifestyleacai", 1, 2, today)))
+        val withMemory = catalog.copy(memory = memory)
+        assertEquals(3L, QuickEntryParser.parse("mercado 45,90", withMemory, today).categoryId)
+        val acai = QuickEntryParser.parse("lifestyleacai 27,00 Nubank", withMemory, today)
+        assertEquals(1L, acai.categoryId)
+        assertEquals(7L, acai.cardId)
+        assertEquals("Lifestyleacai", acai.description)
+    }
 }
