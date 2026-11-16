@@ -288,6 +288,14 @@
     <string name="settings_csv_done">Lançamentos exportados.</string>
     <string name="settings_version">Versão %1$s</string>
 
+    <string name="purchases_channel">Compras para lançar</string>
+    <string name="purchases_listener">Sugerir lançamentos das compras</string>
+    <string name="purchases_title">Compra de %1$s no cartão</string>
+    <string name="purchases_text">%1$s · toque para lançar</string>
+    <string name="purchases_public">Compra para lançar</string>
+    <string name="settings_purchases_title">Compras pelas notificações</string>
+    <string name="settings_purchases_hint">Ao chegar uma compra no crédito do Nubank ou do Google Carteira, o app sugere o lançamento já preenchido. O texto das notificações não sai do celular.</string>
+    <string name="settings_purchases_needs_notifications">Permita as notificações do app para receber as sugestões.</string>
     <string name="reminder_channel">Contas a vencer</string>
     <string name="reminder_title">%1$d contas a pagar até amanhã</string>
     <string name="reminder_title_one">1 conta a pagar até amanhã</string>

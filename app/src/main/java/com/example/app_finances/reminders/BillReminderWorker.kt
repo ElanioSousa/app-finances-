@@ -11,6 +11,7 @@ import androidx.work.WorkerParameters
 import com.example.app_finances.appContainer
 import com.example.app_finances.MainActivity
 import com.example.app_finances.R
+import com.example.app_finances.core.notifications.canPostNotifications
 import com.example.app_finances.core.format.Dates
 import com.example.app_finances.core.format.Money
 import com.example.app_finances.domain.Insights
@@ -39,14 +40,14 @@ class BillReminderWorker(context: Context, params: WorkerParameters) : Coroutine
         val pending = container.transactionRepository.observePendingUntil(today.plusDays(1)).first()
         val summaries = container.cardRepository.observeCardData().first().summaries(today)
         val due = Insights.billsDueByTomorrow(Insights.upcomingBills(pending, summaries, today), today)
-        if (due.isNotEmpty() && BillReminders.canNotify(applicationContext)) notify(due, today)
+        if (due.isNotEmpty() && applicationContext.canPostNotifications()) notify(due, today)
     }
 
     private fun builder(title: String) = NotificationCompat.Builder(applicationContext, BillReminders.CHANNEL_ID)
         .setSmallIcon(R.drawable.ic_notification)
         .setContentTitle(title)
 
-    @Suppress("MissingPermission") // conferida em BillReminders.canNotify()
+    @Suppress("MissingPermission") // conferida em canPostNotifications()
     private fun notify(due: List<UpcomingBill>, today: LocalDate) {
         val title = if (due.size == 1) applicationContext.getString(R.string.reminder_title_one)
         else applicationContext.getString(R.string.reminder_title, due.size)

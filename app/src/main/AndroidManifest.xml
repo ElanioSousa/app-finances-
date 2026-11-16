@@ -43,6 +43,18 @@
                 android:resource="@xml/shortcuts" />
         </activity>
 
+        <!-- Lê as notificações de compra do Nubank e do Google Carteira (acesso ligado pelo usuário
+             nas configurações do Android) e sugere o lançamento. Nada sai do aparelho. -->
+        <service
+            android:name=".purchases.PurchaseNotificationListener"
+            android:exported="true"
+            android:label="@string/purchases_listener"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
         <!-- Widget da tela inicial: saldo, previsto no fim do mês e atalhos de lançamento. -->
         <receiver
             android:name=".widget.SummaryWidget"

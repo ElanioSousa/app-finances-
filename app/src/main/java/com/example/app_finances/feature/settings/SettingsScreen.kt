@@ -14,6 +14,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.currentStateAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -42,7 +46,8 @@ import com.example.app_finances.data.settings.AutoBackupSetting
 import com.example.app_finances.data.settings.ThemeMode
 import com.example.app_finances.core.ui.LocalSnackbarHostState
 import com.example.app_finances.core.ui.containerViewModel
-import com.example.app_finances.reminders.BillReminders
+import com.example.app_finances.core.notifications.canPostNotifications
+import com.example.app_finances.purchases.PurchaseSuggestions
 import com.example.app_finances.widget.SummaryWidget
 import java.time.LocalDate
 
@@ -57,6 +62,7 @@ fun SettingsScreen(scaffoldPadding: PaddingValues, onBack: () -> Unit) {
         item { WidgetSection() }
         item { PrivacySection(state, viewModel) }
         item { RemindersSection(state.settings.billReminders, viewModel::setBillReminders) }
+        item { PurchasesSection() }
         item { DataSection(state.isWorking, viewModel) }
         item { AutoBackupSection(state.settings.autoBackup, viewModel) }
         item {
@@ -135,7 +141,31 @@ private fun RemindersSection(enabled: Boolean, onChange: (Boolean) -> Unit) {
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted -> onChange(granted) }
     SectionCard(title = stringResource(R.string.settings_notifications)) {
         LabeledSwitch(stringResource(R.string.settings_bill_reminders), enabled, stringResource(R.string.settings_bill_reminders_hint)) { on ->
-            if (on && !BillReminders.canNotify(context)) permission.launch(Manifest.permission.POST_NOTIFICATIONS) else onChange(on)
+            if (on && !context.canPostNotifications()) permission.launch(Manifest.permission.POST_NOTIFICATIONS) else onChange(on)
+        }
+    }
+}
+
+/**
+ * Sugestões de lançamento pelas notificações de compra. O acesso é do Android (o app só leva
+ * à tela certa); ao voltar para o app, o interruptor mostra como ficou.
+ */
+@Composable
+private fun PurchasesSection() {
+    val context = LocalContext.current
+    val state by LocalLifecycleOwner.current.lifecycle.currentStateAsState()
+    val resumed = state == Lifecycle.State.RESUMED
+    // Relê ao voltar para a tela (o usuário pode ter mudado o acesso nas configurações do Android).
+    val hasAccess = remember(resumed) { PurchaseSuggestions.hasAccess(context) }
+    val canNotify = remember(resumed) { context.canPostNotifications() }
+    val openAccess = { context.startActivity(PurchaseSuggestions.accessSettingsIntent(context)) }
+    val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { openAccess() }
+    SectionCard(title = stringResource(R.string.settings_purchases_title)) {
+        LabeledSwitch(stringResource(R.string.purchases_listener), hasAccess, stringResource(R.string.settings_purchases_hint)) { on ->
+            if (on && !canNotify) permission.launch(Manifest.permission.POST_NOTIFICATIONS) else openAccess()
+        }
+        if (hasAccess && !canNotify) {
+            Text(stringResource(R.string.settings_purchases_needs_notifications), style = MaterialTheme.typography.bodySmall, color = FinanceTheme.colors.warning)
         }
     }
 }

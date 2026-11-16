@@ -7,6 +7,7 @@ import com.example.app_finances.autobackup.AutoBackup
 import com.example.app_finances.core.security.AppLock
 import com.example.app_finances.data.settings.AppSettings
 import com.example.app_finances.di.AppContainer
+import com.example.app_finances.purchases.PurchaseSuggestions
 import com.example.app_finances.reminders.BillReminders
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.catch
@@ -29,6 +30,7 @@ class FinancesApplication : Application() {
         super.onCreate()
         container = AppContainer(this)
         BillReminders.createChannel(this)
+        PurchaseSuggestions.createChannel(this)
         appLock.watchAppBackground(this)
         keepScheduled({ it.billReminders }, BillReminders::apply)
         keepScheduled({ it.autoBackup != null }, AutoBackup::apply)
