@@ -40,7 +40,8 @@ class SummaryWidget : AppWidgetProvider() {
 
     private fun views(context: Context, summary: WidgetSummary) = RemoteViews(context.packageName, R.layout.widget_summary).apply {
         setTextViewText(R.id.widget_balance, summary.balance)
-        setTextViewText(R.id.widget_forecast, context.getString(R.string.widget_forecast, summary.forecast))
+        val forecast = if (summary.locked) context.getString(R.string.widget_locked) else context.getString(R.string.widget_forecast, summary.forecast)
+        setTextViewText(R.id.widget_forecast, forecast)
         setOnClickPendingIntent(R.id.widget_root, openApp(context, Intent.ACTION_MAIN, REQUEST_OPEN))
         setOnClickPendingIntent(R.id.widget_voice, openApp(context, MainActivity.ACTION_VOICE_ENTRY, REQUEST_VOICE))
         setOnClickPendingIntent(R.id.widget_add, openApp(context, MainActivity.ACTION_NEW_ENTRY, REQUEST_ADD))

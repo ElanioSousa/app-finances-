@@ -47,6 +47,7 @@ import com.example.app_finances.data.settings.AutoBackupSetting
 import com.example.app_finances.data.settings.ThemeMode
 import com.example.app_finances.core.ui.LocalSnackbarHostState
 import com.example.app_finances.core.ui.containerViewModel
+import com.example.app_finances.core.ui.premiumOnly
 import com.example.app_finances.core.notifications.canPostNotifications
 import com.example.app_finances.purchases.PurchaseSuggestions
 import com.example.app_finances.widget.SummaryWidget
@@ -103,9 +104,8 @@ private fun WidgetSection() {
     val context = LocalContext.current
     if (!SummaryWidget.canPin(context)) return
     SectionCard(title = stringResource(R.string.widget_name)) {
-        ActionRow(Icons.Outlined.Widgets, RowText(stringResource(R.string.settings_widget_add), stringResource(R.string.widget_description)), enabled = true) {
-            SummaryWidget.requestPin(context)
-        }
+        val pin = premiumOnly { SummaryWidget.requestPin(context) }
+        ActionRow(Icons.Outlined.Widgets, RowText(stringResource(R.string.settings_widget_add), stringResource(R.string.widget_description)), enabled = true, onClick = pin)
     }
 }
 
@@ -140,7 +140,7 @@ private fun PrivacySection(state: SettingsUiState, viewModel: SettingsViewModel)
 private fun RemindersSection(settings: AppSettings, viewModel: SettingsViewModel) {
     SectionCard(title = stringResource(R.string.settings_notifications)) {
         NotificationSwitch(RowText(stringResource(R.string.settings_bill_reminders), stringResource(R.string.settings_bill_reminders_hint)), settings.billReminders, viewModel::setBillReminders)
-        NotificationSwitch(RowText(stringResource(R.string.settings_month_alerts), stringResource(R.string.settings_month_alerts_hint)), settings.monthAlerts, viewModel::setMonthAlerts)
+        NotificationSwitch(RowText(stringResource(R.string.settings_month_alerts), stringResource(R.string.settings_month_alerts_hint)), settings.monthAlerts, premiumOnly(viewModel::setMonthAlerts))
     }
 }
 
@@ -169,9 +169,8 @@ private fun PurchasesSection() {
     val openAccess = { context.startActivity(PurchaseSuggestions.accessSettingsIntent(context)) }
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { openAccess() }
     SectionCard(title = stringResource(R.string.settings_purchases_title)) {
-        LabeledSwitch(stringResource(R.string.purchases_listener), hasAccess, stringResource(R.string.settings_purchases_hint)) { on ->
-            if (on && !canNotify) permission.launch(Manifest.permission.POST_NOTIFICATIONS) else openAccess()
-        }
+        val toggle = premiumOnly<Boolean> { on -> if (on && !canNotify) permission.launch(Manifest.permission.POST_NOTIFICATIONS) else openAccess() }
+        LabeledSwitch(stringResource(R.string.purchases_listener), hasAccess, stringResource(R.string.settings_purchases_hint), toggle)
         if (hasAccess && !canNotify) {
             Text(stringResource(R.string.settings_purchases_needs_notifications), style = MaterialTheme.typography.bodySmall, color = FinanceTheme.colors.warning)
         }
@@ -198,9 +197,8 @@ private fun DataSection(isWorking: Boolean, viewModel: SettingsViewModel) {
 private fun AutoBackupSection(setting: AutoBackupSetting?, viewModel: SettingsViewModel) {
     val pickFolder = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri -> uri?.let(viewModel::enableAutoBackup) }
     SectionCard(title = stringResource(R.string.settings_auto_backup_title)) {
-        LabeledSwitch(stringResource(R.string.settings_auto_backup), setting != null, autoBackupHint(setting)) { on ->
-            if (on) pickFolder.launch(null) else viewModel.disableAutoBackup()
-        }
+        val toggle = premiumOnly<Boolean> { on -> if (on) pickFolder.launch(null) else viewModel.disableAutoBackup() }
+        LabeledSwitch(stringResource(R.string.settings_auto_backup), setting != null, autoBackupHint(setting), toggle)
         if (setting?.lastDone != null && AutoBackupFiles.isLate(setting.lastDone, LocalDate.now())) {
             Text(stringResource(R.string.settings_auto_backup_late, AutoBackupFiles.LATE_AFTER_DAYS), style = MaterialTheme.typography.bodySmall, color = FinanceTheme.colors.warning)
         }

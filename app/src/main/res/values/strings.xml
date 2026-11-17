@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Finanças</string>
+    <string name="app_name">Minhas Finanças</string>
 
     <string name="nav_home">Início</string>
     <string name="nav_transactions">Lançamentos</string>
@@ -50,6 +50,28 @@
     <string name="networth_card">Cartão %1$s (com parcelas futuras)</string>
     <string name="networth_payable">Contas a pagar (pendentes)</string>
     <string name="networth_total">Total</string>
+    <string name="premium_title">Minhas Finanças Premium</string>
+    <string name="premium_includes">O Premium libera</string>
+    <string name="premium_benefit_notifications">Lançamento sugerido pelas notificações de compra do Nubank e do Google Carteira</string>
+    <string name="premium_benefit_outlook">Quanto ainda pode gastar no mês e o saldo previsto dos próximos meses</string>
+    <string name="premium_benefit_goals">Metas de economia</string>
+    <string name="premium_benefit_networth">Patrimônio e dívidas</string>
+    <string name="premium_benefit_alerts">Resumo do mês e alertas de orçamento e de limite do cartão</string>
+    <string name="premium_benefit_backup">Backup automático semanal</string>
+    <string name="premium_benefit_widget">Widget na tela inicial</string>
+    <string name="premium_once">Pagamento único: sem assinatura, vale para sempre na sua conta Google. Seus dados continuam só no celular.</string>
+    <string name="premium_buy">Comprar por %1$s</string>
+    <string name="premium_restore">Restaurar compra</string>
+    <string name="premium_owned">Você tem o Premium. Obrigado por apoiar o app!</string>
+    <string name="premium_pending">Pagamento em processamento: o Premium é liberado assim que a Play Store confirmar.</string>
+    <string name="premium_loading">Consultando a Play Store…</string>
+    <string name="premium_unavailable">Compra indisponível agora. Instale o app pela Play Store e confira a conexão.</string>
+    <string name="premium_debug_unlock">Liberar Premium (só na versão de teste)</string>
+    <string name="premium_debug_lock">Bloquear Premium (só na versão de teste)</string>
+    <string name="premium_locked_title">%1$s é um recurso Premium</string>
+    <string name="premium_locked_body">Libere com uma compra única, sem assinatura.</string>
+    <string name="premium_see">Conhecer o Premium</string>
+    <string name="home_room_premium">Quanto ainda pode gastar e os próximos meses: Premium ›</string>
     <string name="more_categories">Categorias</string>
     <string name="more_accounts">Contas</string>
     <string name="more_reports">Relatórios</string>
@@ -90,6 +112,7 @@
     <!-- Prévia do widget (antes de ler os dados): sem valores reais. -->
     <string name="widget_preview_value">R$ ••••</string>
     <string name="widget_preview_forecast">Fim do mês: R$ ••••</string>
+    <string name="widget_locked">Widget do Premium: toque para conhecer</string>
     <string name="widget_forecast">Fim do mês: %1$s</string>
     <string name="home_room">Pode gastar até o fim do mês:</string>
     <string name="home_room_per_day">Cerca de %1$s por dia</string>

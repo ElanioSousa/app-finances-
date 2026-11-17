@@ -12,6 +12,8 @@ import com.example.app_finances.data.repository.CategoryRepository
 import com.example.app_finances.data.repository.GoalRepository
 import com.example.app_finances.data.repository.RecurringRepository
 import com.example.app_finances.data.repository.TransactionRepository
+import com.example.app_finances.premium.PlayPremiumStore
+import com.example.app_finances.premium.PremiumStore
 
 /**
  * Injeção de dependência manual: um único lugar cria o banco e os repositórios.
@@ -24,6 +26,8 @@ class AppContainer(
     createDatabase: (Context) -> AppDatabase = AppDatabase::create,
     /** "Hoje" para as regras que dependem da data (faturas); testes podem fixar. */
     val today: () -> LocalDate = LocalDate::now,
+    /** Compra do Premium; os testes trocam por uma que não fala com a Play Store. */
+    createPremiumStore: (Context, SettingsRepository) -> PremiumStore = ::PlayPremiumStore,
 ) {
     private val appContext: Context = context.applicationContext
     private val database: AppDatabase by lazy { createDatabase(appContext) }
@@ -40,6 +44,7 @@ class AppContainer(
     val goalRepository by lazy { GoalRepository(database.goalDao()) }
     val backupRepository by lazy { BackupRepository(database.backupDao(), appContext.contentResolver) }
     val settingsRepository by lazy { SettingsRepository(appContext) }
+    val premiumStore: PremiumStore by lazy { createPremiumStore(appContext, settingsRepository) }
 
     /** De onde as telas tiram categorias, contas e cartões. */
     val catalogSources by lazy { CatalogSources(categoryRepository, accountRepository, cardRepository) }

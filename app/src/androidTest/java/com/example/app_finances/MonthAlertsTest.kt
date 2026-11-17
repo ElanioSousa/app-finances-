@@ -4,7 +4,6 @@ import android.app.NotificationManager
 import androidx.core.content.getSystemService
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
 import androidx.work.ListenableWorker
 import androidx.work.testing.TestListenableWorkerBuilder
 import com.example.app_finances.alerts.MonthAlertsWorker
@@ -31,8 +30,7 @@ class MonthAlertsTest {
 
     @Before
     fun start() {
-        InstrumentationRegistry.getInstrumentation().uiAutomation
-            .executeShellCommand("pm grant ${TestApp.context.packageName} android.permission.POST_NOTIFICATIONS").close()
+        TestApp.grantNotifications()
         scenario = TestApp.launchWithFreshDatabase()
         forgetAlerts()
     }

@@ -25,7 +25,8 @@ class AutoBackupWorker(context: Context, params: WorkerParameters) : CoroutineWo
 
     private suspend fun backUp() {
         val container = applicationContext.appContainer
-        val setting = container.settingsRepository.settings.first().autoBackup ?: return
+        val settings = container.settingsRepository.settings.first()
+        val setting = settings.autoBackup?.takeIf { settings.premium } ?: return
         val today = container.today()
         container.backupRepository.exportToFolder(setting.folderUri.toUri(), today)
         container.settingsRepository.setAutoBackupDone(today)

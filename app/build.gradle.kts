@@ -15,7 +15,9 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.app_finances"
+        // Identificador na Play Store: permanente depois do primeiro envio. (O pacote do código,
+        // `namespace`, continua com.example.app_finances: o Android e a Play só olham este.)
+        applicationId = "io.github.elaniosousa.minhasfinancas"
         minSdk = 26
         targetSdk = 37
         versionCode = 1
@@ -97,6 +99,8 @@ dependencies {
     ksp(libs.androidx.room.compiler)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.work.runtime.ktx)
+    // Compra única do Premium pela Play Store (biblioteca oficial do Google).
+    implementation(libs.play.billing.ktx)
     implementation(libs.androidx.biometric)
     implementation(libs.androidx.lifecycle.process)
     implementation(libs.androidx.core.splashscreen)

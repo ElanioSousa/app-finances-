@@ -51,6 +51,7 @@ object Routes {
     const val RECURRING = "recurring"
     const val GOALS = "goals"
     const val NET_WORTH = "net_worth"
+    const val PREMIUM = "premium"
     const val CATEGORIES = "categories"
     const val REPORTS = "reports"
     const val SETTINGS = "settings"

@@ -17,6 +17,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.app_finances.core.ui.LocalPremium
 import com.example.app_finances.core.ui.ShowMessages
 import com.example.app_finances.core.ui.containerViewModel
 import com.example.app_finances.core.model.TransactionItem
@@ -55,6 +56,7 @@ fun DashboardScreen(scaffoldPadding: PaddingValues, actions: DashboardActions) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     ShowMessages(viewModel.errorFlow)
     val data = state.data
+    val premium = LocalPremium.current
 
     ScreenColumn(title = stringResource(R.string.home_greeting), scaffoldPadding = scaffoldPadding) {
         // Só mostra números depois de carregar: "R$ 0,00" provisório engana.
@@ -64,7 +66,7 @@ fun DashboardScreen(scaffoldPadding: PaddingValues, actions: DashboardActions) {
         item { UpcomingCard(data.upcoming, data.today, UpcomingActions(actions.onOpenTransaction, actions.onOpenCard, viewModel::markPaid)) }
         if (data.budgets.isNotEmpty()) item { BudgetsCard(data.budgets) }
         if (data.cards.isNotEmpty()) item { CardsCard(data.cards, data.today, actions.onOpenCard) }
-        data.outlook?.let { item { NextMonthsCard(it.months) } }
+        if (premium) data.outlook?.let { item { NextMonthsCard(it.months) } }
         item { SpendingCard(data.spending, data.categoryById) }
         item { HistoryCard(data.history, state.selectedMonth, viewModel::selectMonth) }
         item { RecentCard(data.recent, actions.onOpenTransaction, actions.onSeeAll) }

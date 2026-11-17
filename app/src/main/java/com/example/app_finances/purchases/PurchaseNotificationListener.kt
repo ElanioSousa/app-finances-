@@ -30,7 +30,9 @@ class PurchaseNotificationListener : NotificationListenerService() {
         if (PurchaseSuggestions.isShown(this, notice)) return
         scope.launch {
             try {
-                val cards = applicationContext.appContainer.cardRepository.observeCards().first()
+                val container = applicationContext.appContainer
+                if (!container.settingsRepository.settings.first().premium) return@launch
+                val cards = container.cardRepository.observeCards().first()
                 PurchaseSuggestions.suggest(applicationContext, notice, notice.quickText(cards))
             } catch (e: CancellationException) {
                 throw e

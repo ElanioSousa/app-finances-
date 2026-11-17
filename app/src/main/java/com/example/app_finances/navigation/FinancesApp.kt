@@ -42,7 +42,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.app_finances.R
+import com.example.app_finances.core.designsystem.component.ScreenColumn
+import com.example.app_finances.core.ui.LocalOpenPremium
+import com.example.app_finances.core.ui.LocalPremium
 import com.example.app_finances.core.ui.LocalSnackbarHostState
+import com.example.app_finances.core.ui.PremiumLocked
+import com.example.app_finances.feature.premium.PremiumScreen
 import com.example.app_finances.feature.accounts.AccountsScreen
 import com.example.app_finances.feature.cards.CardsScreen
 import com.example.app_finances.feature.cards.detail.CardDetailActions
@@ -85,7 +90,8 @@ fun FinancesApp(launchRequest: FormRequest? = null, onLaunchRequestUsed: () -> U
         }
     }
 
-    CompositionLocalProvider(LocalSnackbarHostState provides snackbarHostState) {
+    val openPremium = remember(navController) { { navController.navigateToPremium() } }
+    CompositionLocalProvider(LocalSnackbarHostState provides snackbarHostState, LocalOpenPremium provides openPremium) {
         Scaffold(
             bottomBar = { BottomBar(current) { navController.selectTab(it, current) } },
             floatingActionButton = { if (showFab) AddButton(current) { formRequest = addRequest(current, backStackEntry) } },
@@ -183,8 +189,13 @@ private fun NavGraphBuilder.moreGraph(nav: AppNavContext) = tabGraph(TopLevelDes
     composable(route) { MoreScreen(nav.padding, MoreActions(onOpen = nav.navController::navigate, onNewTransfer = { nav.openForm(FormRequest.Transfer) })) }
     composable(Routes.ACCOUNTS) { AccountsScreen(nav.padding, onBack = nav.navController::popBackStack) }
     composable(Routes.RECURRING) { RecurringScreen(nav.padding, onBack = nav.navController::popBackStack) }
-    composable(Routes.NET_WORTH) { NetWorthScreen(nav.padding, onBack = nav.navController::popBackStack) }
-    composable(Routes.GOALS) { GoalsScreen(nav.padding, onBack = nav.navController::popBackStack) }
+    composable(Routes.PREMIUM) { PremiumScreen(nav.padding, onBack = nav.navController::popBackStack) }
+    composable(Routes.NET_WORTH) {
+        PremiumRoute(R.string.networth_title, nav) { NetWorthScreen(nav.padding, onBack = nav.navController::popBackStack) }
+    }
+    composable(Routes.GOALS) {
+        PremiumRoute(R.string.goals_title, nav) { GoalsScreen(nav.padding, onBack = nav.navController::popBackStack) }
+    }
     composable(Routes.CATEGORIES) { CategoriesScreen(nav.padding, onBack = nav.navController::popBackStack) }
     composable(Routes.REPORTS) { ReportsScreen(nav.padding, onBack = nav.navController::popBackStack) }
     composable(Routes.SETTINGS) { SettingsScreen(nav.padding, onBack = nav.navController::popBackStack) }
@@ -234,6 +245,25 @@ private fun AddButton(current: TopLevelDestination, onClick: () -> Unit) {
             Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.action_new_transaction))
         }
     }
+}
+
+/** Tela Premium: sem o Premium, mostra o que ela é e o caminho para liberar (e não abre a tela de verdade). */
+@Composable
+private fun PremiumRoute(titleRes: Int, nav: AppNavContext, content: @Composable () -> Unit) {
+    if (LocalPremium.current) {
+        content()
+        return
+    }
+    val title = stringResource(titleRes)
+    ScreenColumn(title = title, scaffoldPadding = nav.padding, onBack = nav.navController::popBackStack) {
+        item { PremiumLocked(title) }
+    }
+}
+
+/** Abre a tela do Premium dentro da aba Mais (de onde quer que se esteja). */
+private fun NavHostController.navigateToPremium() {
+    navigateToTab(TopLevelDestination.More)
+    navigate(Routes.PREMIUM)
 }
 
 /** Abre o detalhe de um cartão dentro da aba Cartões (de onde quer que se esteja). */

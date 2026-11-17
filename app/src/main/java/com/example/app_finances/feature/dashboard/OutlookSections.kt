@@ -6,7 +6,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.clickable
 import androidx.compose.ui.Alignment
+import com.example.app_finances.core.ui.LocalOpenPremium
+import com.example.app_finances.core.ui.LocalPremium
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -31,7 +34,7 @@ const val TAG_ROOM = "home_room"
 fun OutlookLines(outlook: Outlook) {
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         LabeledAmount(stringResource(R.string.home_forecast), outlook.endOfMonthCents, TAG_FORECAST)
-        RoomLine(outlook.room)
+        if (LocalPremium.current) RoomLine(outlook.room) else PremiumTeaser()
     }
 }
 
@@ -60,6 +63,18 @@ private fun RoomLine(room: SpendingRoom) {
     if (room.reservedForGoalsCents > 0) {
         Text(stringResource(R.string.home_room_goals, formatMoney(room.reservedForGoalsCents)), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
+}
+
+/** Sem o Premium: o convite para "quanto pode gastar" e "próximos meses". */
+@Composable
+private fun PremiumTeaser() {
+    val open = LocalOpenPremium.current
+    Text(
+        stringResource(R.string.home_room_premium),
+        style = MaterialTheme.typography.bodySmall,
+        color = FinanceTheme.colors.warning,
+        modifier = Modifier.clickable(onClick = open),
+    )
 }
 
 /** Saldo previsto no fim de cada um dos próximos meses (vermelho se ficar negativo). */

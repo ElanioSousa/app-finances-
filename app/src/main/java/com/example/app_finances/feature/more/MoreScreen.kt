@@ -12,6 +12,7 @@ import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.EventRepeat
 import androidx.compose.material.icons.outlined.Savings
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.WorkspacePremium
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -44,6 +45,7 @@ private fun screen(@StringRes labelRes: Int, icon: ImageVector, color: @Composab
     MoreEntry(labelRes, icon, color) { it.onOpen(route) }
 
 private val entries = listOf(
+    screen(R.string.premium_title, Icons.Outlined.WorkspacePremium, { FinanceTheme.colors.warning }, Routes.PREMIUM),
     screen(R.string.more_recurring, Icons.Outlined.EventRepeat, { FinanceTheme.colors.warning }, Routes.RECURRING),
     MoreEntry(R.string.more_transfer, Icons.AutoMirrored.Outlined.CompareArrows, { FinanceTheme.colors.transfer }) { it.onNewTransfer() },
     screen(R.string.more_goals, Icons.Outlined.Savings, { FinanceTheme.colors.income }, Routes.GOALS),

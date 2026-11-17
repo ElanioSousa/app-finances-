@@ -29,7 +29,8 @@ class MonthAlertsWorker(context: Context, params: WorkerParameters) : CoroutineW
     private val container get() = applicationContext.appContainer
 
     override suspend fun doWork(): Result = try {
-        if (container.settingsRepository.settings.first().monthAlerts) check()
+        val settings = container.settingsRepository.settings.first()
+        if (settings.monthAlerts && settings.premium) check()
         Result.success()
     } catch (e: CancellationException) {
         throw e

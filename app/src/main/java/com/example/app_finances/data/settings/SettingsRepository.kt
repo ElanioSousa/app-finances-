@@ -27,6 +27,8 @@ data class AppSettings(
     val autoBackup: AutoBackupSetting? = null,
     /** Resumo no início do mês e alertas de orçamento e de limite do cartão. */
     val monthAlerts: Boolean = false,
+    /** Comprou o Premium (confirmado pela Play Store; guardado para valer sem internet). */
+    val premium: Boolean = false,
 )
 
 /** O que os alertas já avisaram: o mês do último resumo e as chaves dos alertas enviados. */
@@ -63,6 +65,7 @@ class SettingsRepository(context: Context) {
             themeMode = prefs[THEME_MODE]?.let { runCatching { ThemeMode.valueOf(it) }.getOrNull() }
                 ?: if (prefs[DARK_THEME] == false) ThemeMode.LIGHT else ThemeMode.DARK,
             monthAlerts = prefs[MONTH_ALERTS] ?: false,
+            premium = prefs[PREMIUM] ?: false,
             autoBackup = prefs[AUTO_BACKUP_FOLDER]?.let { folder ->
                 AutoBackupSetting(folder, prefs[AUTO_BACKUP_FOLDER_NAME].orEmpty(), prefs[AUTO_BACKUP_LAST]?.let(LocalDate::parse))
             },
@@ -76,6 +79,9 @@ class SettingsRepository(context: Context) {
     suspend fun setAppLock(value: Boolean) = set(APP_LOCK, value)
 
     suspend fun setMonthAlerts(value: Boolean) = set(MONTH_ALERTS, value)
+
+    /** Só o PremiumStore muda isto (a partir do que a Play Store diz). */
+    suspend fun setPremium(value: Boolean) = set(PREMIUM, value)
 
     val alertsState: Flow<AlertsState> = store.data.map { prefs ->
         AlertsState(prefs[ALERTS_LAST_SUMMARY]?.let(YearMonth::parse), prefs[ALERTS_SENT].orEmpty())
@@ -131,6 +137,7 @@ class SettingsRepository(context: Context) {
         val DARK_THEME = booleanPreferencesKey("dark_theme")
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val MONTH_ALERTS = booleanPreferencesKey("month_alerts")
+        val PREMIUM = booleanPreferencesKey("premium")
         val ALERTS_LAST_SUMMARY = stringPreferencesKey("alerts_last_summary")
         val ALERTS_SENT = stringSetPreferencesKey("alerts_sent")
         val AUTO_BACKUP_FOLDER = stringPreferencesKey("auto_backup_folder")

@@ -6,10 +6,10 @@
         android:icon="@drawable/ic_shortcut_voice"
         android:shortcutShortLabel="@string/shortcut_voice_short"
         android:shortcutLongLabel="@string/shortcut_voice_long">
-        <!-- A ação é MainActivity.ACTION_VOICE_ENTRY. -->
+        <!-- A ação é MainActivity.ACTION_VOICE_ENTRY; targetPackage é o applicationId (app/build.gradle.kts). -->
         <intent
             android:action="com.example.app_finances.action.VOICE_ENTRY"
-            android:targetPackage="com.example.app_finances"
+            android:targetPackage="io.github.elaniosousa.minhasfinancas"
             android:targetClass="com.example.app_finances.MainActivity" />
     </shortcut>
 </shortcuts>

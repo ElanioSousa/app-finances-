@@ -29,6 +29,7 @@ import com.example.app_finances.core.designsystem.component.HiddenMoney
 import com.example.app_finances.core.designsystem.component.LocalMoneyFormatter
 import com.example.app_finances.core.designsystem.component.VisibleMoney
 import com.example.app_finances.core.designsystem.theme.AppfinancesTheme
+import com.example.app_finances.core.ui.LocalPremium
 import com.example.app_finances.core.designsystem.theme.SystemNightMode
 import com.example.app_finances.core.security.LockScreen
 import com.example.app_finances.data.settings.AppSettings
@@ -87,7 +88,10 @@ class MainActivity : FragmentActivity() {
             LockScreen(onUnlock = { app.appLock.prompt(this, title) })
             return
         }
-        CompositionLocalProvider(LocalMoneyFormatter provides if (settings.hideValues) HiddenMoney else VisibleMoney) {
+        CompositionLocalProvider(
+            LocalMoneyFormatter provides if (settings.hideValues) HiddenMoney else VisibleMoney,
+            LocalPremium provides settings.premium,
+        ) {
             Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
                 FinancesApp(launchRequest, onLaunchRequestUsed = { launchRequest = null })
             }
@@ -130,6 +134,8 @@ class MainActivity : FragmentActivity() {
             runCatching {
                 container.recurringRepository.generateDue()
             }.onFailure { Log.e(TAG, "Falha nas tarefas de abertura", it) }
+            // Confere a compra do Premium (reembolso, outro aparelho); sem loja ou sem internet, fica como estava.
+            runCatching { container.premiumStore.refresh() }.onFailure { Log.e(TAG, "Falha ao conferir o Premium", it) }
         }
     }
 

@@ -6,7 +6,6 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.core.content.getSystemService
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import androidx.test.platform.app.InstrumentationRegistry
 import com.example.app_finances.core.format.Money
 import com.example.app_finances.domain.BankNotification
 import com.example.app_finances.purchases.PurchaseSuggestions
@@ -28,8 +27,7 @@ class PurchaseSuggestionTest {
 
     @Before
     fun allowNotifications() {
-        InstrumentationRegistry.getInstrumentation().uiAutomation
-            .executeShellCommand("pm grant ${TestApp.context.packageName} android.permission.POST_NOTIFICATIONS").close()
+        TestApp.grantNotifications()
     }
 
     @After
