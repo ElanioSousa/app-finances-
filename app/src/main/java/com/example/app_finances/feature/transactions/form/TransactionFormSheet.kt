@@ -71,6 +71,7 @@ private data class FormActions(
     val onDelete: () -> Unit,
     val onQuickText: (String) -> Unit,
     val onDate: (LocalDate) -> Unit,
+    val onLaunchDate: (LocalDate) -> Unit,
     val onDescription: (String) -> Unit,
     /** "Recorrência" no tipo: troca este formulário pelo cadastro de recorrência/assinatura. */
     val onNewRecurring: () -> Unit,
@@ -100,7 +101,7 @@ fun TransactionFormSheet(request: FormRequest, onDismiss: () -> Unit, onNewRecur
         sheetGesturesEnabled = false,
         dragHandle = null,
     ) {
-        val actions = FormActions(viewModel::update, viewModel::save, onDismiss, viewModel::delete, viewModel::applyQuickText, viewModel::setDate, viewModel::setDescription, onNewRecurring)
+        val actions = FormActions(viewModel::update, viewModel::save, onDismiss, viewModel::delete, viewModel::applyQuickText, viewModel::setDate, viewModel::setLaunchDate, viewModel::setDescription, onNewRecurring)
         TransactionForm(state, actions, startWithVoice = request is FormRequest.Voice)
     }
 }
@@ -121,7 +122,8 @@ private fun TransactionForm(state: TransactionFormUiState, actions: FormActions,
         }
         DescriptionField(draft.description, actions.onDescription)
         OriginSection(state, actions)
-        DateField(draft.date, actions.onDate)
+        DateField(draft.launchDate ?: draft.date, actions.onLaunchDate, label = stringResource(R.string.form_launch_date))
+        DateField(draft.date, actions.onDate, label = stringResource(dateLabel(draft)))
         if (!draft.isCardPurchase) PaidSwitch(draft, actions)
         NotesField(draft.notes) { text -> actions.onUpdate { it.copy(notes = text) } }
         state.status.error?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium) }
@@ -178,7 +180,20 @@ private fun OriginSection(state: TransactionFormUiState, actions: FormActions) {
         OriginSelector(draft.origin) { origin -> actions.onUpdate { it.copy(origin = origin) } }
     }
     if (draft.isCardPurchase) CardFields(state, actions) else AccountFields(state, actions)
+    if (state.canChooseInstallments) InstallmentFields(state, actions)
+    state.status.editedInstallment?.let { info ->
+        Text(stringResource(R.string.form_installment_info, info.number, info.count), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
 }
+
+/** A data que decide o mês: vencimento (da 1ª parcela, se parcelado), data da compra no cartão ou da transferência. */
+private fun dateLabel(draft: TransactionDraft): Int = when {
+    draft.isCardPurchase -> R.string.form_purchase_date
+    draft.isTransfer -> R.string.form_transfer_date
+    draft.installmentCount > 1 -> R.string.form_first_due_date
+    else -> R.string.form_due_date
+}
+
 
 @Composable
 private fun OriginSelector(selected: PaymentOrigin, onSelect: (PaymentOrigin) -> Unit) =
@@ -194,20 +209,14 @@ private fun CardFields(state: TransactionFormUiState, actions: FormActions) {
     if (state.canChangeOrigin) {
         OptionDropdown(stringResource(R.string.form_card), state.cardOptions, draft.cardId, { id -> actions.onUpdate { it.copy(cardId = id) } }, Modifier.fillMaxWidth())
     }
-    if (state.canChooseInstallments) InstallmentFields(state, actions)
-    state.status.editedInstallment?.let { info ->
-        Text(stringResource(R.string.form_installment_info, info.number, info.count), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
 }
 
-/** "À vista no cartão" ou "Compra parcelada" — e, parcelada, a quantidade de parcelas. */
+/** À vista ou parcelado (no cartão: "À vista no cartão"/"Compra parcelada") — e, parcelado, a quantidade. */
 @Composable
 private fun InstallmentFields(state: TransactionFormUiState, actions: FormActions) {
     val draft = state.draft
-    val options = listOf(
-        Option(false, stringResource(R.string.form_card_cash)),
-        Option(true, stringResource(R.string.form_card_installments)),
-    )
+    val (cash, parcelled) = if (draft.isCardPurchase) R.string.form_card_cash to R.string.form_card_installments else R.string.form_cash to R.string.form_installments
+    val options = listOf(Option(false, stringResource(cash)), Option(true, stringResource(parcelled)))
     OptionDropdown(stringResource(R.string.form_payment), options, draft.inInstallments, { parcelled -> actions.onUpdate { it.withInstallments(parcelled) } }, Modifier.fillMaxWidth())
     if (!draft.inInstallments) return
     val hint = state.firstInstallmentCents?.let { stringResource(R.string.form_installment_option, draft.installments, Money.format(it)) }
@@ -290,8 +299,15 @@ private fun AccountFields(state: TransactionFormUiState, actions: FormActions) {
 }
 
 @Composable
-private fun PaidSwitch(draft: TransactionDraft, actions: FormActions) =
-    LabeledSwitch(stringResource(draft.type.paidLabelRes), draft.paid) { paid -> actions.onUpdate { it.copy(paid = paid) } }
+private fun PaidSwitch(draft: TransactionDraft, actions: FormActions) {
+    // Parcelado: a chave vale só para a 1ª parcela (as que vencem depois ficam pendentes).
+    val label = when {
+        draft.installmentCount <= 1 -> draft.type.paidLabelRes
+        draft.type == TransactionType.INCOME -> R.string.form_paid_first_income
+        else -> R.string.form_paid_first_expense
+    }
+    LabeledSwitch(stringResource(label), draft.paid) { paid -> actions.onUpdate { it.copy(paid = paid) } }
+}
 
 @Composable
 private fun NotesField(value: String, onChange: (String) -> Unit) {

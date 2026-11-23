@@ -86,8 +86,7 @@ fun RecurringFormDialog(editing: Editing<RecurringEditor>, catalog: Catalog, act
             editor.frequency,
             { f -> onEdit { it.copy(frequency = f) } },
         )
-        Text(stringResource(R.string.recurring_first_date), style = MaterialTheme.typography.labelLarge)
-        DateField(editor.startDate, { date -> onEdit { it.copy(startDate = date) } })
+        DateField(editor.startDate, { date -> onEdit { it.copy(startDate = date) } }, label = stringResource(R.string.recurring_first_date))
         TermFields(editor, onEdit)
         LabeledSwitch(stringResource(R.string.recurring_is_subscription), editor.isSubscription) { checked ->
             onEdit { it.copy(isSubscription = checked) }

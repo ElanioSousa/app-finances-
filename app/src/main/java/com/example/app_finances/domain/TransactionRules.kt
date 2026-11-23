@@ -18,6 +18,9 @@ object TransactionRules {
         addAll(installmentViolations(t))
     }
 
+    /** Receita e despesa (na conta ou no cartão) podem ser parceladas; transferência não. */
+    fun canHaveInstallments(type: TransactionType): Boolean = type != TransactionType.TRANSFER
+
     fun requireValid(t: TransactionEntity) {
         val problems = violations(t)
         require(problems.isEmpty()) { problems.joinToString(" ") }
@@ -57,7 +60,7 @@ object TransactionRules {
         val invalid = group == null || number == null || count == null || count < 2 || number !in 1..count
         return buildList {
             if (invalid) add("Parcelamento inválido.")
-            if (t.cardId == null) add("Só compras no cartão podem ser parceladas.")
+            if (!canHaveInstallments(t.type)) add("Transferências não podem ser parceladas.")
         }
     }
 }

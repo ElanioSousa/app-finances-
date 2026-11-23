@@ -40,7 +40,7 @@ import com.example.app_finances.data.local.entity.TransactionEntity
         InvoicePaymentEntity::class,
         GoalEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = true,
     autoMigrations = [
         // v2: recorrências guardam até onde já geraram lançamentos.
@@ -49,6 +49,8 @@ import com.example.app_finances.data.local.entity.TransactionEntity
         AutoMigration(from = 2, to = 3),
         // v4: metas de economia.
         AutoMigration(from = 3, to = 4),
+        // v5: data de lançamento (separada do vencimento).
+        AutoMigration(from = 4, to = 5),
     ],
 )
 @TypeConverters(Converters::class)

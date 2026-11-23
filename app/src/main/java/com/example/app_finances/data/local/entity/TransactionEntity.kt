@@ -18,7 +18,9 @@ import java.time.LocalDate
  * - [amountCents] é sempre positivo; [type] decide o sentido.
  * - Compra no cartão: [cardId] preenchido e [accountId] nulo — só afeta a conta
  *   quando a fatura é paga (ver [InvoicePaymentEntity]).
- * - Parcelas de uma mesma compra compartilham [installmentGroupId].
+ * - [date] é o vencimento (ou a data da compra, no cartão): decide o mês, o saldo e o que vence.
+ *   [launchDate] é só o dia em que foi registrado (nulo nos antigos e nos gerados por recorrência).
+ * - Parcelas (na conta ou no cartão) compartilham [installmentGroupId]; cada uma tem o seu valor.
  * - Gerado por recorrência: ([recurringId], [date]) é único, para não duplicar.
  */
 @Entity(
@@ -46,6 +48,7 @@ data class TransactionEntity(
     val type: TransactionType,
     val amountCents: Long,
     val date: LocalDate,
+    val launchDate: LocalDate? = null,
     val description: String,
     val notes: String? = null,
     val categoryId: Long? = null,

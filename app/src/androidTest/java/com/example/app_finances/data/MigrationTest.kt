@@ -67,6 +67,25 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun v4ParaV5MantemLancamentosSemDataDeLancamento() {
+        helper.createDatabase(DB, 4).use { db ->
+            db.execSQL("INSERT INTO accounts (id, name, type, initialBalanceCents, colorArgb, archived) VALUES (1, 'Carteira', 'CASH', 0, 0, 0)")
+            db.execSQL(
+                "INSERT INTO transactions (id, type, amountCents, date, description, accountId, paid) " +
+                    "VALUES (1, 'EXPENSE', 4590, 20400, 'Mercado', 1, 1)",
+            )
+        }
+        helper.runMigrationsAndValidate(DB, 5, true).use { db ->
+            db.query("SELECT description, amountCents, launchDate FROM transactions").use { cursor ->
+                assertTrue(cursor.moveToFirst())
+                assertEquals("Mercado", cursor.getString(0))
+                assertEquals(4590, cursor.getInt(1))
+                assertTrue(cursor.isNull(2))
+            }
+        }
+    }
+
     private companion object {
         const val DB = "migracao-teste.db"
     }

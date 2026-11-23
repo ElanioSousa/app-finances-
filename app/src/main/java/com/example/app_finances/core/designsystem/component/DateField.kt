@@ -12,6 +12,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,9 +27,21 @@ import com.example.app_finances.R
 import com.example.app_finances.core.format.Dates
 import java.time.LocalDate
 
-/** Atalhos "Hoje"/"Ontem" e um chip com a data que abre o calendário. */
+/** Atalhos "Hoje"/"Ontem" e um chip com a data que abre o calendário; [label], se houver, fica em cima. */
 @Composable
-fun DateField(date: LocalDate, onDateChange: (LocalDate) -> Unit, modifier: Modifier = Modifier) {
+fun DateField(date: LocalDate, onDateChange: (LocalDate) -> Unit, modifier: Modifier = Modifier, label: String? = null) {
+    if (label == null) {
+        DateChips(date, onDateChange, modifier)
+        return
+    }
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(label, style = MaterialTheme.typography.labelLarge)
+        DateChips(date, onDateChange)
+    }
+}
+
+@Composable
+private fun DateChips(date: LocalDate, onDateChange: (LocalDate) -> Unit, modifier: Modifier = Modifier) {
     val today = LocalDate.now()
     var pickerOpen by remember { mutableStateOf(false) }
     Row(

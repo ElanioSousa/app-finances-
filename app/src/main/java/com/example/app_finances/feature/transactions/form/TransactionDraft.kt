@@ -5,13 +5,17 @@ import com.example.app_finances.data.local.entity.TransactionEntity
 import com.example.app_finances.data.local.entity.TransactionType
 import com.example.app_finances.domain.Installments
 import com.example.app_finances.domain.QuickEntry
+import com.example.app_finances.domain.TransactionRules
 import java.time.LocalDate
 
 /** O que o usuário está preenchendo no formulário, antes de virar lançamento(s). */
 data class TransactionDraft(
     val type: TransactionType = TransactionType.EXPENSE,
     val amountCents: Long = 0,
+    /** Vencimento (data da compra, no cartão): é o que decide o mês e o saldo. */
     val date: LocalDate = LocalDate.now(),
+    /** Dia em que foi lançado (só registro); por padrão, hoje. Nulo nos antigos: a tela mostra o vencimento. */
+    val launchDate: LocalDate? = LocalDate.now(),
     val description: String = "",
     val categoryId: Long? = null,
     val accountId: Long? = null,
@@ -20,7 +24,7 @@ data class TransactionDraft(
     val notes: String = "",
     val origin: PaymentOrigin = PaymentOrigin.ACCOUNT,
     val cardId: Long? = null,
-    /** "Compra parcelada" escolhida (senão é à vista no cartão). */
+    /** "Parcelado" escolhido (senão é à vista). Na conta ou no cartão; transferência não. */
     val inInstallments: Boolean = false,
     val installments: Int = 1,
 ) {
@@ -45,6 +49,7 @@ data class TransactionDraft(
             type = type,
             amountCents = amountCents,
             date = date,
+            launchDate = launchDate,
             description = description.trim().ifEmpty { categoryName.orEmpty() },
             notes = notes.trim().ifEmpty { null },
             categoryId = categoryId.takeUnless { isTransfer },
@@ -87,16 +92,21 @@ data class TransactionDraft(
     fun withInstallments(parcelled: Boolean): TransactionDraft =
         copy(inInstallments = parcelled, installments = if (parcelled) installments.coerceAtLeast(2) else 1)
 
-    /** Quantidade de parcelas que vai ser gravada (1 = à vista ou fora do cartão). */
-    val installmentCount: Int get() = if (isCardPurchase && inInstallments) installments else 1
+    /** Parcelado é possível em receita e despesa, na conta ou no cartão (não em transferência). */
+    val canBeInstallments: Boolean get() = TransactionRules.canHaveInstallments(type)
 
-    /** Novo lançamento: uma compra parcelada vira um lançamento por parcela. */
-    fun toNewEntities(categoryName: String?, newGroupId: () -> String): List<TransactionEntity> {
-        if (isCardPurchase && inInstallments) {
+    /** Quantidade de parcelas que vai ser gravada (1 = à vista). */
+    val installmentCount: Int get() = if (canBeInstallments && inInstallments) installments else 1
+
+    /**
+     * Novo lançamento: parcelado vira um lançamento por parcela, uma por mês a partir do vencimento
+     * (na conta, as que vencem depois de [today] ficam pendentes; ver [Installments.schedule]).
+     */
+    fun toNewEntities(categoryName: String?, today: LocalDate, newGroupId: () -> String): List<TransactionEntity> {
+        if (canBeInstallments && inInstallments) {
             require(installments in 2..Installments.MAX) { "Informe de 2 a ${Installments.MAX} parcelas." }
         }
-        val entity = toEntity(original = null, categoryName = categoryName)
-        return Installments.schedule(entity, installmentCount, newGroupId)
+        return Installments.schedule(toEntity(original = null, categoryName = categoryName), installmentCount, today, newGroupId)
     }
 
     companion object {
@@ -104,6 +114,7 @@ data class TransactionDraft(
             type = entity.type,
             amountCents = entity.amountCents,
             date = entity.date,
+            launchDate = entity.launchDate,
             description = entity.description,
             categoryId = entity.categoryId,
             accountId = entity.accountId,

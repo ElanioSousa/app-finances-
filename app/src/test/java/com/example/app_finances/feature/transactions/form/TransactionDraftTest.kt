@@ -47,8 +47,8 @@ class TransactionDraftTest {
     @Test
     fun `no cartão, à vista gera um lançamento e parcelada gera um por parcela`() {
         val card = TransactionDraft(amountCents = 30_000, origin = PaymentOrigin.CARD, cardId = 3, installments = 3)
-        assertEquals(1, card.toNewEntities(null) { "g" }.size)
-        assertEquals(3, card.withInstallments(true).toNewEntities(null) { "g" }.size)
+        assertEquals(1, card.toNewEntities(null, TODAY) { "g" }.size)
+        assertEquals(3, card.withInstallments(true).toNewEntities(null, TODAY) { "g" }.size)
         assertEquals(2, card.copy(installments = 1).withInstallments(true).installments)
         assertEquals(1, card.withInstallments(true).withInstallments(false).installmentCount)
     }
@@ -56,7 +56,7 @@ class TransactionDraftTest {
     @Test
     fun `compra parcelada exige de 2 parcelas em diante`() {
         val draft = TransactionDraft(amountCents = 30_000, origin = PaymentOrigin.CARD, cardId = 3).withInstallments(true).copy(installments = 0)
-        assertEquals("Informe de 2 a 24 parcelas.", runCatching { draft.toNewEntities(null) { "g" } }.exceptionOrNull()?.message)
+        assertEquals("Informe de 2 a 24 parcelas.", runCatching { draft.toNewEntities(null, TODAY) { "g" } }.exceptionOrNull()?.message)
     }
 
     @Test
@@ -67,5 +67,28 @@ class TransactionDraftTest {
         assertEquals(true, future.withDate(today, today).paid)
         // Entre datas passadas, a escolha do usuário fica como estava.
         assertEquals(false, TransactionDraft(paid = false, date = today).withDate(today.minusDays(1), today).paid)
+    }
+
+    @Test
+    fun `receita parcelada na conta gera uma por mes e as futuras pendentes`() {
+        val draft = TransactionDraft(
+            type = TransactionType.INCOME, amountCents = 600_000, date = TODAY, launchDate = TODAY,
+            description = "Projeto", accountId = 1, paid = true, installments = 3,
+        ).withInstallments(true)
+        val parcels = draft.toNewEntities(null, TODAY) { "g" }
+        assertEquals(listOf(TODAY, TODAY.plusMonths(1), TODAY.plusMonths(2)), parcels.map { it.date })
+        assertEquals(listOf(true, false, false), parcels.map { it.paid })
+        assertEquals(listOf(200_000L, 200_000L, 200_000L), parcels.map { it.amountCents })
+        assertEquals(setOf(TODAY), parcels.map { it.launchDate }.toSet())
+    }
+
+    @Test
+    fun `transferencia nao parcela`() {
+        val transfer = TransactionDraft(type = TransactionType.TRANSFER, amountCents = 1_000, accountId = 1, destinationAccountId = 2, installments = 3).withInstallments(true)
+        assertEquals(1, transfer.installmentCount)
+    }
+
+    private companion object {
+        val TODAY: LocalDate = LocalDate.of(2026, 11, 23)
     }
 }

@@ -78,10 +78,12 @@ class TransactionRulesTest {
     }
 
     @Test
-    fun `parcela só no cartão e compra no cartão nunca pendente`() {
+    fun `parcela na conta ou no cartao, nunca em transferencia, e compra no cartao nunca pendente`() {
         val installment = transaction().copy(installmentGroupId = "g", installmentNumber = 1, installmentCount = 2)
-        assertInvalid(installment)
+        assertValid(installment)
+        assertValid(installment.copy(type = TransactionType.INCOME))
         assertValid(installment.copy(accountId = null, cardId = 1))
+        assertInvalid(installment.copy(type = TransactionType.TRANSFER, destinationAccountId = 2))
         assertInvalid(transaction(accountId = null).copy(cardId = 1, paid = false))
     }
 }

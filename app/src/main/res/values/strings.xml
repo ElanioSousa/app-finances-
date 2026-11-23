@@ -138,6 +138,8 @@
     <string name="form_paid_expense">Já foi pago</string>
     <string name="form_paid_income">Já foi recebido</string>
     <string name="form_paid_transfer">Já foi feita</string>
+    <string name="form_paid_first_expense">A 1ª parcela já foi paga</string>
+    <string name="form_paid_first_income">A 1ª parcela já foi recebida</string>
     <string name="form_notes">Observação</string>
     <string name="form_today">Hoje</string>
     <string name="form_yesterday">Ontem</string>
@@ -159,10 +161,17 @@
     <string name="form_installments_count">Quantidade de parcelas</string>
     <string name="form_installments_range">De 2 a %1$d parcelas</string>
     <string name="form_installment_option">%1$dx de %2$s</string>
-    <string name="form_installment_info">Parcela %1$d de %2$d — a edição vale só para esta parcela.</string>
+    <string name="form_installment_info">Parcela %1$d de %2$d: mudar o valor ou a data altera só esta parcela.</string>
+    <string name="form_cash">À vista</string>
+    <string name="form_installments">Parcelado (uma parcela por mês)</string>
+    <string name="form_launch_date">Data de lançamento</string>
+    <string name="form_due_date">Vencimento</string>
+    <string name="form_first_due_date">Vencimento da 1ª parcela</string>
+    <string name="form_purchase_date">Data da compra</string>
+    <string name="form_transfer_date">Data da transferência</string>
     <string name="form_delete_title">Excluir lançamento?</string>
     <string name="form_delete_body">Ele sai da lista e dos saldos. Não dá para desfazer.</string>
-    <string name="form_delete_installments_body">Esta é uma compra parcelada: as %1$d parcelas serão excluídas. Não dá para desfazer.</string>
+    <string name="form_delete_installments_body">Este lançamento é parcelado: as %1$d parcelas serão excluídas. Não dá para desfazer.</string>
     <string name="action_new_card_purchase">Nova compra</string>
     <string name="form_no_cards">Cadastre um cartão na aba Cartões para lançar compras nele.</string>
 

@@ -61,7 +61,7 @@ data class TransactionFormUiState(
 
     /** Parcelamento só ao criar: editar uma parcela mexe só nela. */
     val canChooseInstallments: Boolean
-        get() = draft.isCardPurchase && !status.isEditing
+        get() = draft.canBeInstallments && !status.isEditing
 
     /** Uma parcela pertence ao cartão da compra: não dá para mudar a origem nem o cartão. */
     val canChangeOrigin: Boolean
@@ -123,6 +123,8 @@ class TransactionFormViewModel(
         if (draft.categoryId != null) return@update draft.copy(description = text)
         draft.copy(description = text, categoryId = memory.categoryFor(text, state.value.categoriesForType)?.id)
     }
+
+    fun setLaunchDate(date: LocalDate) = update { it.copy(launchDate = date) }
 
     /** Data escolhida: no futuro, o lançamento fica pendente (ver [TransactionDraft.withDate]). */
     fun setDate(date: LocalDate) = update { it.withDate(date, today()) }
@@ -189,7 +191,7 @@ class TransactionFormViewModel(
         if (editing != null) {
             transactionRepository.update(current.toEntity(editing, categoryName))
         } else {
-            transactionRepository.addAll(current.toNewEntities(categoryName) { UUID.randomUUID().toString() })
+            transactionRepository.addAll(current.toNewEntities(categoryName, today()) { UUID.randomUUID().toString() })
         }
     }
 }
