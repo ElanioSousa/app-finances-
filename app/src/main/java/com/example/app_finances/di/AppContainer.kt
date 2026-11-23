@@ -14,6 +14,8 @@ import com.example.app_finances.data.repository.RecurringRepository
 import com.example.app_finances.data.repository.TransactionRepository
 import com.example.app_finances.premium.PlayPremiumStore
 import com.example.app_finances.premium.PremiumStore
+import com.example.app_finances.premium.UnlockedPremiumStore
+import com.example.app_finances.BuildConfig
 
 /**
  * Injeção de dependência manual: um único lugar cria o banco e os repositórios.
@@ -27,7 +29,7 @@ class AppContainer(
     /** "Hoje" para as regras que dependem da data (faturas); testes podem fixar. */
     val today: () -> LocalDate = LocalDate::now,
     /** Compra do Premium; os testes trocam por uma que não fala com a Play Store. */
-    createPremiumStore: (Context, SettingsRepository) -> PremiumStore = ::PlayPremiumStore,
+    createPremiumStore: (Context, SettingsRepository) -> PremiumStore = ::defaultPremiumStore,
 ) {
     private val appContext: Context = context.applicationContext
     private val database: AppDatabase by lazy { createDatabase(appContext) }
@@ -45,6 +47,12 @@ class AppContainer(
     val backupRepository by lazy { BackupRepository(database.backupDao(), appContext.contentResolver) }
     val settingsRepository by lazy { SettingsRepository(appContext) }
     val premiumStore: PremiumStore by lazy { createPremiumStore(appContext, settingsRepository) }
+
+    private companion object {
+        /** Pela Play Store; na versão pessoal (Premium liberado), sem ela. */
+        fun defaultPremiumStore(context: Context, settings: SettingsRepository): PremiumStore =
+            if (BuildConfig.PREMIUM_LIBERADO) UnlockedPremiumStore(settings) else PlayPremiumStore(context, settings)
+    }
 
     /** De onde as telas tiram categorias, contas e cartões. */
     val catalogSources by lazy { CatalogSources(categoryRepository, accountRepository, cardRepository) }

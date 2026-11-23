@@ -24,6 +24,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // Só a versão pessoal libera o Premium sem a Play Store (ver buildTypes.pessoal).
+        buildConfigField("boolean", "PREMIUM_LIBERADO", "false")
     }
 
     /*
@@ -53,6 +55,18 @@ android {
                 packageScope = setOf("androidx.**", "kotlin.**", "kotlinx.**")
             }
         }
+        /*
+         * Versão pessoal do dono, para o celular dele: igual à de lançamento, mas com o
+         * identificador e a chave do app que já está instalado lá (com.example.app_finances,
+         * assinado com a chave de testes), para atualizar sem perder os dados; e com o
+         * Premium liberado. NÃO é para a Play Store. Gerar: ./gradlew assemblePessoal
+         */
+        create("pessoal") {
+            initWith(getByName("release"))
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks += listOf("release")
+            buildConfigField("boolean", "PREMIUM_LIBERADO", "true")
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -61,6 +75,13 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+}
+
+androidComponents {
+    // A versão pessoal atualiza o app antigo do celular do dono (mesmo identificador).
+    onVariants(selector().withBuildType("pessoal")) { variant ->
+        variant.applicationId.set("com.example.app_finances")
     }
 }
 
