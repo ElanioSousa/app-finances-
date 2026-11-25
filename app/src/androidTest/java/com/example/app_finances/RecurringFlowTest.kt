@@ -13,6 +13,10 @@ import androidx.compose.ui.test.performTextInput
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.app_finances.core.format.Money
+import androidx.compose.ui.test.performTextReplacement
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertEquals
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -94,5 +98,34 @@ class RecurringFlowTest {
         compose.onAllNodesWithText(string(R.string.nav_transactions)).onFirst().performClick()
         compose.onNodeWithContentDescription(string(R.string.month_next)).performClick()
         waitFor(string(R.string.transaction_projected))
+    }
+
+    /** Tocar na previsão do mês que vem e mudar o valor: vira um lançamento pendente só daquele mês. */
+    @Test
+    fun ajustarSoUmMesDoSalario() {
+        compose.onAllNodesWithText(string(R.string.nav_more)).onFirst().performClick()
+        compose.onNodeWithText(string(R.string.more_recurring)).performClick()
+        compose.onNodeWithText(string(R.string.recurring_new)).performClick()
+        compose.onNodeWithText(string(R.string.type_income)).performClick()
+        compose.onNode(hasSetTextAction() and hasText(string(R.string.form_amount))).performTextInput("276014")
+        compose.onNode(hasSetTextAction() and hasText(string(R.string.form_description))).performTextInput("Salário")
+        compose.onNodeWithText(string(R.string.action_save)).performClick()
+        waitFor(string(R.string.recurring_fixed))
+
+        compose.onAllNodesWithText(string(R.string.nav_transactions)).onFirst().performClick()
+        compose.onNodeWithContentDescription(string(R.string.month_next)).performClick()
+        waitFor(string(R.string.transaction_projected))
+        compose.onAllNodesWithText("Salário", substring = true).onFirst().performClick()
+        waitFor(string(R.string.form_occurrence_info))
+        compose.onNode(hasSetTextAction() and hasText(string(R.string.form_amount))).performTextReplacement("250000")
+        compose.onNodeWithText(string(R.string.action_save)).performScrollTo().performClick()
+
+        // Agora é um lançamento pendente de R$ 2.500,00; a previsão daquele mês some (não fica duplicada).
+        waitFor(Money.format(250_000))
+        compose.waitUntil(5_000) { compose.onAllNodesWithText(string(R.string.transaction_projected)).fetchSemanticsNodes().isEmpty() }
+        compose.onNodeWithText(string(R.string.transaction_pending)).assertExists()
+        // O valor da recorrência continua o mesmo.
+        val recurring = runBlocking { TestApp.context.container.recurringRepository.observeAll().first().single() }
+        assertEquals(276_014L, recurring.amountCents)
     }
 }

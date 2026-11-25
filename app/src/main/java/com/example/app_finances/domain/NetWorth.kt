@@ -30,16 +30,17 @@ data class NetWorth(
                 accountsCents = balancesCents,
                 receivableCents = open.filter { it.type == TransactionType.INCOME }.sumOf { it.amountCents },
                 cards = cards.map { NamedAmount(it.card.name, it.usedCents) }.filter { it.cents > 0 },
-                loans = recurrings.mapNotNull { remainingLoan(it, today) },
+                loans = recurrings.mapNotNull { remainingLoan(it, today, open) },
                 payableCents = open.filter { it.type == TransactionType.EXPENSE }.sumOf { it.amountCents },
             )
         }
 
         /** Despesa com prazo (empréstimo, financiamento): o que falta das parcelas ainda não lançadas. */
-        private fun remainingLoan(recurring: RecurringEntity, today: LocalDate): NamedAmount? {
+        private fun remainingLoan(recurring: RecurringEntity, today: LocalDate, open: List<TransactionEntity>): NamedAmount? {
             val end = recurring.endDate ?: return null
             if (recurring.type != TransactionType.EXPENSE || !recurring.active) return null
-            val remaining = RecurrenceScheduler.projected(listOf(recurring), today, end).sumOf { it.amountCents }
+            // Parcela já lançada (pendente) conta em "contas a pagar", não aqui de novo.
+            val remaining = RecurrenceScheduler.projected(listOf(recurring), today, end, open).sumOf { it.amountCents }
             return NamedAmount(recurring.description, remaining).takeIf { remaining > 0 }
         }
     }

@@ -40,8 +40,9 @@ abstract class RecurringDao {
      * Apaga ocorrências futuras que ainda não aconteceram de fato: pendentes na conta
      * ou agendadas no cartão. As passadas e as já pagas ficam como histórico.
      * (Espelha `RecurrenceScheduler.toTransaction`: na conta nasce pendente, no cartão já "paga".)
+     * Um mês que o usuário ajustou antes da hora tem data de lançamento (as geradas não têm): fica.
      */
-    @Query("DELETE FROM transactions WHERE recurringId = :id AND date > :today AND (paid = 0 OR cardId IS NOT NULL)")
+    @Query("DELETE FROM transactions WHERE recurringId = :id AND date > :today AND (paid = 0 OR cardId IS NOT NULL) AND launchDate IS NULL")
     abstract suspend fun deleteFutureOccurrences(id: Long, today: LocalDate)
 
     /** Grava as ocorrências e marca até onde foi, numa transação só. */

@@ -40,7 +40,11 @@ data class FormStatus(
     val error: String? = null,
     /** Parcela em edição (só ela muda; origem e cartão ficam travados). */
     val editedInstallment: InstallmentInfo? = null,
-)
+    /** Ajustando um mês previsto de recorrência (ainda não existe: não há o que excluir). */
+    val editsOccurrence: Boolean = false,
+) {
+    val canDelete: Boolean get() = isEditing && !editsOccurrence && !isLoading
+}
 
 data class InstallmentInfo(val number: Int, val count: Int)
 
@@ -89,7 +93,8 @@ class TransactionFormViewModel(
 
     private val draft = MutableStateFlow(TransactionDraft())
     private val editingId = (request as? FormRequest.Edit)?.id
-    private val status = MutableStateFlow(FormStatus(isEditing = editingId != null))
+    private val occurrence = (request as? FormRequest.Occurrence)?.transaction
+    private val status = MutableStateFlow(FormStatus(isEditing = editingId != null || occurrence != null, editsOccurrence = occurrence != null))
     private val catalog = observeCatalog(catalogSources)
     private val savedEvents = Channel<Unit>(Channel.CONFLATED)
     private var original: TransactionEntity? = null
@@ -162,6 +167,10 @@ class TransactionFormViewModel(
     }
 
     private suspend fun load() {
+        occurrence?.let {
+            draft.value = TransactionDraft.from(it)
+            return
+        }
         val existing = editingId?.let { transactionRepository.getById(it) }
         if (existing != null) {
             original = existing
@@ -190,6 +199,10 @@ class TransactionFormViewModel(
         val editing = original
         if (editing != null) {
             transactionRepository.update(current.toEntity(editing, categoryName))
+        } else if (occurrence != null) {
+            // Mantém o vínculo com a recorrência e a data (a geração do mês não duplica) e anota
+            // o dia em que foi lançado: assim, editar a recorrência depois não apaga este ajuste.
+            transactionRepository.add(current.toEntity(occurrence, categoryName).copy(launchDate = today()))
         } else {
             transactionRepository.addAll(current.toNewEntities(categoryName, today()) { UUID.randomUUID().toString() })
         }

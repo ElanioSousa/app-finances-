@@ -41,7 +41,7 @@ object MonthForecast {
         val last = first.plusMonths(count - 1L)
         // O que venceu antes (atrasado) cai no mês atual; depois do horizonte, fica de fora.
         val slotOf = { month: YearMonth -> ChronoUnit.MONTHS.between(first, maxOf(month, first)).toInt().takeIf { it < count } }
-        val projected = RecurrenceScheduler.projected(inputs.recurrings, today, last.atEndOfMonth())
+        val projected = RecurrenceScheduler.projected(inputs.recurrings, today, last.atEndOfMonth(), inputs.pending + inputs.cardPurchases)
         val deltas = LongArray(count)
         (inputs.pending.filter { !it.paid } + projected).filter { it.cardId == null }.forEach { item ->
             slotOf(YearMonth.from(item.date))?.let { deltas[it] += signedAmount(item) }

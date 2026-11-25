@@ -19,6 +19,7 @@ import com.example.app_finances.data.repository.AccountRepository
 import com.example.app_finances.data.repository.CardRepository
 import com.example.app_finances.data.repository.RecurringRepository
 import com.example.app_finances.domain.Installments
+import com.example.app_finances.domain.RecurrenceScheduler
 import com.example.app_finances.domain.MonthTotals
 import com.example.app_finances.data.repository.TransactionRepository
 import kotlinx.coroutines.flow.first
@@ -214,6 +215,22 @@ class DatabaseTest {
 
         repo.setActive(recurring, active = false)
         assertEquals(emptyList<LocalDate>(), occurrencesOf(recurring.id))
+    }
+
+    /** O mês que o usuário ajustou antes da hora (com data de lançamento) não some ao editar a recorrência. */
+    @Test
+    fun editarRecorrenciaMantemMesAjustado() = runTest {
+        val repo = recurringRepo(LocalDate.of(2026, 11, 1))
+        repo.add(rent)
+        val recurring = db.recurringDao().observeAll().first().single()
+        val january = LocalDate.of(2027, 1, 5)
+        val adjusted = RecurrenceScheduler.toTransaction(recurring, january).copy(amountCents = 99_000, launchDate = LocalDate.of(2026, 11, 1))
+        transactions.add(adjusted)
+
+        repo.update(recurring.copy(amountCents = 160_000))
+
+        val kept = db.transactionDao().observeBetween(january, january).first()
+        assertEquals(listOf(99_000L), kept.map { it.amountCents })
     }
 
     @Test

@@ -62,4 +62,12 @@ class MonthForecastTest {
         val noCards = inputs(recurrings = listOf(generated)).copy(cards = emptyList())
         assertEquals(100_000L, MonthForecast.endOfMonth(noCards, today))
     }
+
+    @Test
+    fun salarioAjustadoNoMesNaoContaDuasVezes() {
+        // O salário de 28/11 foi ajustado para R$ 80 (lançado pendente): a recorrência não soma os R$ 100 de novo.
+        val adjusted = RecurrenceScheduler.toTransaction(salary, nov(28)).copy(amountCents = 8_000)
+        val noCards = inputs(pending = listOf(adjusted)).copy(cards = emptyList())
+        assertEquals(108_000L, MonthForecast.endOfMonth(noCards, today))
+    }
 }

@@ -139,7 +139,7 @@ private fun FormHeader(state: TransactionFormUiState, actions: FormActions, star
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier.weight(1f),
         )
-        if (state.status.isEditing && !state.status.isLoading) DeleteButton(state.status.editedInstallment, actions.onDelete)
+        if (state.status.canDelete) DeleteButton(state.status.editedInstallment, actions.onDelete)
         IconButton(onClick = actions.onClose) { Icon(Icons.Filled.Close, stringResource(R.string.action_close)) }
     }
     val isNew = !state.status.isEditing
@@ -181,6 +181,9 @@ private fun OriginSection(state: TransactionFormUiState, actions: FormActions) {
     }
     if (draft.isCardPurchase) CardFields(state, actions) else AccountFields(state, actions)
     if (state.canChooseInstallments) InstallmentFields(state, actions)
+    if (state.status.editsOccurrence) {
+        Text(stringResource(R.string.form_occurrence_info), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
     state.status.editedInstallment?.let { info ->
         Text(stringResource(R.string.form_installment_info, info.number, info.count), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }

@@ -53,12 +53,21 @@ object RecurrenceScheduler {
     /**
      * Previsão: o que as recorrências ativas ainda vão lançar entre [from] e [to]
      * (só depois do que já foi gerado). Serve para ver meses futuros — nada é gravado.
+     * Ocorrência que já está em [existing] (o usuário ajustou aquele mês antes da hora) não se repete:
+     * quem chama passa os lançamentos que tem em mãos (obrigatório, para ninguém contar duas vezes).
      */
-    fun projected(recurrings: List<RecurringEntity>, from: LocalDate, to: LocalDate): List<TransactionEntity> =
-        recurrings.filter { it.active }.flatMap { recurring ->
+    fun projected(
+        recurrings: List<RecurringEntity>,
+        from: LocalDate,
+        to: LocalDate,
+        existing: Collection<TransactionEntity>,
+    ): List<TransactionEntity> {
+        val taken = existing.mapNotNullTo(HashSet()) { t -> t.recurringId?.let { it to t.date } }
+        return recurrings.filter { it.active }.flatMap { recurring ->
             val start = maxOf(from, recurring.generatedUntil?.plusDays(1) ?: recurring.startDate)
-            occurrences(recurring, start, to).map { toTransaction(recurring, it) }
+            occurrences(recurring, start, to).filterNot { (recurring.id to it) in taken }.map { toTransaction(recurring, it) }
         }
+    }
 
     /**
      * O lançamento de uma ocorrência. Na conta nasce pendente (o usuário confirma

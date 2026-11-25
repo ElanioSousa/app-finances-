@@ -123,8 +123,17 @@ class RecurrenceSchedulerTest {
     fun `previsão mostra só o que ainda não foi gerado, sem pausadas`() {
         val salary = recurring(start = d(2026, 1, 5)).copy(generatedUntil = d(2026, 11, 30))
         val paused = salary.copy(id = 8, active = false)
-        val projected = RecurrenceScheduler.projected(listOf(salary, paused), d(2026, 11, 1), d(2027, 1, 31))
+        val projected = RecurrenceScheduler.projected(listOf(salary, paused), d(2026, 11, 1), d(2027, 1, 31), existing = emptyList())
         assertEquals(listOf(d(2026, 12, 5), d(2027, 1, 5)), projected.map { it.date })
         assertTrue(projected.none { it.paid })
+    }
+
+    @Test
+    fun `mes ja ajustado pelo usuario nao aparece de novo na previsao`() {
+        val rent = recurring(start = d(2026, 1, 10))
+        // O usuário mudou o valor de março antes da hora: virou um lançamento de verdade.
+        val adjusted = RecurrenceScheduler.toTransaction(rent, d(2026, 3, 10)).copy(amountCents = 99_000)
+        val dates = RecurrenceScheduler.projected(listOf(rent), d(2026, 2, 1), d(2026, 4, 30), existing = listOf(adjusted)).map { it.date }
+        assertEquals(listOf(d(2026, 2, 10), d(2026, 4, 10)), dates)
     }
 }

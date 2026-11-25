@@ -163,6 +163,7 @@
     <string name="form_installment_option">%1$dx de %2$s</string>
     <string name="form_installment_info">Parcela %1$d de %2$d: mudar o valor ou a data altera só esta parcela.</string>
     <string name="form_cash">À vista</string>
+    <string name="form_occurrence_info">Previsão de uma recorrência: o que mudar aqui vale só para este mês (o valor da recorrência continua o mesmo).</string>
     <string name="form_installments">Parcelado (uma parcela por mês)</string>
     <string name="form_launch_date">Data de lançamento</string>
     <string name="form_due_date">Vencimento</string>

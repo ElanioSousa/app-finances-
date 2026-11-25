@@ -22,9 +22,9 @@ class LedgerMonths(cards: List<CreditCardEntity>) {
     fun within(transactions: List<TransactionEntity>, from: YearMonth, to: YearMonth): List<TransactionEntity> =
         transactions.filter { of(it) in from..to }
 
-    /** O que as recorrências ainda vão lançar e que conta entre [from] e [to]. */
-    fun projected(recurrings: List<RecurringEntity>, from: YearMonth, to: YearMonth): List<TransactionEntity> =
-        within(RecurrenceScheduler.projected(recurrings, firstDateFor(from), to.atEndOfMonth()), from, to)
+    /** O que as recorrências ainda vão lançar e que conta entre [from] e [to] (sem o que já está em [existing]). */
+    fun projected(recurrings: List<RecurringEntity>, from: YearMonth, to: YearMonth, existing: Collection<TransactionEntity>): List<TransactionEntity> =
+        within(RecurrenceScheduler.projected(recurrings, firstDateFor(from), to.atEndOfMonth(), existing), from, to)
 
     companion object {
         /**
@@ -45,6 +45,6 @@ data class Ledger(
     val transactions: List<TransactionEntity>,
     val months: LedgerMonths,
 ) {
-    /** O que as recorrências ainda vão lançar no mesmo período. */
-    fun projected(recurrings: List<RecurringEntity>): List<TransactionEntity> = months.projected(recurrings, from, to)
+    /** O que as recorrências ainda vão lançar no mesmo período (o que já foi lançado não se repete). */
+    fun projected(recurrings: List<RecurringEntity>): List<TransactionEntity> = months.projected(recurrings, from, to, transactions)
 }

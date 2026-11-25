@@ -24,7 +24,7 @@ fun TransactionRow(item: TransactionItem, onClick: () -> Unit, modifier: Modifie
     ListRow(
         text = RowText(item.transaction.description, item.subtitle),
         // Previsões de recorrência não abrem o formulário: ainda não existem.
-        onClick = onClick.takeUnless { item.isProjected },
+        onClick = onClick,
         modifier = modifier,
         leading = { TransactionIcon(item) },
         trailing = { TransactionAmount(item) },

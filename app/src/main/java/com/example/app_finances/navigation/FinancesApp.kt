@@ -153,7 +153,7 @@ private fun AppNavHost(navController: NavHostController, padding: PaddingValues,
     ) {
         homeGraph(nav)
         tabGraph(TopLevelDestination.Transactions) {
-            composable(it) { TransactionsScreen(padding, nav.onOpenTransaction, onOpenCard = { id -> navController.navigateToCard(id) }) }
+            composable(it) { TransactionsScreen(padding, nav.openForm, onOpenCard = { id -> navController.navigateToCard(id) }) }
         }
         cardsGraph(nav)
         moreGraph(nav)

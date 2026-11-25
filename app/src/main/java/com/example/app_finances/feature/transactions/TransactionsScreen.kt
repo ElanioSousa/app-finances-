@@ -46,6 +46,7 @@ import com.example.app_finances.core.ui.LocalSnackbarHostState
 import com.example.app_finances.core.ui.MonthTotalsRow
 import com.example.app_finances.core.ui.TransactionRow
 import com.example.app_finances.core.ui.containerViewModel
+import com.example.app_finances.feature.transactions.form.FormRequest
 import java.time.YearMonth
 
 /** Ações da tela agrupadas, para não espalhar callbacks por todos os componentes. */
@@ -53,18 +54,28 @@ private data class TransactionsActions(
     val onMonthChange: (YearMonth) -> Unit,
     val onFilterChange: (TransactionFilter) -> Unit,
     val onOpen: (Long) -> Unit,
+    /** Previsão de recorrência: ajustar só aquele mês. */
+    val onOpenOccurrence: (TransactionItem) -> Unit,
     val onDelete: (TransactionItem) -> Unit,
     val onOpenCard: (Long) -> Unit,
 )
 
 @Composable
-fun TransactionsScreen(scaffoldPadding: PaddingValues, onOpenTransaction: (Long) -> Unit, onOpenCard: (Long) -> Unit) {
+fun TransactionsScreen(scaffoldPadding: PaddingValues, openForm: (FormRequest) -> Unit, onOpenCard: (Long) -> Unit) {
+
     val viewModel = containerViewModel {
         TransactionsViewModel(it.transactionRepository, it.catalogSources, it.recurringRepository)
     }
     val state by viewModel.state.collectAsStateWithLifecycle()
     TransactionEvents(viewModel)
-    val actions = TransactionsActions(viewModel::setMonth, viewModel::setFilter, onOpenTransaction, viewModel::delete, onOpenCard)
+    val actions = TransactionsActions(
+        onMonthChange = viewModel::setMonth,
+        onFilterChange = viewModel::setFilter,
+        onOpen = { openForm(FormRequest.Edit(it)) },
+        onOpenOccurrence = { openForm(FormRequest.Occurrence(it.transaction)) },
+        onDelete = viewModel::delete,
+        onOpenCard = onOpenCard,
+    )
 
     ScreenColumn(title = stringResource(R.string.nav_transactions), scaffoldPadding = scaffoldPadding) {
         item { MonthSelector(state.month, actions.onMonthChange) }
@@ -127,17 +138,17 @@ private fun LazyListScope.dayGroups(days: List<DayGroup>, actions: TransactionsA
             )
         }
         items(day.items, key = { it.key }) { item ->
-            // Previsões não existem ainda: nada para abrir nem excluir.
-            if (item.isProjected) ProjectedRow(item) else SwipeableRow(item, actions)
+            // Previsão ainda não existe: tocar ajusta só aquele mês (não há o que excluir).
+            if (item.isProjected) ProjectedRow(item) { actions.onOpenOccurrence(item) } else SwipeableRow(item, actions)
         }
         items(day.payments, key = { "payment-${it.payment.id}" }) { item -> PaymentRow(item) { actions.onOpenCard(item.payment.cardId) } }
     }
 }
 
 @Composable
-private fun ProjectedRow(item: TransactionItem) {
+private fun ProjectedRow(item: TransactionItem, onClick: () -> Unit) {
     Box(Modifier.clip(MaterialTheme.shapes.large).background(MaterialTheme.colorScheme.surfaceContainer)) {
-        TransactionRow(item, onClick = {})
+        TransactionRow(item, onClick = onClick)
     }
 }
 
